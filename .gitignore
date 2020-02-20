@@ -1,0 +1,10 @@
+venv
+.tox
+*.egg-info
+allure*
+*.apk
+dist
+build
+.idea
+__pycache__/
+appium_logs
