@@ -7,7 +7,7 @@ The folder testui contains the logic for Appium Driver and actions. Then you can
 <pre>
     driver: TestUIDriver = NewDriver()\
         .set_app_path("app.apk")\
-        .set_app_package_activity("com.package.package", "com.activity.SplashActivity")\
+        .set_app_package_activity("com.package.package", "com.activity.Activity")\
         .set_logger("pytest").set_appium_driver()
 </pre>
 
@@ -33,8 +33,8 @@ The automation infrastructure implements the Page Object Model (POM) pattern. Th
             self.driver = driver
             # Settings drawer
             self.__settings_button = e(driver, "accessibility", "Settings")
-            self.__edit_profile = e(driver, "id", "textview_settings_drawer_account_secondary")
-            self.__log_out_button = e(driver, "id", "textview_settings_drawer_log_out
+            self.__edit_profile = e(driver, "id", "textview_settings")
+            self.__log_out_button = e(driver, "id", "textview_settings_drawer")
             .
             .
             .
