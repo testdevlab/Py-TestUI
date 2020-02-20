@@ -51,6 +51,10 @@ class NewDriver:
         self.__appium_log_file = file
         return self
 
+    def set_browser(self, browser):
+        self.__browser_name = browser
+        return self
+
     def set_soft_assert(self, soft_assert: bool):
         self.soft_assert = soft_assert
         return self
@@ -194,7 +198,8 @@ class NewDriver:
 
     def set_selenium_driver(self):
         self.__set_selenium_caps()
-        self.__driver = start_selenium_driver(self.__desired_capabilities, self.__remote_url, self.__debug)
+        self.__driver = start_selenium_driver(
+            self.__desired_capabilities, self.__remote_url, self.__debug, self.__browser_name)
         return self.get_testui_driver()
 
 
@@ -222,16 +227,21 @@ def start_driver(desired_caps, url, debug, port, udid, log_file):
     raise err
 
 
-def start_selenium_driver(desired_caps, url=None, debug=None):
+def start_selenium_driver(desired_caps, url=None, debug=None, browser=None):
     logger.log("setting capabilities: " + desired_caps.__str__())
-    logger.log("starting selenium driver...")
+    logger.log(f"starting selenium {browser.lower()} driver...")
     err = None
     for x in range(2):
         try:
             if url is not None:
                 driver = webdriver.Remote(url, desired_caps)
             else:
-                driver = webdriver.Chrome()
+                if browser is None:
+                    driver = webdriver.Chrome()
+                elif browser.lower() == 'firefox':
+                    driver = webdriver.Firefox()
+                else:
+                    driver = webdriver.Chrome()
             atexit.register(__quit_driver, driver, debug)
             logger.log(f"appium running on {url}. \n")
             return driver

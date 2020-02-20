@@ -8,3 +8,4 @@ build
 .idea
 __pycache__/
 appium_logs
+*.log
