@@ -73,6 +73,16 @@ def log_warn(message, jump_line=False):
 
 
 def log_test_name(message, jump_line=False):
+    log_info(message, jump_line)
+    new_line = ''
+    if jump_line:
+        new_line = '\n'
+    file = open(__file_tests(), 'a+')
+    file.write(f'{message}\n{new_line}')
+    file.close()
+
+
+def log_info(message, jump_line=False):
     now = datetime.now()
     current_time = now.strftime("%Y-%m-%d %H:%M:%S")
     new_line = ''
@@ -93,3 +103,9 @@ def __file_log(log_file='stdout.log'):
     else:
         file_name = f'appium_logs/{log_file}'
     return root_dir + file_name
+
+
+def __file_tests(log_file='report_cases.txt'):
+    root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + '/'
+    Path(root_dir + "appium_logs").mkdir(parents=True, exist_ok=True)
+    return root_dir + log_file

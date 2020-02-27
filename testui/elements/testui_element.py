@@ -42,9 +42,12 @@ def testui_error(driver, exception):
     root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     Path(root_dir + "/report_screenshots").mkdir(parents=True, exist_ok=True)
     image_name = f'ERROR-{driver.device_name}-{current_time}.png'
-    driver.save_screenshot(image_name, directory='report_screenshots/')
-    exception = exception + f'{logger.bcolors.FAIL} \n Screenshot taken and saved as: ' \
-                            f'report_screenshots/testui-{image_name}{logger.bcolors.ENDC}\n'
+    try:
+        driver.save_screenshot(image_name, directory='report_screenshots/')
+        exception += f'{logger.bcolors.FAIL} \n Screenshot taken and saved as: ' \
+                     f'report_screenshots/testui-{image_name}{logger.bcolors.ENDC}\n'
+    except Exception as error:
+        exception += f'{logger.bcolors.FAIL} \nCould not take screenshot:{logger.bcolors.ENDC}\n {error}'
     full_exception = error_with_traceback(exception)
     if driver.soft_assert:
         logger.log_error(full_exception)
@@ -440,9 +443,10 @@ class Elements(object):
 
         return self
 
-    def find_image_match(self, image_name, threshold=0.9, image_match='', max_scale=2.0):
+    def find_image_match(self, image_name, threshold=0.9, image_match='', max_scale=2.0, min_scale=0.3):
         """
         Takes screenshot of the element and compares it with the one you provide as 'image_name'
+        :param min_scale:
         :param max_scale:
         :param image_match: returns the image with a rectangle showing the match
         :param image_name: relative path to image
@@ -453,7 +457,7 @@ class Elements(object):
         self.__is_not = False
         self.screenshot(self.device_name + '.png')
         found, p = ImageRecognition(self.device_name + '.png', image_name, threshold, self.device_name) \
-            .compare(image_match, max_scale)
+            .compare(image_match=image_match, max_scale=max_scale, min_scale=min_scale)
         if not found and not is_not:
             self.__show_error(f'{self.device_name}: The images compared did not match. threshold={threshold}. '
                               f'Matched = {p}')
@@ -465,6 +469,30 @@ class Elements(object):
         os.remove(root_dir + self.device_name + '.png')
 
         return self
+
+    def is_image_match(self, image_name, threshold=0.9, image_match='', max_scale=2.0, min_scale=0.3):
+        """
+        Takes screenshot of the element and compares it with the one you provide as 'image_name'
+        :param min_scale:
+        :param max_scale:
+        :param image_match: returns the image with a rectangle showing the match
+        :param image_name: relative path to image
+        :param threshold: limit to consider image as a match (0 to 1)
+        :return: Elements
+        """
+        is_not = self.__is_not
+        self.__is_not = False
+        self.screenshot(self.device_name + '.png')
+        found, p = ImageRecognition(self.device_name + '.png', image_name, threshold, self.device_name) \
+            .compare(image_match=image_match, max_scale=max_scale, min_scale=min_scale)
+        if not found and not is_not:
+            return False
+        if found and is_not:
+            return False
+        root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + '/'
+        os.remove(root_dir + self.device_name + '.png')
+
+        return True
 
     def swipe(self, start_x=None, start_y=None, end_x=None, end_y=None, el=None, duration=None):
         """
@@ -686,7 +714,11 @@ class Elements(object):
         return self
 
     def collection_size(self):
+        self.__is_collection = False
+        index = self.index
+        self.index = 0
         self.wait_until_visible()
+        self.index = index
         self.__is_collection = True
         return len(self.__find_by_collection())
 
@@ -743,4 +775,8 @@ class AndroidLocator(object):
 
     @classmethod
     def parent(cls, parent_method, child_method):
-        return f'fromParent({child_method}).{parent_method}'
+        return f'fromParent({parent_method}).{child_method}'
+
+    @classmethod
+    def child(cls, parent_method, child_method):
+        return f'childSelector({child_method}).{parent_method}'

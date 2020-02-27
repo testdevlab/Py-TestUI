@@ -77,6 +77,7 @@ class NewDriver:
             caps = {}
         for cap in caps:
             self.__desired_capabilities[cap] = caps[cap]
+        return self
 
     def set_app_path(self, path: str):
         root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
