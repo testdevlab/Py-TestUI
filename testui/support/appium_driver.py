@@ -41,6 +41,7 @@ class NewDriver:
         self.__appium_log_file = 'appium-stdout.log'
         self.__chromedriverArgs = ['relaxed security']
         self.__desired_capabilities = {}
+        self.__chrome_options = {}
 
     # Possible loggers str: behave, pytest, None
     def set_logger(self, logger_name: str):
@@ -196,10 +197,11 @@ class NewDriver:
         )
         return self.get_testui_driver()
 
-    def set_selenium_driver(self):
+    def set_selenium_driver(self, chrome_options=None, firefox_options=None):
         self.__set_selenium_caps()
         self.__driver = start_selenium_driver(
-            self.__desired_capabilities, self.__remote_url, self.__debug, self.__browser_name)
+            self.__desired_capabilities, self.__remote_url,
+            self.__debug, self.__browser_name, chrome_options, firefox_options)
         return self.get_testui_driver()
 
 
@@ -227,7 +229,7 @@ def start_driver(desired_caps, url, debug, port, udid, log_file):
     raise err
 
 
-def start_selenium_driver(desired_caps, url=None, debug=None, browser=None):
+def start_selenium_driver(desired_caps, url=None, debug=None, browser=None, chrome_options=None, firefox_options=None):
     logger.log("setting capabilities: " + desired_caps.__str__())
     logger.log(f"starting selenium {browser.lower()} driver...")
     err = None
@@ -237,9 +239,19 @@ def start_selenium_driver(desired_caps, url=None, debug=None, browser=None):
                 driver = webdriver.Remote(url, desired_caps)
             else:
                 if browser is None:
-                    driver = webdriver.Chrome()
+                    driver = webdriver.Chrome(desired_capabilities=desired_caps, chrome_options=chrome_options)
                 elif browser.lower() == 'firefox':
-                    driver = webdriver.Firefox()
+                    driver = webdriver.Firefox(firefox_options=firefox_options, desired_capabilities=desired_caps)
+                elif browser.lower() == 'safari':
+                    driver = webdriver.Safari(desired_capabilities=desired_caps)
+                elif browser.lower() == 'edge':
+                    driver = webdriver.Edge(capabilities=desired_caps)
+                elif browser.lower() == 'ie':
+                    driver = webdriver.Ie(capabilities=desired_caps)
+                elif browser.lower() == 'opera':
+                    driver = webdriver.Opera(desired_capabilities=desired_caps)
+                elif browser.lower() == 'phantomjs':
+                    driver = webdriver.PhantomJS(desired_capabilities=desired_caps)
                 else:
                     driver = webdriver.Chrome()
             atexit.register(__quit_driver, driver, debug)
