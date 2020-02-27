@@ -1,7 +1,8 @@
-import os
-import multiprocessing as mp
 import argparse
+import multiprocessing as mp
+import os
 import time
+import subprocess
 
 from testui.support import logger
 
@@ -13,10 +14,21 @@ def parallel_testui():
         os.remove('report_fails.txt')
     except FileNotFoundError:
         pass
+    try:
+        os.remove('report_cases.txt')
+    except FileNotFoundError:
+        pass
+    test_run_id = None
+    if args.testrail_id is not None:
+        test_run_id = args.testrail_id
+        logger.log_info(f'Starting testrail run {test_run_id}')
+    elif args.testrail is not None:
+        test_run_id = __start_run_id(args, args.testrail)
+        logger.log_info(f'Created testrail run {test_run_id} with testrail name: {args.testrail}')
     number_of_cases = get_total_number_of_cases(args)
-    logger.log_test_name(f'------------ Total Number of Test Cases: {number_of_cases} ---------------')
+    logger.log_info(f'------------ Total Number of Test Cases: {number_of_cases} ---------------')
     start = time.time()
-    __start_processes(args.markers, args)
+    __start_processes(args.markers, args, test_run_id)
     end_time = time.time() - start
     f = open('fails.txt')
     fails = f.read()
@@ -88,8 +100,9 @@ def get_total_number_of_cases(args):
                     number = cases.split(' selected')[0]
                     number_of_cases += int(number)
     if args.single_thread_marker is not None:
-        output = subprocess.run(['pytest', '-m', f'{args.single_thread_marker} {args.general_markers}', f'--collect-only'],
-                                stdout=subprocess.PIPE)
+        output = subprocess.run(
+            ['pytest', '-m', f'{args.single_thread_marker} {args.general_markers}', f'--collect-only'],
+            stdout=subprocess.PIPE)
         response = output.stdout
         string_response = response.__str__()
         if string_response.__contains__(' / '):
@@ -122,9 +135,21 @@ def __arg_parser():
     parser.add_argument('--parallel', type=int,
                         help='number of parallel threads')
 
-    parser.add_argument('--s',  type=__str2bool, nargs='?',
+    parser.add_argument('--s', type=__str2bool, nargs='?',
                         const=True, default=False,
                         help='make more verbose logs (pytest -s)')
+
+    parser.add_argument('--testrail', type=str,
+                        help='Use test rail and specify name. '
+                             'You will have to add a file testrail.cfg in root project dir')
+
+    parser.add_argument('--testrail_id', type=str,
+                        help='Use test rail and specify testrail id. '
+                             'You will have to add a file testrail.cfg in root project dir')
+
+    parser.add_argument('--testrail_pwd', type=str,
+                        help='Use test rail and specify password. '
+                             'You will have to add a file testrail.cfg in root project dir')
 
     parser.add_argument('--general', type=str,
                         help='general flags to put in all threads')
@@ -159,13 +184,13 @@ def __arg_parser():
     else:
         logger.log(f'General flags: {args.general}')
     if args.single_thread_marker is not None:
-        logger.log_test_name(f'Single Thread marker: {args.single_thread_marker} {args.general_markers}')
+        logger.log_info(f'Single Thread marker: {args.single_thread_marker} {args.general_markers}')
     return args
 
 
 def __str2bool(v):
     if isinstance(v, bool):
-       return v
+        return v
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
         return True
     elif v.lower() in ('no', 'false', 'f', 'n', '0'):
@@ -174,7 +199,7 @@ def __str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
-def __start_processes(markers: list, args):
+def __start_processes(markers: list, args, test_run_id=None):
     ps = list()
     amount = len(markers) // args.parallel
     amount_plus = 0
@@ -193,18 +218,62 @@ def __start_processes(markers: list, args):
                 if len(markers) > i:
                     tags.append(markers[i])
                     i += 1
-        logger.log_test_name(f'Thread {j} has markers: {tags}')
-        ps.append(mp.Process(target=__process, args=(tags, args, j)))
+        logger.log_info(f'Thread {j} has markers: {tags}')
+        ps.append(mp.Process(target=__process, args=(tags, args, j, test_run_id)))
     for p in ps:
         p.daemon = True
         p.start()
     for p in ps:
         p.join()
     if args.single_thread_marker is not None:
-        __process([args.single_thread_marker], args)
+        __process([args.single_thread_marker], args, 0, test_run_id)
 
 
-def __process(markers: list, args, thread=0):
+def __start_run_id(args, test_run_name):
+    end_marker = ''
+    for i, marker in enumerate(args.markers):
+        if i == len(args.markers):
+            end_marker += f'{marker} {args.general_markers}'
+        else:
+            end_marker += f'{marker} {args.general_markers} or '
+    if args.single_thread_marker is not None:
+        end_marker += f'{args.single_thread_marker} {args.general_markers}'
+    with open('testrail_id_file.txt', 'wb') as out:
+        cmd = ['pytest', '-m', end_marker, '--testrail', f'--tr-config=testrail.cfg',
+               f'--tr-testrun-name={test_run_name}']
+        if args.testrail_pwd is not None:
+            cmd.append(f'--tr-password={args.testrail_pwd}')
+        process = subprocess.Popen(cmd, stdout=out, stderr=out)
+    i = 0
+    while True:
+        time.sleep(0.1)
+        out = open('testrail_id_file.txt')
+        text = out.read()
+        if text.__contains__("New testrun created") or i > 50:
+            out.close()
+            process.terminate()
+            process.wait()
+            os.remove('testrail_id_file.txt')
+            if text.__contains__('ID='):
+                id_test = text.split("ID=")[1]
+                if text.split("ID=")[1].__contains__('\n'):
+                    id_test = text.split("ID=")[1].split("\n")[0]
+                logger.log_info(f'Test run: {id_test}')
+                return id_test
+            raise Exception('Failed to create Test Run')
+        elif text.__contains__("Failed to create testrun"):
+            out.close()
+            process.send_signal(signal=2)
+            process.terminate()
+            process.wait()
+            os.remove('testrail_id_file.txt')
+            logger.log_error(f'Failed to create Test Run: \n {text}')
+            raise Exception(f'Failed to create Test Run')
+        out.close()
+        i += 1
+
+
+def __process(markers: list, args, thread=0, test_run_id=None):
     for i, marker in enumerate(markers):
         try:
             os.remove(f'.my_cache_dir_{thread}/v/cache/lastfailed')
@@ -215,10 +284,15 @@ def __process(markers: list, args, thread=0):
         quiet = '-q'
         if args.s:
             quiet = '-s'
+        testrail = ''
+        if test_run_id is not None:
+            testrail = f'--testrail --tr-config=testrail.cfg --tr-run-id={test_run_id}'
+            if args.testrail_pwd is not None:
+                testrail += f' --tr-password={args.testrail_pwd}'
         cache = f'-o cache_dir=.my_cache_dir_{thread}'
         start_1 = time.time()
-        logger.log(f'Starting: pytest {quiet} -m "{marker} {args.general_markers}" {args.general} {cache}')
-        pr_1 = os.system(f'pytest {quiet} -m "{marker} {args.general_markers}" {args.general} {cache}')
+        logger.log(f'Starting: pytest {quiet} -m "{marker} {args.general_markers}" {testrail} {args.general} {cache}')
+        pr_1 = os.system(f'pytest {quiet} -m "{marker} {args.general_markers}" {testrail} {args.general} {cache}')
         file = open('fails.txt', 'a+')
         file.write(f'{pr_1}')
         file.close()

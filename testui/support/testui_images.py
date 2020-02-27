@@ -1,10 +1,14 @@
 import os
+import threading
 
 import cv2
 import numpy as np
 import imutils
 
 from testui.support import logger
+
+found_image = False
+matched = 0.0
 
 
 def compare_video_image(video, comparison, threshold, image_match, frame_rate_reduction=1, max_scale=2.0):
@@ -30,12 +34,14 @@ def compare_video_image(video, comparison, threshold, image_match, frame_rate_re
     return False, percentage
 
 
-def __compare(image, template, threshold: float, image_match: str, root_dir: str, max_scale: float):
+def __compare(image, template, threshold: float, image_match: str, root_dir: str, max_scale: float, min_scale=0.1):
     (tH, tW) = template.shape[:2]
     # loop over the scales of the image
     found = None
+    global found_image
+    global matched
     maxVal = 0.0
-    for scale in np.linspace(0.1, max_scale)[::-1]:
+    for scale in np.linspace(min_scale, max_scale, 5)[::-1]:
         # resize the image according to the scale, and keep track of the ratio of the resizing
         resized = imutils.resize(image, width=int(image.shape[1] * scale))
         r = image.shape[1] / float(resized.shape[1])
@@ -47,6 +53,12 @@ def __compare(image, template, threshold: float, image_match: str, root_dir: str
         (_, maxVal, _, maxLoc) = cv2.minMaxLoc(result)
         # if we have found a new maximum correlation value, then update the bookkeeping variable
         if found is None or maxVal > found[0]:
+            lock = threading.Lock()
+            lock.acquire()
+            if found_image:
+                lock.release()
+                return True, matched
+            lock.release()
             found = (maxVal, maxLoc, r)
             if maxVal > threshold:
                 if image_match != '' and found is not None:
@@ -58,18 +70,52 @@ def __compare(image, template, threshold: float, image_match: str, root_dir: str
                     # draw a bounding box around the detected result and display the image
                     cv2.rectangle(image, (startX, startY), (endX, endY), (0, 0, 255), 2)
                     cv2.imwrite(root_dir + '/' + image_match, image)
+                lock.acquire()
+                found_image = True
+                lock.release()
+                matched = maxVal
                 return True, maxVal
-
+    matched = maxVal
     return False, maxVal
 
 
-def compare_images(original: str, comparison: str, threshold=0.9, image_match='', max_scale=2.0):
+def compare_images(original: str, comparison: str, threshold=0.9, image_match='', max_scale=2.0, min_scale=0.3):
     # Read the images from the file
+    global found_image
+    global matched
+    import time
+    start = time.time()
+    matched = 0.0
+    found_image = False
     root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     template = cv2.imread(root_dir + '/' + comparison)
     image = cv2.imread(root_dir + '/' + original)
     # loop over the scales of the image
-    return __compare(image, template, threshold, image_match, root_dir, max_scale)
+    threads = list()
+    parts = max_scale / 5.0
+    if min_scale > parts:
+        min_scale = parts
+    threads.append(threading.Thread(target=__compare, args=(
+        image, template, threshold, image_match, root_dir, parts, min_scale)))
+    threads.append(threading.Thread(target=__compare, args=(
+        image, template, threshold, image_match, root_dir, parts * 2.0, parts)))
+    threads.append(threading.Thread(target=__compare, args=(
+        image, template, threshold, image_match, root_dir, parts * 3.0, parts * 2.0)))
+    threads.append(threading.Thread(target=__compare, args=(
+        image, template, threshold, image_match, root_dir, parts * 4.0, parts * 3.0)))
+    threads.append(threading.Thread(target=__compare, args=(
+        image, template, threshold, image_match, root_dir, parts * 5.0, parts * 4.0)))
+    for thread in threads:
+        thread.start()
+    while not found_image:
+        alive = False
+        for thread in threads:
+            if thread.is_alive():
+                alive = True
+        if not alive:
+            break
+    logger.log(f'Image Recognition took {time.time() - start}s')
+    return found_image, matched
 
 
 def get_point_match(original: str, comparison: str, threshold=0.9, device_name='Device'):
@@ -80,7 +126,7 @@ def get_point_match(original: str, comparison: str, threshold=0.9, device_name='
     image = cv2.imread(root_dir + '/' + original)
     found = None
     # loop over the scales of the image
-    for scale in np.linspace(0.2, 1.0, 20)[::-1]:
+    for scale in np.linspace(0.2, 1.0, 10)[::-1]:
         # resize the image according to the scale, and keep track of the ratio of the resizing
         resized = imutils.resize(image, width=int(image.shape[1] * scale))
         r = image.shape[1] / float(resized.shape[1])
@@ -139,22 +185,13 @@ class ImageRecognition(object):
         self.__threshold = threshold
         self.__device_name = device_name
 
-    def compare(self, image_match='', max_scale=2.0):
+    def compare(self, image_match='', max_scale=2.0, min_scale=0.3):
         found, p1 = compare_images(
-            self.__original, self.__comparison, self.__threshold, image_match, max_scale)
-        if not found:
-            found, p = compare_images(
-                self.__comparison, self.__original, self.__threshold, image_match, max_scale)
-            if found:
-                logger.log_debug(f'{self.__device_name}: Image match found between: {self.__original} '
-                                 f'and {self.__comparison}. Threshold={self.__threshold}, matched = {p}')
-                return True, p
-            else:
-                if p1 > p:
-                    p = p1
-                logger.log_debug(f'{self.__device_name}: Image match not found between: {self.__original} '
-                                 f'and {self.__comparison}. Threshold={self.__threshold}, matched = {p}')
-                return False, p
+            self.__original, self.__comparison, self.__threshold, image_match, max_scale, min_scale)
+        if self.__threshold > p1:
+            logger.log_debug(f'{self.__device_name}: Image match not found between: {self.__original} '
+                             f'and {self.__comparison}. Threshold={self.__threshold}, matched = {p1}')
+            return False, p1
         else:
             logger.log_debug(f'{self.__device_name}: Image match found between: {self.__original} '
                              f'and {self.__comparison}. Threshold={self.__threshold}, matched = {p1}')
