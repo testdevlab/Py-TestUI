@@ -11,8 +11,8 @@ setup(
     long_description=long_description,
     packages=find_packages(),
     install_requires=[
-        "pytest", 'Appium-Python-Client', 'selenium',
-        'value', "pytest-xdist", "pytest-testrail", "pure-python-adb", "webdriver-manager"
+        "pytest", 'Appium-Python-Client', 'selenium', 'opencv-python',
+        'value', "pytest-xdist", "pytest-testrail", "pure-python-adb", "webdriver-manager", 'numpy', 'imutils'
     ],
     python_requires='>=3.6',
 )

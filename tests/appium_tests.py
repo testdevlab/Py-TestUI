@@ -10,7 +10,7 @@ class TestStringMethods(object):
     @pytest.yield_fixture(autouse=True)
     def selenium_driver(self):
         driver = NewDriver() \
-            .set_logger("pytest").set_chrome_driver().set_soft_assert(True).set_appium_driver()
+            .set_logger().set_chrome_driver().set_soft_assert(True).set_appium_driver()
         yield driver
         driver.quit()
 
