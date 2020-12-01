@@ -188,7 +188,7 @@ class NewDriver:
             self.__desired_capabilities['platformVersion'] = '13.2'
 
     def __set_selenium_caps(self):
-        self.__desired_capabilities['platformName'] = self.__platform_name
+        self.__desired_capabilities['browserName'] = self.__browser_name
 
     def set_appium_driver(self):
         if self.__platform_name.lower() == 'android':
