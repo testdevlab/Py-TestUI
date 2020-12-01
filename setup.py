@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 setup(
     name="py_testui",
     author="Alvaro Santos Laserna Lopez",
-    version="0.1.0",
+    version="0.1.1",
     url="https://testdevlab.com",
     long_description=long_description,
     packages=find_packages(),
