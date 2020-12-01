@@ -44,7 +44,7 @@ class NewDriver:
         self.__chrome_options = {}
 
     # Possible loggers str: behave, pytest, None
-    def set_logger(self, logger_name: str):
+    def set_logger(self, logger_name='pytest'):
         self.logger_name = logger_name
         return self
 
@@ -54,6 +54,10 @@ class NewDriver:
 
     def set_browser(self, browser):
         self.__browser_name = browser
+        return self
+
+    def set_remote_url(self, url):
+        self.__remote_url = url
         return self
 
     def set_soft_assert(self, soft_assert: bool):
