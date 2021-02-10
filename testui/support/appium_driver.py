@@ -239,8 +239,10 @@ def start_selenium_driver(desired_caps, url=None, debug=None, browser=None, chro
     if firefox_options is not None:
         options = firefox_options
 
+    if options is not None:
+        logger.log("setting options: " + options.to_capabilities())
+
     logger.log("setting capabilities: " + desired_caps.__str__())
-    logger.log("setting options: " + options.to_capabilities())
     logger.log(f"starting selenium {browser.lower()} driver...")
     err = None
     for x in range(2):
