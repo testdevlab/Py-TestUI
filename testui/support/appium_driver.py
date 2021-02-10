@@ -241,7 +241,11 @@ def start_selenium_driver(desired_caps, url=None, debug=None, browser=None, chro
     for x in range(2):
         try:
             if url is not None:
-                driver = webdriver.Remote(url, desired_caps)
+                options = chrome_options
+                if firefox_options is not None:
+                    options = firefox_options
+
+                driver = webdriver.Remote(url, desired_caps, options=options)
             else:
                 if browser is None:
                     driver = webdriver.Chrome(desired_capabilities=desired_caps, chrome_options=chrome_options)
