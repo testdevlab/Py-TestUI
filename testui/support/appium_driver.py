@@ -235,22 +235,24 @@ def start_driver(desired_caps, url, debug, port, udid, log_file):
 
 
 def start_selenium_driver(desired_caps, url=None, debug=None, browser=None, chrome_options=None, firefox_options=None):
+    options = chrome_options
+    if firefox_options is not None:
+        options = firefox_options
+
     logger.log("setting capabilities: " + desired_caps.__str__())
+    logger.log("setting options: " + options.to_capabilities())
     logger.log(f"starting selenium {browser.lower()} driver...")
     err = None
     for x in range(2):
         try:
             if url is not None:
-                options = chrome_options
-                if firefox_options is not None:
-                    options = firefox_options
 
                 driver = webdriver.Remote(url, desired_caps, options=options)
             else:
                 if browser is None:
-                    driver = webdriver.Chrome(desired_capabilities=desired_caps, chrome_options=chrome_options)
+                    driver = webdriver.Chrome(desired_capabilities=desired_caps, chrome_options=options)
                 elif browser.lower() == 'firefox':
-                    driver = webdriver.Firefox(firefox_options=firefox_options, desired_capabilities=desired_caps)
+                    driver = webdriver.Firefox(firefox_options=options, desired_capabilities=desired_caps)
                 elif browser.lower() == 'safari':
                     driver = webdriver.Safari(desired_capabilities=desired_caps)
                 elif browser.lower() == 'edge':
