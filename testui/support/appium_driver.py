@@ -240,7 +240,7 @@ def start_selenium_driver(desired_caps, url=None, debug=None, browser=None, chro
         options = firefox_options
 
     if options is not None:
-        logger.log("setting options: " + options.to_capabilities())
+        logger.log("setting options: " + options.to_capabilities().__str__())
 
     logger.log("setting capabilities: " + desired_caps.__str__())
     logger.log(f"starting selenium {browser.lower()} driver...")
@@ -268,7 +268,7 @@ def start_selenium_driver(desired_caps, url=None, debug=None, browser=None, chro
                 else:
                     driver = webdriver.Chrome()
             atexit.register(__quit_driver, driver, debug)
-            logger.log(f"appium running on {url}. \n")
+            logger.log(f"selenium running on {url}. \n")
             return driver
         except Exception as error:
             err = error

@@ -1,6 +1,7 @@
 from time import sleep
 
 import pytest
+from selenium.webdriver.chrome.options import Options
 
 from tests.screens.landing import LandingScreen
 from testui.support import logger
@@ -11,8 +12,11 @@ from testui.support.testui_driver import TestUIDriver
 class TestStringMethods(object):
     @pytest.yield_fixture(autouse=True)
     def selenium_driver(self):
+        options = Options()
+        options.add_argument("disable-user-media-security")
         driver = NewDriver() \
-            .set_logger().set_browser('chrome').set_remote_url("http://localhost:4444/wd/hub").set_soft_assert(True).set_selenium_driver()
+            .set_logger().set_browser('chrome').set_remote_url("http://localhost:4444/wd/hub").set_soft_assert(True) \
+            .set_selenium_driver(chrome_options=options)
         yield driver
         driver.quit()
 
