@@ -612,7 +612,7 @@ class Elements(object):
         err = None
         while time.time() < start + timeout:
             try:
-                text = self.get_element().get_attribute("text")
+                text = self.get_element().text
                 self.__put_log(
                     f'{self.device_name}: element "{self.locator_type}: {self.locator}" '
                     f'has text "{text}" {time.time() - start}s'
