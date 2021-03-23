@@ -9,6 +9,7 @@ from selenium.webdriver.common.by import By
 from testui.support import logger
 from testui.support.helpers import error_with_traceback
 from testui.support.testui_images import Dimensions, ImageRecognition
+from testui.support.testui_driver import TestUIDriver
 
 
 def e(driver, locator_type, locator):
@@ -36,25 +37,35 @@ def scroll_by_resource_id(driver, id):
     return Elements(driver, "uiautomator", locator)
 
 
-def testui_error(driver, exception):
-    now = datetime.now()
-    current_time = now.strftime("%Y-%m-%d%H%M%S")
+def testui_error(
+    driver: TestUIDriver,
+    exception: str,
+    include_stacktrace: bool = True,
+    include_screenshot: bool = True
+) -> None:
+    current_time = datetime.now().strftime("%Y-%m-%d%H%M%S")
     root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    Path(root_dir + "/report_screenshots").mkdir(parents=True, exist_ok=True)
-    image_name = f'ERROR-{driver.device_name}-{current_time}.png'
-    try:
-        driver.save_screenshot(image_name, directory='report_screenshots/')
-        exception += f'{logger.bcolors.FAIL} \n Screenshot taken and saved as: ' \
-                     f'report_screenshots/testui-{image_name}{logger.bcolors.ENDC}\n'
-    except Exception as error:
-        exception += f'{logger.bcolors.FAIL} \nCould not take screenshot:{logger.bcolors.ENDC}\n {error}'
-    full_exception = error_with_traceback(exception)
+    
+    if include_screenshot:
+        Path(root_dir + "/report_screenshots").mkdir(parents=True, exist_ok=True)
+        image_name = f'ERROR-{driver.device_name}-{current_time}.png'
+        try:
+            driver.save_screenshot(image_name, directory='report_screenshots/')
+            exception += f'{logger.bcolors.FAIL} \n Screenshot taken and saved as: ' \
+                        f'report_screenshots/testui-{image_name}{logger.bcolors.ENDC}\n'
+        except Exception as error:
+            exception += f'{logger.bcolors.FAIL} \nCould not take screenshot:{logger.bcolors.ENDC}\n {error}'
+
+    full_exception = exception
+    if include_stacktrace:
+        full_exception = error_with_traceback(exception)
+
     if driver.soft_assert:
         logger.log_error(full_exception)
         driver.set_error(full_exception)
     else:
-        driver.set_error(full_exception)
         logger.log_error(full_exception)
+        driver.set_error(full_exception)
         raise ElementException('There were errors during the UI testing, check the logs')
 
 
