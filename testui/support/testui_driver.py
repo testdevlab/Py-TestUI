@@ -2,6 +2,8 @@ import base64
 import os
 
 from datetime import datetime
+from os import path
+from pathlib import Path
 
 from appium.webdriver.common.touch_action import TouchAction
 from selenium.webdriver import TouchActions, ActionChains
@@ -10,7 +12,7 @@ from testui.elements import testui_element
 from testui.support import logger
 from testui.support.helpers import error_with_traceback
 from testui.support.testui_images import get_point_match, ImageRecognition
-
+from testui.support.configuration import Configuration
 
 class TestUIDriver:
     def __init__(self, driver):
@@ -25,6 +27,7 @@ class TestUIDriver:
         self.device_udid = driver.udid
         self.device_name = driver.device_name
         self.file_name = driver.file_name
+        self.__configuration: Configuration = driver.configuration
 
     def switch_to_context(self, context=0, last=False):
         if last:
@@ -156,10 +159,26 @@ class TestUIDriver:
         ta.tap(x=x, y=y).perform()
         logger.log(f'Clicked over "x={x}: y={y}"')
 
-    def save_screenshot(self, image_name, directory=''):
-        root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        self.get_driver().save_screenshot(root_dir + '/' + directory + f'/testui-{image_name}')
-        logger.log_debug(f'{self.device_name}: Screenshot saved in "{root_dir}/testui-{image_name}"')
+    def save_screenshot(self, image_name=""):
+        config = self.__configuration
+
+        root_dir = config.screenshot_path
+        if not config.screenshot_path:
+            root_dir = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
+        
+        root_dir = path.join(root_dir, "report_screenshots")
+        Path(root_dir).mkdir(parents=True, exist_ok=True)
+
+        current_time = datetime.now().strftime("%Y-%m-%d%H%M%S")
+        
+        if not image_name:
+            image_name = f'ERROR-{self.device_name}-{current_time}.png'
+        
+        final_path = path.join(root_dir, image_name)
+
+        self.get_driver().save_screenshot(final_path)
+
+        logger.log_debug(f'{self.device_name}: Screenshot saved in "{final_path}"')
 
     @classmethod
     def __delete_screenshot(cls, image_name):
@@ -169,6 +188,10 @@ class TestUIDriver:
     def get_driver(self):
         driver = self.__appium_driver
         return driver
+
+    @property
+    def configuration(self) -> Configuration:
+        return self.__configuration
 
     def set_error(self, error):
         self.errors.append(error)

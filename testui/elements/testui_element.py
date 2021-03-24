@@ -1,7 +1,7 @@
-import os
 import time
-from datetime import datetime
-from pathlib import Path
+import os
+
+from os import path
 
 from appium.webdriver.common.touch_action import TouchAction
 from selenium.webdriver.common.by import By
@@ -37,27 +37,17 @@ def scroll_by_resource_id(driver, id):
     return Elements(driver, "uiautomator", locator)
 
 
-def testui_error(
-    driver: TestUIDriver,
-    exception: str,
-    include_stacktrace: bool = True,
-    include_screenshot: bool = True
-) -> None:
-    current_time = datetime.now().strftime("%Y-%m-%d%H%M%S")
-    root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    
-    if include_screenshot:
-        Path(root_dir + "/report_screenshots").mkdir(parents=True, exist_ok=True)
-        image_name = f'ERROR-{driver.device_name}-{current_time}.png'
+def testui_error(driver: TestUIDriver, exception: str) -> None:
+    config = driver.configuration
+
+    if config.save_screenshot_on_fail:
         try:
-            driver.save_screenshot(image_name, directory='report_screenshots/')
-            exception += f'{logger.bcolors.FAIL} \n Screenshot taken and saved as: ' \
-                        f'report_screenshots/testui-{image_name}{logger.bcolors.ENDC}\n'
+            driver.save_screenshot()
         except Exception as error:
             exception += f'{logger.bcolors.FAIL} \nCould not take screenshot:{logger.bcolors.ENDC}\n {error}'
 
     full_exception = exception
-    if include_stacktrace:
+    if config.save_full_stacktrace:
         full_exception = error_with_traceback(exception)
 
     if driver.soft_assert:
@@ -84,7 +74,7 @@ class Elements(object):
     def __init__(self, driver, locator_type: str, locator: str):
         self.logger = driver.logger_name
         self.__soft_assert = driver.soft_assert
-        self.testui_driver = driver
+        self.testui_driver: TestUIDriver = driver
         self.device_name = driver.device_name
         self.driver = driver.get_driver()
         self.locator = locator
@@ -449,7 +439,11 @@ class Elements(object):
         ImageRecognition(f'testui-{self.device_name}-crop_image.png').crop_original_image(
             top_left.x + dimensions.x // 2, top_left.y + dimensions.y // 2, dimensions.x, dimensions.y, image_name
         )
-        root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        
+        root_dir = self.testui_driver.configuration.screenshot_path
+        if not root_dir:
+            root_dir = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
+
         os.remove(root_dir + f'/testui-{self.device_name}-crop_image.png')
 
         return self

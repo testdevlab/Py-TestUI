@@ -4,9 +4,11 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from testui.elements.testui_element import Elements
-from testui.support import logger
-
+from elements.testui_element import Elements
+from support import logger
+from support.configuration import Configuration
+from support.testui_driver import TestUIDriver
+from testui.support.helpers import error_with_traceback
 
 def ee(*args):
     """locator types: id, css, className, name, xpath, accessibility, uiautomator, classChain, predicate"""
@@ -109,22 +111,21 @@ class Collections(object):
         except Exception as err:
             self.__errors.append(err)
 
-    def __show_error(self, exception):
-        now = datetime.now()
-        current_time = now.strftime("%Y-%m-%d%H%M%S")
-        root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        Path(root_dir + "/report_screenshots").mkdir(parents=True, exist_ok=True)
-        image_name = f'ERROR-{self.args[0].device_name}-{current_time}.png'
-        self.args[0].testui_driver.save_screenshot(image_name, directory='report_screenshots/')
-        exception = exception + f'{logger.bcolors.FAIL} \n Screenshot taken and saved as: ' \
-                                f'report_screenshots/testui-{image_name}{logger.bcolors.ENDC}'
-        from testui.support.helpers import error_with_traceback
-        full_exception = error_with_traceback(exception)
-        if self.args[0].testui_driver.soft_assert:
+    def __show_error(self, exception) -> None:
+        driver: TestUIDriver = self.args[0].testui_driver
+        config: Configuration = driver.configuration
+
+        if config.save_screenshot_on_fail:
+            driver.save_screenshot()
+        
+        full_exception = exception
+        if config.save_full_stacktrace:
+            full_exception = error_with_traceback(exception)
+
+        if driver.soft_assert:
             logger.log_error(full_exception)
-            self.args[0].testui_driver.set_error(full_exception)
-            return self
+            driver.set_error(full_exception)
         else:
             logger.log_error(full_exception)
-            self.args[0].testui_driver.set_error(full_exception)
+            driver.set_error(full_exception)
             raise CollectionException(exception)
