@@ -15,6 +15,9 @@ from testui.support.testui_images import get_point_match, ImageRecognition
 from testui.support.configuration import Configuration
 
 class TestUIDriver:
+    __test__ = False
+
+
     def __init__(self, driver):
         self.__soft_assert = driver.soft_assert
         self.__appium_driver = driver.get_driver()
