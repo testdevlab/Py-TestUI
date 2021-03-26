@@ -13,9 +13,11 @@ from webdriver_manager import chrome
 from testui.support import logger
 from testui.support.api_support import get_chrome_version
 from testui.support.testui_driver import TestUIDriver
-
+from testui.support.configuration import Configuration
 
 class NewDriver:
+    __configuration = Configuration()
+
     def __init__(self):
         self.browser = False
         self.__driver = None
@@ -123,7 +125,11 @@ class NewDriver:
         driver = self.__driver
         return driver
 
-    def get_testui_driver(self):
+    @property
+    def configuration(self) -> Configuration:
+        return self.__configuration
+
+    def get_testui_driver(self) -> TestUIDriver:
         return TestUIDriver(self)
 
     def set_chrome_driver(self, version=''):
@@ -137,6 +143,17 @@ class NewDriver:
         self.__desired_capabilities['chromedriverExecutable'] = chrome_driver
         return self
 
+    def set_screenshot_path(self, screenshot_path: str):
+        self.__configuration.screenshot_path = screenshot_path
+        return self
+
+    def set_save_screenshot_on_fail(self, save_screenshot_on_fail: bool):
+        self.__configuration.save_full_stacktrace = save_screenshot_on_fail
+        return self
+
+    def set_save_full_stacktrace(self, save_full_stacktrace: bool):
+        self.__configuration.save_full_stacktrace = save_full_stacktrace
+        return self
     # Available platforms: Android, iOS
     def set_platform(self, platform):
         self.__platform_name = platform
@@ -190,7 +207,7 @@ class NewDriver:
     def __set_selenium_caps(self):
         self.__desired_capabilities['browserName'] = self.__browser_name
 
-    def set_appium_driver(self):
+    def set_appium_driver(self) -> TestUIDriver:
         if self.__platform_name.lower() == 'android':
             self.__set_android_caps()
         else:
@@ -202,7 +219,7 @@ class NewDriver:
         )
         return self.get_testui_driver()
 
-    def set_selenium_driver(self, chrome_options=None, firefox_options=None):
+    def set_selenium_driver(self, chrome_options=None, firefox_options=None) -> TestUIDriver:
         self.__set_selenium_caps()
         self.__driver = start_selenium_driver(
             self.__desired_capabilities, self.__remote_url,
