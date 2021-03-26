@@ -369,6 +369,8 @@ def __set_ios_device(desired_caps, number: int):
 def get_device_udid(number: int):
     client = AdbClient(host="127.0.0.1", port=5037)
     devices = client.devices()
+    if len(devices) == 0:
+        raise Exception("There are 0 devices connected to the computer!")
     if len(devices) > number:
         return devices[number].get_serial_no()
     else:
