@@ -262,5 +262,6 @@ Thumbs.db #thumbnail cache on Windows
 ### PyTestUI ###
 # Output
 report_cases.txt
+report_screenshots
 
 # End of https://www.toptal.com/developers/gitignore/api/python,visualstudiocode,pycharm,macos
