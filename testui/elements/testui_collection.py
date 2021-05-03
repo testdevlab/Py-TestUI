@@ -1,14 +1,11 @@
-import os
 import threading
 import time
-from datetime import datetime
-from pathlib import Path
 
-from elements.testui_element import Elements
-from support import logger
-from support.configuration import Configuration
-from support.testui_driver import TestUIDriver
+from testui.elements.testui_element import Elements
+from testui.support import logger
+from testui.support.configuration import Configuration
 from testui.support.helpers import error_with_traceback
+
 
 def ee(*args):
     """locator types: id, css, className, name, xpath, accessibility, uiautomator, classChain, predicate"""
@@ -112,12 +109,12 @@ class Collections(object):
             self.__errors.append(err)
 
     def __show_error(self, exception) -> None:
-        driver: TestUIDriver = self.args[0].testui_driver
+        driver = self.args[0].testui_driver
         config: Configuration = driver.configuration
 
         if config.save_screenshot_on_fail:
             driver.save_screenshot()
-        
+
         full_exception = exception
         if config.save_full_stacktrace:
             full_exception = error_with_traceback(exception)

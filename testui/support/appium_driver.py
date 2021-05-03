@@ -86,9 +86,14 @@ class NewDriver:
         return self
 
     def set_app_path(self, path: str):
-        root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        self.__app_path = root_dir + f"/{path}"
-        return self
+        self.__app_path = path
+        if os.path.isabs(self.__app_path):
+            return self
+        else:
+            root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            self.__app_path = os.path.join(root_dir, path)
+            logger.log(self.__app_path)
+            return self
 
     def set_udid(self, udid: str):
         self.udid = udid
