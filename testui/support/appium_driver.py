@@ -8,6 +8,7 @@ from time import sleep
 from ppadb.client import Client as AdbClient
 from appium.webdriver import Remote
 from selenium import webdriver
+from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 from webdriver_manager import chrome
 
 from testui.support import logger
@@ -276,6 +277,8 @@ def start_selenium_driver(desired_caps, url=None, debug=None, browser=None, chro
                 if browser is None:
                     driver = webdriver.Chrome(desired_capabilities=desired_caps, chrome_options=options)
                 elif browser.lower() == 'firefox':
+                    import geckodriver_autoinstaller
+                    geckodriver_autoinstaller.install()
                     driver = webdriver.Firefox(firefox_options=options, desired_capabilities=desired_caps)
                 elif browser.lower() == 'safari':
                     driver = webdriver.Safari(desired_capabilities=desired_caps)

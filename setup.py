@@ -6,12 +6,12 @@ with open("README.md", "r") as fh:
 setup(
     name="py_testui",
     author="Alvaro Santos Laserna Lopez",
-    version="1.0.6",
+    version="1.0.7",
     url="https://testdevlab.com",
     long_description=long_description,
     packages=find_packages(),
     install_requires=[
-        "pytest", 'Appium-Python-Client', 'selenium', 'opencv-python',
+        "pytest", 'Appium-Python-Client', 'selenium', 'opencv-python', 'geckodriver-autoinstaller',
         'value', "pytest-xdist", "pytest-testrail", "pure-python-adb", "webdriver-manager", 'numpy', 'imutils'
     ],
     python_requires='>=3.6',

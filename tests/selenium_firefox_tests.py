@@ -15,9 +15,10 @@ class TestStringMethods(object):
     def selenium_driver(self):
         options = Options()
         options.add_argument("disable-user-media-security")
+        caps = {"marionette": True}
         driver = NewDriver() \
-            .set_logger().set_browser('chrome').set_remote_url("http://localhost:4444/wd/hub").set_soft_assert(True) \
-            .set_selenium_driver(chrome_options=options)
+            .set_logger().set_browser('firefox').set_extra_caps(caps).set_soft_assert(True) \
+            .set_selenium_driver()
         yield driver
         driver.quit()
 
