@@ -278,7 +278,12 @@ def start_selenium_driver(desired_caps, url=None, debug=None, browser=None, chro
                     driver = webdriver.Chrome(desired_capabilities=desired_caps, chrome_options=options)
                 elif browser.lower() == 'firefox':
                     import geckodriver_autoinstaller
-                    geckodriver_autoinstaller.install()
+                    try:
+                        geckodriver_autoinstaller.install()
+                    except Exception as error:
+                        logger.log_warn("Could not retrieve geckodriver: " + error.__str__())
+                    if "marionette" not in desired_caps:
+                        desired_caps["marionette"] = True
                     driver = webdriver.Firefox(firefox_options=options, desired_capabilities=desired_caps)
                 elif browser.lower() == 'safari':
                     driver = webdriver.Safari(desired_capabilities=desired_caps)
