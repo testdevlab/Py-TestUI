@@ -1,5 +1,19 @@
 # Py-TestUI Framework
 
+# Installation
+
+Py-TestUI can be installed via `pip`
+
+```bash
+pip3 install git+https://github.com/testdevlab/Py-TestUI@v1.0.6
+```
+
+Or if you prefer `requirements.txt`, you can add the following dependecy
+
+```
+git+https://github.com/testdevlab/Py-TestUI@v1.0.6
+```
+
 # Appium driver
 
 You can create `TestUIDriver` for Appium automation like so:
@@ -31,7 +45,7 @@ Py-TestUI supports the following browser drivers:
 > All these drivers must be installed and added to you `$PATH` variable
 
 > Mozzila Firefox is downloaded automatically and added to `$PATH` but
-> double-check that you have installed 
+> double-check that you have installed
 > [Python certificates if you are using macOS](https://stackoverflow.com/a/53310545/13179904)
 
 You can create `TestUIDriver` for Selenium Desktop automation like so
