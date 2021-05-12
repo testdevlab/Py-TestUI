@@ -1,27 +1,63 @@
 # Py-TestUI Framework
 
-## Appium
+# Installation
 
-The folder testui contains the logic for Appium Driver and actions. Then you can start a session by using:
+Py-TestUI can be installed via `pip`
 
-<pre>
-    driver: TestUIDriver = NewDriver()\
-        .set_app_path("app.apk")\
-        .set_app_package_activity("com.package.package", "com.activity.Activity")\
-        .set_logger("pytest").set_appium_driver()
-</pre>
+```bash
+pip3 install git+https://github.com/testdevlab/Py-TestUI@v1.0.6
+```
 
-By default it takes the first connected device to your machine, but you can specify device by calling `.set_udid("udid")`
-before the `set_appium_driver()` call
+Or if you prefer `requirements.txt`, you can add the following dependecy
 
-## Selenium Desktop
+```
+git+https://github.com/testdevlab/Py-TestUI@v1.0.6
+```
 
-In mac start by `brew install chromedriver`
+# Appium driver
 
-<pre>
-    driver: TestUIDriver = NewDriver() \
-            .set_logger("pytest").set_soft_assert(True).set_selenium_driver()
-</pre>
+You can create `TestUIDriver` for Appium automation like so:
+
+```py
+driver: TestUIDriver = (
+    NewDriver()
+    .set_app_path("app.apk")
+    .set_app_package_activity("com.package.package", "com.activity.Activity")
+    .set_logger("pytest")
+    .set_appium_driver()
+)
+```
+
+By default it takes the first connected device to your machine, but you can specify device by calling `.set_udid("udid")` before the `.set_appium_driver()` call.
+
+# Selenium Desktop driver
+
+Py-TestUI supports the following browser drivers:
+
+- Google Chrome (`'chrome'`)
+- Mozzila Firefox (`'firefox'`)
+- Safari (`'safari'`)
+- Microsoft Edge (`'edge'`)
+- Microsoft Internet Explorer (`'ie'`)
+- Opera (`'opera'`)
+- PhantomJS(`'pantomjs'`)
+
+> All these drivers must be installed and added to you `$PATH` variable
+
+> Mozzila Firefox is downloaded automatically and added to `$PATH` but
+> double-check that you have installed
+> [Python certificates if you are using macOS](https://stackoverflow.com/a/53310545/13179904)
+
+You can create `TestUIDriver` for Selenium Desktop automation like so
+
+```python
+driver: TestUIDriver = (
+    NewDriver()
+    .set_logger("pytest")
+    .set_soft_assert(True)
+    .set_selenium_driver()
+)
+```
 
 # Configuration
 
@@ -45,9 +81,10 @@ driver: TestUIDriver = (
     .set_selenium_driver()
 )
 ```
+
 ## Configuration via `driver.configuration`
 
-Another possible way to change default global parameters is to use 
+Another possible way to change default global parameters is to use
 `configuration` attribute located under `driver: TestUIDriver` object. These
 parameters can be changed like this at any point of the execution:
 
@@ -83,7 +120,7 @@ The automation infrastructure implements the Page Object Model (POM) pattern. Th
             .
 ```
 
-The test case scripts are in a different class. The scripts import the respective screen package along with additional packages such as PyTest. Each class has any amount of tests. All test methods start with the word “test_” such as:
+The test case scripts are in a different class. The scripts import the respective screen package along with additional packages such as PyTest. Each class has any amount of tests. All test methods start with the word “test\_” such as:
 
 ```py
     def test_add_existing_contact(self, appium_driver):
