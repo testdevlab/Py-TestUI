@@ -168,8 +168,8 @@ class TestUIDriver:
         root_dir = config.screenshot_path
         if not config.screenshot_path:
             root_dir = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
+            root_dir = path.join(root_dir, "report_screenshots")
         
-        root_dir = path.join(root_dir, "report_screenshots")
         Path(root_dir).mkdir(parents=True, exist_ok=True)
 
         current_time = datetime.now().strftime("%Y-%m-%d%H%M%S")
