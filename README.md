@@ -34,13 +34,13 @@ By default it takes the first connected device to your machine, but you can spec
 
 Py-TestUI supports the following browser drivers:
 
-- Google Chrome
-- Mozzila Firefox
-- Safari
-- Microsoft Edge
-- Microsoft Internet Explorer
-- Opera
-- PhantomJS
+- Google Chrome (`'chrome'`)
+- Mozzila Firefox (`'firefox'`)
+- Safari (`'safari'`)
+- Microsoft Edge (`'edge'`)
+- Microsoft Internet Explorer (`'ie'`)
+- Opera (`'opera'`)
+- PhantomJS(`'pantomjs'`)
 
 > All these drivers must be installed and added to you `$PATH` variable
 
