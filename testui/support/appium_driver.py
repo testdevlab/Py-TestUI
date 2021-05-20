@@ -271,11 +271,11 @@ def start_selenium_driver(desired_caps, url=None, debug=None, browser=None, chro
     for x in range(2):
         try:
             if url is not None:
-
+                logger.log(f"selenium running on {url}. \n")
                 driver = webdriver.Remote(url, desired_caps, options=options)
             else:
-                if browser is None:
-                    driver = webdriver.Chrome(desired_capabilities=desired_caps, chrome_options=options)
+                if browser.lower() == 'chrome':
+                    driver = webdriver.Chrome(desired_capabilities=desired_caps, options=options)
                 elif browser.lower() == 'firefox':
                     import geckodriver_autoinstaller
                     try:
@@ -296,9 +296,9 @@ def start_selenium_driver(desired_caps, url=None, debug=None, browser=None, chro
                 elif browser.lower() == 'phantomjs':
                     driver = webdriver.PhantomJS(desired_capabilities=desired_caps)
                 else:
-                    driver = webdriver.Chrome()
+                    raise Exception(f"Invalid browser '{browser}'. Please choose one from: chrome,firefox,safari,edge,"
+                                    f"ie,opera,phantomjs")
             atexit.register(__quit_driver, driver, debug)
-            logger.log(f"selenium running on {url}. \n")
             return driver
         except Exception as error:
             err = error
