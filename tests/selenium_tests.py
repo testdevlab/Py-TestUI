@@ -1,7 +1,4 @@
-from time import sleep
-
 import pytest
-from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 from tests.screens.landing import LandingScreen
@@ -16,7 +13,7 @@ class TestStringMethods(object):
         options = Options()
         options.add_argument("disable-user-media-security")
         driver = NewDriver() \
-            .set_logger().set_browser('chrome').set_remote_url("http://localhost:4444/wd/hub").set_soft_assert(True) \
+            .set_logger().set_browser('chrome').set_soft_assert(True) \
             .set_selenium_driver(chrome_options=options)
         yield driver
         driver.quit()
