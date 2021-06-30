@@ -264,4 +264,6 @@ Thumbs.db #thumbnail cache on Windows
 report_cases.txt
 report_screenshots
 
+node_modules
+
 # End of https://www.toptal.com/developers/gitignore/api/python,visualstudiocode,pycharm,macos
