@@ -232,6 +232,11 @@ class NewDriver:
             self.__debug, self.__browser_name, chrome_options, firefox_options)
         return self.get_testui_driver()
 
+    def set_driver(self, driver) -> TestUIDriver:
+        self.__set_selenium_caps()
+        self.__driver = driver
+        return self.get_testui_driver()
+
 
 def start_driver(desired_caps, url, debug, port, udid, log_file):
     lock = threading.Lock()
