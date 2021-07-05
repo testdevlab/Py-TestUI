@@ -88,8 +88,16 @@ def compare_images(original: str, comparison: str, threshold=0.9, image_match=''
     matched = 0.0
     found_image = False
     root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    template = cv2.imread(root_dir + '/' + comparison)
-    image = cv2.imread(root_dir + '/' + original)
+    if not os.path.exists(comparison):
+        comparison = os.path.join(root_dir, comparison)
+        if not os.path.exists(comparison):
+            raise Exception(f"There is no image in {comparison}")
+    if not os.path.exists(original):
+        original = os.path.join(root_dir, original)
+        if not os.path.exists(original):
+            raise Exception(f"There is no image in {original}")
+    template = cv2.imread(comparison)
+    image = cv2.imread(original)
     # loop over the scales of the image
     threads = list()
     parts = max_scale / 5.0

@@ -173,7 +173,7 @@ class NewDriver:
         if self.__full_reset:
             self.__desired_capabilities['enforceAppInstall'] = True
         else:
-            self.__desired_capabilities['noReset'] = False
+            self.__desired_capabilities['noReset'] = True
         if self.__version is not None:
             self.__desired_capabilities['platformVersion'] = self.__version
         if self.udid is not None:
