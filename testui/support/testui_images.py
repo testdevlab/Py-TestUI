@@ -69,7 +69,7 @@ def __compare(image, template, threshold: float, image_match: str, root_dir: str
                     (endX, endY) = (int((maxLoc[0] + tW) * r), int((maxLoc[1] + tH) * r))
                     # draw a bounding box around the detected result and display the image
                     cv2.rectangle(image, (startX, startY), (endX, endY), (0, 0, 255), 2)
-                    cv2.imwrite(root_dir + '/' + image_match, image)
+                    cv2.imwrite(os.path.join(root_dir, image_match), image)
                 lock.acquire()
                 found_image = True
                 lock.release()
