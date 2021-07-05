@@ -24,4 +24,6 @@ class TestStringMethods(object):
         selenium_driver.navigate_to('https://google.com')
         landing_page = LandingScreen(selenium_driver)
         landing_page.i_am_in_landing_screen()
+        selenium_driver.navigate_to('https://github.com/testdevlab/Py-TestUI#image-recognition')
+        selenium_driver.find_image_match("resources/comp.png", 0.9, True)
         selenium_driver.raise_errors()

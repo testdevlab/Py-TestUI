@@ -124,14 +124,14 @@ class TestUIDriver:
         now = datetime.now()
         current_time = now.strftime("%Y-%m-%d%H%M%S")
         image_name = f'{self.device_udid}{current_time}.png'
-        self.save_screenshot(image_name)
+        image_path = self.save_screenshot(image_name)
         found, p = ImageRecognition(
-            f'testui-{image_name}', comparison, threshold, self.device_name).compare(image_match)
+            image_path, comparison, threshold, self.device_name).compare(image_match)
         if assertion and not found and not not_found:
             exception = f'{self.device_name}: The images compared did not match. threshold={threshold}, matched = {p}\n'
             logger.log_error(error_with_traceback(exception))
             raise Exception(exception)
-        self.__delete_screenshot(image_name)
+        os.remove(image_path)
 
         return found
 
@@ -182,6 +182,8 @@ class TestUIDriver:
         self.get_driver().save_screenshot(final_path)
 
         logger.log_debug(f'{self.device_name}: Screenshot saved in "{final_path}"')
+
+        return final_path
 
     @classmethod
     def __delete_screenshot(cls, image_name):
