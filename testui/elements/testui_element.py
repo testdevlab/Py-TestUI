@@ -9,7 +9,6 @@ from appium.webdriver.webelement import WebElement
 from selenium.webdriver.common.by import By
 
 from testui.support import logger
-from testui.support.testui_driver import TestUIDriver
 from testui.support.helpers import error_with_traceback
 from testui.support.testui_images import Dimensions, ImageRecognition
 
@@ -73,7 +72,7 @@ class ElementException(Error):
 
 
 class Elements(object):
-    def __init__(self, driver: TestUIDriver, locator_type: str, locator: str):
+    def __init__(self, driver, locator_type: str, locator: str):
         self.logger = driver.logger_name
         self.__soft_assert = driver.soft_assert
         self.testui_driver = driver
