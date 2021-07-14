@@ -2,11 +2,14 @@ import time
 import os
 
 from os import path
+from typing import List
 
 from appium.webdriver.common.touch_action import TouchAction
+from appium.webdriver.webelement import WebElement
 from selenium.webdriver.common.by import By
 
 from testui.support import logger
+from testui.support.testui_driver import TestUIDriver
 from testui.support.helpers import error_with_traceback
 from testui.support.testui_images import Dimensions, ImageRecognition
 
@@ -70,7 +73,7 @@ class ElementException(Error):
 
 
 class Elements(object):
-    def __init__(self, driver, locator_type: str, locator: str):
+    def __init__(self, driver: TestUIDriver, locator_type: str, locator: str):
         self.logger = driver.logger_name
         self.__soft_assert = driver.soft_assert
         self.testui_driver = driver
@@ -98,7 +101,7 @@ class Elements(object):
         self.index = index
         return self
 
-    def get_element(self, index=0):
+    def get_element(self, index=0) -> WebElement:
         if self.__is_collection:
             return self.__find_by_collection()[self.index]
         elif index != 0:
@@ -106,7 +109,7 @@ class Elements(object):
         else:
             return self.__find_by_element()
 
-    def __find_by_element(self):
+    def __find_by_element(self) -> WebElement:
         if self.locator_type == "id":
             return self.driver.find_element_by_id(self.locator)
         if self.locator_type == "android_id_match":
@@ -130,7 +133,7 @@ class Elements(object):
         else:
             raise ElementException(f"locator not supported: {self.locator_type}")
 
-    def __find_by_collection(self):
+    def __find_by_collection(self) -> List[WebElement]:
         if self.locator_type == "id":
             return self.driver.find_elements_by_id(self.locator)
         if self.locator_type == "android_id_match":
@@ -608,6 +611,9 @@ class Elements(object):
             f'{logger.bcolors.FAIL}{err} {self.device_name}: Element not found with the following locator: '
             f'"{self.locator_type}:{self.locator}" after {time.time() - start}s {logger.bcolors.ENDC}'
         )
+    
+    def clear(self) -> None:
+        self.get_element().clear()
 
     def get_text(self):
         timeout = 10  # [seconds]
