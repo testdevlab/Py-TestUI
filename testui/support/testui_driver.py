@@ -6,6 +6,7 @@ from os import path
 from pathlib import Path
 
 from appium.webdriver.common.touch_action import TouchAction
+from appium.webdriver.webdriver import WebDriver
 from selenium.webdriver import TouchActions, ActionChains
 
 from testui.elements import testui_element
@@ -18,7 +19,7 @@ class TestUIDriver:
     __test__ = False
 
 
-    def __init__(self, driver):
+    def __init__(self, driver: 'TestUIDriver'):
         self.__soft_assert = driver.soft_assert
         self.__appium_driver = driver.get_driver()
         self.__process = driver.process
@@ -190,7 +191,7 @@ class TestUIDriver:
         root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         os.remove(root_dir + f'/testui-{image_name}')
 
-    def get_driver(self):
+    def get_driver(self) -> WebDriver:
         driver = self.__appium_driver
         return driver
 

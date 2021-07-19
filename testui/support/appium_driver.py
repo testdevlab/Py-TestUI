@@ -7,6 +7,7 @@ from time import sleep
 
 from ppadb.client import Client as AdbClient
 from appium.webdriver import Remote
+from appium.webdriver.webdriver import WebDriver
 from selenium import webdriver
 from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 from webdriver_manager import chrome
@@ -21,7 +22,7 @@ class NewDriver:
 
     def __init__(self):
         self.browser = False
-        self.__driver = None
+        self.__driver: WebDriver = None
         self.__app_path = None
         self.udid = None
         self.__appium_url = None
@@ -262,7 +263,7 @@ def start_driver(desired_caps, url, debug, port, udid, log_file):
     raise err
 
 
-def start_selenium_driver(desired_caps, url=None, debug=None, browser=None, chrome_options=None, firefox_options=None):
+def start_selenium_driver(desired_caps, url=None, debug=None, browser=None, chrome_options=None, firefox_options=None) -> WebDriver:
     options = chrome_options
     if firefox_options is not None:
         options = firefox_options
