@@ -120,7 +120,7 @@ The automation infrastructure implements the Page Object Model (POM) pattern. Th
             .
 ```
 
-The test case scripts are in a different class. The scripts import the respective screen package along with additional packages such as PyTest. Each class has any amount of tests. All test methods start with the word “test\_” such as:
+The test case scripts are in a different class. The scripts import the respective screen package along with additional packages such as PyTest. Each class has any amount of tests. All test methods start with the word "test\_" such as:
 
 ```py
     def test_add_existing_contact(self, appium_driver):
@@ -135,7 +135,7 @@ The test case scripts are in a different class. The scripts import the respectiv
 
 ### Element Locators Methods:
 
-The class “Elements” implements default locator methods that are part of the Appium WedDriver package. It adds additional functionality to wait for a configurable amount of time for an element to appear and provides improved error logging. It also implements methods for scrolling and swiping. Example of locators:
+The class "Elements" implements default locator methods that are part of the Appium WedDriver package. It adds additional functionality to wait for a configurable amount of time for an element to appear and provides improved error logging. It also implements methods for scrolling and swiping. Example of locators:
 
 ```py
     def e(driver, locator_type, locator):
@@ -219,7 +219,7 @@ Note: the image that you use for comparison can be a small portion of the screen
 
 ### Drivers:
 
-The testui_driver.py declares the TestUIDriver class which implements methods from the Elements class. It also implements methods such as “touch_actions” inherited from Selenium WebDriver TouchActions class.
+The testui_driver.py declares the TestUIDriver class which implements methods from the Elements class. It also implements methods such as "touch_actions" inherited from Selenium WebDriver TouchActions class.
 
 The appium_driver.py declares the NewDriver class which implements TestUIDriver. It also implements the desired capabilities such as the location of the .apk., the Chrome or iOS drivers, and others such as the Android version.
 
@@ -252,7 +252,7 @@ Chrome desktop browser:
         .set_selenium_driver()
 ```
 
-Before setting the driver you can choose among a different stacks of class methods to add different capabilities or functionality out-of-the-box from the framework such as “soft asserts“ or “log types“. Soft asserts make the automation run even when element assertions find errors, but in the end of said automation you can include the following line to rise the errors found:
+Before setting the driver you can choose among a different stacks of class methods to add different capabilities or functionality out-of-the-box from the framework such as "soft asserts" or "log types". Soft asserts make the automation run even when element assertions find errors, but in the end of said automation you can include the following line to rise the errors found:
 
 ```py
     driver = NewDriver() \
