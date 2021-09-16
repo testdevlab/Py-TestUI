@@ -56,7 +56,7 @@ class TestUIDriver:
         return self.__appium_driver.contexts
 
     def e(self, locator_type, locator):
-        return testui_element.e(self.__appium_driver, locator_type, locator)
+        return testui_element.e(self, locator_type, locator)
 
     def execute(self, driver_command, params=None):
         self.get_driver().execute(driver_command, params)
