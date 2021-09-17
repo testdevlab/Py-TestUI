@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 setup(
     name="py_testui",
     author="Alvaro Santos Laserna Lopez",
-    version="1.0.9",
+    version="1.0.10",
     url="https://testdevlab.com",
     packages=find_packages(),
     install_requires=[
