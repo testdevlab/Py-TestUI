@@ -213,6 +213,7 @@ class Elements(object):
     def wait_until_visible(self, seconds=10.0, log=True) -> "Elements":
         start = time.time()
 
+        is_not = self.__is_not
         while time.time() < start + seconds:
             if self.is_visible(log=False):
                 if log:
@@ -223,6 +224,7 @@ class Elements(object):
 
                 return self
 
+            self.__is_not = is_not
             time.sleep(0.2)
 
         err_text = "was not"
@@ -234,6 +236,8 @@ class Elements(object):
             f'"{self.locator_type}: {self.locator}" after {time.time() - start}s'
         )
 
+        self.__is_not = False
+        
         return self
 
     def wait_until_attribute(self, attr, text, seconds=10):
