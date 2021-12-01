@@ -172,9 +172,11 @@ class Elements(object):
             if log:
                 self.__put_log(f'{self.device_name}: element "{self.locator_type}: {self.locator}" is not visible')
 
-            if self.__is_not:
-                self.__is_not = False
+            self.__is_not = False
+
+            if is_not:
                 return True
+
             return False
 
     def is_visible_in(self, seconds):
@@ -208,59 +210,31 @@ class Elements(object):
                            f'for {seconds}s')
         return self
 
-    def wait_until_visible(self, seconds=10.0, log=True) -> 'Elements':
+    def wait_until_visible(self, seconds=10.0, log=True) -> "Elements":
         start = time.time()
-        
-        err = None
 
-        err_text = 'not'
+        while time.time() < start + seconds:
+            if self.is_visible(log=False):
+                if log:
+                    self.__put_log(
+                        f'{self.device_name}: Element "{self.locator_type}: {self.locator}" '
+                        f"was visible in {time.time() - start}s"
+                    )
+
+                return self
+
+            time.sleep(0.2)
+
+        err_text = "was not"
         if self.__is_not:
-            err_text = 'is'
-        
-        i = 0
-        while time.time() < start + seconds or i < 1:
-            try:
-                is_visible = self.get_element().is_displayed()
+            err_text = "was"
 
-                if not self.__is_not and is_visible:
-                    if log:
-                        self.__put_log(
-                            f'{self.device_name}: element "{self.locator_type}: {self.locator}" '
-                            f'found after {time.time() - start}s'
-                        )
+        self.__show_error(
+            f'{self.device_name}: Element {err_text} found with the following locator: '
+            f'"{self.locator_type}: {self.locator}" after {time.time() - start}s'
+        )
 
-                    self.__is_not = False
-
-                    return self
-            except Exception as error:
-                if self.__is_not:
-                    if log:
-                        self.__put_log(
-                            f'{self.device_name}: element "{self.locator_type}: {self.locator}" '
-                            f'not visible after {time.time() - start}s'
-                        )
-                    
-                    self.__is_not = False
-                    
-                    return self
-                
-                err = error
-                time.sleep(0.2)
-                
-            i += 1
-
-        if err is None:
-            err = ''
-
-        if log:
-            self.__show_error(
-                f'{logger.bcolors.FAIL}{err} {self.device_name} Element {err_text} found with the following locator: '
-                f'"{self.locator_type}: {self.locator}" after {time.time() - start}s {logger.bcolors.ENDC}'
-            )
-
-            return self
-        
-        raise ElementException(error_with_traceback(err))
+        return self
 
     def wait_until_attribute(self, attr, text, seconds=10):
         start = time.time()
