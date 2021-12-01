@@ -214,7 +214,10 @@ class Elements(object):
         start = time.time()
 
         is_not = self.__is_not
-        while time.time() < start + seconds:
+
+        # Executes the loop at least once in case `seconds` <= 0
+        entered_loop = False
+        while time.time() < start + seconds or not entered_loop:
             if self.is_visible(log=False):
                 if log:
                     self.__put_log(
@@ -225,6 +228,8 @@ class Elements(object):
                 return self
 
             self.__is_not = is_not
+            entered_loop = True
+            
             time.sleep(0.2)
 
         err_text = "was not"
@@ -237,7 +242,7 @@ class Elements(object):
         )
 
         self.__is_not = False
-        
+
         return self
 
     def wait_until_attribute(self, attr, text, seconds=10):
