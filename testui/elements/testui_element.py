@@ -7,7 +7,6 @@ from typing import List
 from appium.webdriver.common.touch_action import TouchAction
 from appium.webdriver.webelement import WebElement
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webdriver import WebDriver
 
 from testui.support import logger
 from testui.support.helpers import error_with_traceback
@@ -78,7 +77,7 @@ class Elements(object):
         self.__soft_assert = driver.soft_assert
         self.testui_driver = driver
         self.device_name = driver.device_name
-        self.driver: WebDriver = driver.get_driver()
+        self.driver = driver.get_driver()
         self.locator = locator
         self.locator_type = locator_type
         self.__is_collection = False
@@ -159,25 +158,27 @@ class Elements(object):
 
     def is_visible(self, log=True) -> bool:
         is_not = self.__is_not
+        self.__is_not = False
+
+        is_visible = False
         try:
             is_visible = self.get_element().is_displayed()
 
             if log and is_visible:
                 self.__put_log(f'{self.device_name}: element "{self.locator_type}: {self.locator}" is visible')
-
-            self.__is_not = False
-            
-            return not is_not and is_visible
         except Exception:
             if log:
                 self.__put_log(f'{self.device_name}: element "{self.locator_type}: {self.locator}" is not visible')
-
-            self.__is_not = False
 
             if is_not:
                 return True
 
             return False
+
+        if is_not:
+            return not is_visible
+        else:
+            return is_visible
 
     def is_visible_in(self, seconds):
         start = time.time()
@@ -214,26 +215,24 @@ class Elements(object):
         start = time.time()
 
         is_not = self.__is_not
-
-        # Executes the loop at least once in case `seconds` <= 0
-        entered_loop = False
-        while time.time() < start + seconds or not entered_loop:
-            if self.is_visible(log=False):
-                if log:
-                    self.__put_log(
-                        f'{self.device_name}: Element "{self.locator_type}: {self.locator}" '
-                        f"was visible in {time.time() - start}s"
-                    )
-
-                return self
-
-            self.__is_not = is_not
-            entered_loop = True
-            
+        
+        is_visible = self.is_visible(log=False)
+        while time.time() < start + seconds and not is_visible:
             time.sleep(0.2)
+            is_visible = self.is_visible(log=False)
+            self.__is_not = is_not
+
+        if is_visible:
+            if log:
+                self.__put_log(
+                    f'{self.device_name}: Element "{self.locator_type}: {self.locator}" '
+                    f"was visible in {time.time() - start}s"
+                )
+
+            return self
 
         err_text = "was not"
-        if self.__is_not:
+        if is_not:
             err_text = "was"
 
         self.__show_error(
