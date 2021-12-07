@@ -164,15 +164,26 @@ class Elements(object):
         try:
             is_visible = self.get_element().is_displayed()
 
-            if log and is_visible:
-                self.__put_log(f'{self.device_name}: element "{self.locator_type}: {self.locator}" is visible')
+            if log:
+                if is_visible:
+                    self.__put_log(
+                        f'{self.device_name}: element "{self.locator_type}: '
+                        f'{self.locator}" is visible'
+                    )
+                else:
+                    self.__put_log(
+                        f'{self.device_name}: element "{self.locator_type}: '
+                        f'{self.locator}" is not visible'
+                    )
         except Exception:
             if log:
-                self.__put_log(f'{self.device_name}: element "{self.locator_type}: {self.locator}" is not visible')
+                self.__put_log(
+                    f'{self.device_name}: element "{self.locator_type}: '
+                    f'{self.locator}" is not visible'
+                )
 
             if is_not:
                 return True
-
 
         if is_not:
             return not is_visible
