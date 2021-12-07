@@ -182,9 +182,6 @@ class Elements(object):
                     f'{self.locator}" is not visible'
                 )
 
-            if is_not:
-                return True
-
         if is_not:
             return not is_visible
         else:
