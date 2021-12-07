@@ -173,7 +173,6 @@ class Elements(object):
             if is_not:
                 return True
 
-            return False
 
         if is_not:
             return not is_visible
