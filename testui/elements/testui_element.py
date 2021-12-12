@@ -156,9 +156,15 @@ class Elements(object):
         else:
             raise ElementException(f"locator not supported: {self.locator_type}")
 
-    def is_visible(self, log=True) -> bool:
+    def is_visible(self, log=True, **kwargs) -> bool:
         is_not = self.__is_not
-        self.__is_not = False
+
+        # Allows passing "is_not" as a kwarg to not overwrite self.__is_not.
+        # This is not meant to be used by the user.
+        if "is_not" in kwargs:
+            self.__is_not = kwargs["is_not"]
+        else:
+            self.__is_not = False
 
         is_visible = False
         try:
@@ -223,11 +229,10 @@ class Elements(object):
 
         is_not = self.__is_not
         
-        is_visible = self.is_visible(log=False)
+        is_visible = self.is_visible(log=False, is_not=is_not)
         while time.time() < start + seconds and not is_visible:
             time.sleep(0.2)
-            is_visible = self.is_visible(log=False)
-            self.__is_not = is_not
+            is_visible = self.is_visible(log=False, is_not=is_not)
 
         if is_visible:
             if log:
