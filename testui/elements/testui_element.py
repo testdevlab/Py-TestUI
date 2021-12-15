@@ -229,6 +229,7 @@ class Elements(object):
         start = time.time()
 
         is_not = self.__is_not
+        self.__is_not = False
         
         is_visible = self.is_visible(log=False, is_not=is_not)
         while time.time() < start + seconds and not is_visible:
@@ -252,8 +253,6 @@ class Elements(object):
             f'{self.device_name}: Element {err_text} found with the following locator: '
             f'"{self.locator_type}: {self.locator}" after {time.time() - start}s'
         )
-
-        self.__is_not = False
 
         return self
 
