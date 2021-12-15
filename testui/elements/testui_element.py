@@ -157,13 +157,14 @@ class Elements(object):
             raise ElementException(f"locator not supported: {self.locator_type}")
 
     def is_visible(self, log=True, **kwargs) -> bool:
-        is_not = self.__is_not
+        is_not = False
 
         # Allows passing "is_not" as a kwarg to not overwrite self.__is_not.
         # This is not meant to be used by the user.
         if "is_not" in kwargs:
-            self.__is_not = kwargs["is_not"]
+            is_not = kwargs["is_not"]
         else:
+            is_not = self.__is_not
             self.__is_not = False
 
         is_visible = False
