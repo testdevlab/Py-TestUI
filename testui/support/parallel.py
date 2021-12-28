@@ -24,9 +24,13 @@ def parallel_testui():
         logger.log_info(f'Starting testrail run {test_run_id}')
     elif args.testrail is not None:
         test_run_id = __start_run_id(args, args.testrail)
-        logger.log_info(f'Created testrail run {test_run_id} with testrail name: {args.testrail}')
+        logger.log_info(
+            f'Created testrail run {test_run_id} with testrail name: {args.testrail}'
+        )
     number_of_cases = get_total_number_of_cases(args)
-    logger.log_info(f'------------ Total Number of Test Cases: {number_of_cases} ---------------')
+    logger.log_info(
+        f'------------ Total Number of Test Cases: {number_of_cases} ---------------'
+    )
     start = time.time()
     __start_processes(args.markers, args, test_run_id)
     end_time = time.time() - start
@@ -44,30 +48,42 @@ def parallel_testui():
         os.remove('fails.txt')
         number_of_fails = __check_number_of_fails()
         percentage = 100 - 100 * number_of_fails / number_of_cases
-        logger.log_error(f'------------ Total Number of Test Cases: {number_of_cases}. '
-                         f'Percentage Passed {percentage.__round__(3)}% ---------------')
-        logger.log_error(f'------------ Tests Finished with errors! {fail} markers failed and {passed} passed.'
-                         f' Execution Time {__seconds_to_minutes(end_time)} ---------------')
-        logger.log_error(f'------------ Total Number of Test Failed: {__check_number_of_fails()} ---------------')
+        logger.log_error(
+            f'------------ Total Number of Test Cases: {number_of_cases}. '
+            f'Percentage Passed {percentage.__round__(3)}% ---------------')
+        logger.log_error(
+            f'------------ Tests Finished with errors! {fail} markers failed and {passed} passed.'
+            f' Execution Time {__seconds_to_minutes(end_time)} ---------------'
+        )
+        logger.log_error(
+            f'------------ Total Number of Test Failed: {__check_number_of_fails()} ---------------'
+        )
         logger.log_error(f'There were test fails: \n\n{__check_txt_fails()}')
-        raise Exception(f'------------ Tests Finished with errors! ---------------')
+        raise Exception(
+            '------------ Tests Finished with errors! ---------------')
 
     try:
         os.remove('fails.txt')
     except FileNotFoundError:
-        logger.log_error('There were not errors file, there might be some other issues during the execution...')
-    logger.log_pass(f'------------- Total Number of Test Cases: {number_of_cases} -------------')
-    logger.log_pass(f'------------- Tests Finished successfully. {passed} markers passed. '
-                    f'Total Execution Time {__seconds_to_minutes(end_time)} -------------')
+        logger.log_error(
+            'There were not errors file, there might be some other issues during the execution...'
+        )
+    logger.log_pass(
+        f'------------- Total Number of Test Cases: {number_of_cases} -------------'
+    )
+    logger.log_pass(
+        f'------------- Tests Finished successfully. {passed} markers passed. '
+        f'Total Execution Time {__seconds_to_minutes(end_time)} -------------')
 
 
 def remove_logs():
-    root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    from testui.support import logger
+    root_dir = os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     i = 0
     try:
         for filename in os.listdir(root_dir + '/report_screenshots'):
-            file_path = os.path.join(root_dir + '/report_screenshots/', filename)
+            file_path = os.path.join(root_dir + '/report_screenshots/',
+                                     filename)
             os.remove(file_path)
             if i == 0:
                 logger.log('Cleaning report_screenshots folder...')
@@ -88,10 +104,13 @@ def remove_logs():
 
 def get_total_number_of_cases(args):
     number_of_cases = 0
-    import subprocess
     for marker in args.markers:
-        output = subprocess.run(['pytest', '-m', f'{marker} {args.general_markers}', f'--collect-only'],
-                                stdout=subprocess.PIPE)
+        output = subprocess.run([
+            'pytest', '-m', f'{marker} {args.general_markers}',
+            '--collect-only'
+        ],
+            stdout=subprocess.PIPE,
+            check=False)
         response = output.stdout
         string_response = response.__str__()
         if string_response.__contains__(' / '):
@@ -100,9 +119,13 @@ def get_total_number_of_cases(args):
                     number = cases.split(' selected')[0]
                     number_of_cases += int(number)
     if args.single_thread_marker is not None:
-        output = subprocess.run(
-            ['pytest', '-m', f'{args.single_thread_marker} {args.general_markers}', f'--collect-only'],
-            stdout=subprocess.PIPE)
+        output = subprocess.run([
+            'pytest', '-m',
+            f'{args.single_thread_marker} {args.general_markers}',
+            '--collect-only'
+        ],
+            stdout=subprocess.PIPE,
+            check=False)
         response = output.stdout
         string_response = response.__str__()
         if string_response.__contains__(' / '):
@@ -129,38 +152,58 @@ def __seconds_to_minutes(time_seconds):
 
 def __arg_parser():
     parser = argparse.ArgumentParser(description='Parallel Testing')
-    parser.add_argument('markers', metavar='N', type=str, nargs='+',
+    parser.add_argument('markers',
+                        metavar='N',
+                        type=str,
+                        nargs='+',
                         help='an string for the accumulator')
 
-    parser.add_argument('--parallel', type=int,
+    parser.add_argument('--parallel',
+                        type=int,
                         help='number of parallel threads')
 
-    parser.add_argument('--s', type=__str2bool, nargs='?',
-                        const=True, default=False,
+    parser.add_argument('--s',
+                        type=__str2bool,
+                        nargs='?',
+                        const=True,
+                        default=False,
                         help='make more verbose logs (pytest -s)')
 
-    parser.add_argument('--testrail', type=str,
-                        help='Use test rail and specify name. '
-                             'You will have to add a file testrail.cfg in root project dir')
+    parser.add_argument(
+        '--testrail',
+        type=str,
+        help='Use test rail and specify name. '
+        'You will have to add a file testrail.cfg in root project dir')
 
-    parser.add_argument('--testrail_id', type=str,
-                        help='Use test rail and specify testrail id. '
-                             'You will have to add a file testrail.cfg in root project dir')
+    parser.add_argument(
+        '--testrail_id',
+        type=str,
+        help='Use test rail and specify testrail id. '
+        'You will have to add a file testrail.cfg in root project dir')
 
-    parser.add_argument('--testrail_pwd', type=str,
-                        help='Use test rail and specify password. '
-                             'You will have to add a file testrail.cfg in root project dir')
+    parser.add_argument(
+        '--testrail_pwd',
+        type=str,
+        help='Use test rail and specify password. '
+        'You will have to add a file testrail.cfg in root project dir')
 
-    parser.add_argument('--general', type=str,
+    parser.add_argument('--general',
+                        type=str,
                         help='general flags to put in all threads')
 
-    parser.add_argument('--general_markers', type=str,
+    parser.add_argument('--general_markers',
+                        type=str,
                         help='markers included in all tests')
 
-    parser.add_argument('--single_thread_marker', type=str,
-                        help='marker to run without any thread running in parallel')
+    parser.add_argument(
+        '--single_thread_marker',
+        type=str,
+        help='marker to run without any thread running in parallel')
 
-    parser.add_argument("--udids", nargs="*", type=str, default=[],
+    parser.add_argument("--udids",
+                        nargs="*",
+                        type=str,
+                        default=[],
                         help='device udids')
 
     args = parser.parse_args()
@@ -184,30 +227,33 @@ def __arg_parser():
     else:
         logger.log(f'General flags: {args.general}')
     if args.single_thread_marker is not None:
-        logger.log_info(f'Single Thread marker: {args.single_thread_marker} {args.general_markers}')
+        logger.log_info(
+            f'Single Thread marker: {args.single_thread_marker} {args.general_markers}'
+        )
     return args
 
 
 def __str2bool(v):
     if isinstance(v, bool):
         return v
+
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
         return True
     elif v.lower() in ('no', 'false', 'f', 'n', '0'):
         return False
-    else:
-        raise argparse.ArgumentTypeError('Boolean value expected.')
+
+    raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
 def __start_processes(markers: list, args, test_run_id=None):
-    ps = list()
+    ps = []
     amount = len(markers) // args.parallel
     amount_plus = 0
     if len(markers) % args.parallel != 0:
         amount_plus = len(markers) % args.parallel
     i = 0
     for j in range(args.parallel):
-        tags = list()
+        tags = []
         if j != args.parallel - 1:
             for _ in range(amount):
                 if len(markers) > i:
@@ -219,7 +265,8 @@ def __start_processes(markers: list, args, test_run_id=None):
                     tags.append(markers[i])
                     i += 1
         logger.log_info(f'Thread {j} has markers: {tags}')
-        ps.append(mp.Process(target=__process, args=(tags, args, j, test_run_id)))
+        ps.append(
+            mp.Process(target=__process, args=(tags, args, j, test_run_id)))
     for p in ps:
         p.daemon = True
         p.start()
@@ -239,8 +286,10 @@ def __start_run_id(args, test_run_name):
     if args.single_thread_marker is not None:
         end_marker += f'{args.single_thread_marker} {args.general_markers}'
     with open('testrail_id_file.txt', 'wb') as out:
-        cmd = ['pytest', '-m', end_marker, '--testrail', f'--tr-config=testrail.cfg',
-               f'--tr-testrun-name={test_run_name}']
+        cmd = [
+            'pytest', '-m', end_marker, '--testrail',
+            '--tr-config=testrail.cfg', f'--tr-testrun-name={test_run_name}'
+        ]
         if args.testrail_pwd is not None:
             cmd.append(f'--tr-password={args.testrail_pwd}')
         process = subprocess.Popen(cmd, stdout=out, stderr=out)
@@ -261,20 +310,20 @@ def __start_run_id(args, test_run_name):
                 logger.log_info(f'Test run: {id_test}')
                 return id_test
             raise Exception('Failed to create Test Run')
-        elif text.__contains__("Failed to create testrun"):
+        if text.__contains__("Failed to create testrun"):
             out.close()
             process.send_signal(signal=2)
             process.terminate()
             process.wait()
             os.remove('testrail_id_file.txt')
             logger.log_error(f'Failed to create Test Run: \n {text}')
-            raise Exception(f'Failed to create Test Run')
+            raise Exception('Failed to create Test Run')
         out.close()
         i += 1
 
 
 def __process(markers: list, args, thread=0, test_run_id=None):
-    for i, marker in enumerate(markers):
+    for _, marker in enumerate(markers):
         try:
             os.remove(f'.my_cache_dir_{thread}/v/cache/lastfailed')
             os.remove(f'.my_cache_dir_{thread}/v/cache/nodeids')
@@ -291,8 +340,12 @@ def __process(markers: list, args, thread=0, test_run_id=None):
                 testrail += f' --tr-password={args.testrail_pwd}'
         cache = f'-o cache_dir=.my_cache_dir_{thread}'
         start_1 = time.time()
-        logger.log(f'Starting: pytest {quiet} -m "{marker} {args.general_markers}" {testrail} {args.general} {cache}')
-        pr_1 = os.system(f'pytest {quiet} -m "{marker} {args.general_markers}" {testrail} {args.general} {cache}')
+        logger.log(
+            f'Starting: pytest {quiet} -m "{marker} {args.general_markers}" {testrail} {args.general} {cache}'
+        )
+        pr_1 = os.system(
+            f'pytest {quiet} -m "{marker} {args.general_markers}" {testrail} {args.general} {cache}'
+        )
         file = open('fails.txt', 'a+')
         file.write(f'{pr_1}')
         file.close()
@@ -339,7 +392,7 @@ def __check_fails(cache='.pytest_cache'):
     try:
         f = open(f'{cache}/v/cache/lastfailed')
         fails = f.read()
-        fails_tests = list()
+        fails_tests = []
         i = 0
         for fail in fails.split('true'):
             if i == 0:
@@ -353,8 +406,9 @@ def __check_fails(cache='.pytest_cache'):
             i += 1
         return fails_tests
     except FileNotFoundError:
-        return list()
+        return []
 
 
 def __clean_str(string: str):
-    return string.replace('"', '').replace('}', '').replace('{', '').replace(',', '').replace('\n', '').replace(' ', '')
+    return string.replace('"', '').replace('}', '').replace('{', '').replace(
+        ',', '').replace('\n', '').replace(' ', '')
