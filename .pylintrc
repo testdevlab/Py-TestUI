@@ -341,7 +341,7 @@ no-docstring-rgx = __.*__$|test_.+|setUp$|setUpClass$|tearDown$|tearDownClass$|M
 docstring-min-length = 5
 
 [FORMAT]
-max-line-length = 120
+max-line-length = 80
 ignore-long-lines = ^\s*(# )?((<?https?://\S+>?)|(\.\. \w+: .*))$
 single-line-if-stmt = no
 no-space-check = trailing-comma,dict-separator

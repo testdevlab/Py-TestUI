@@ -9,9 +9,15 @@ from testui.support.testui_driver import TestUIDriver
 class TestStringMethods(object):
     @pytest.yield_fixture(autouse=True)
     def appium_driver(self):
-        driver = NewDriver() \
-            .set_app_package_activity("com.android.vending", ".AssetBrowserActivity") \
-            .set_logger().set_soft_assert(True).set_appium_driver()
+        driver = (
+            NewDriver()
+            .set_app_package_activity(
+                "com.android.vending", ".AssetBrowserActivity"
+            )
+            .set_logger()
+            .set_soft_assert(True)
+            .set_appium_driver()
+        )
         yield driver
         driver.quit()
 

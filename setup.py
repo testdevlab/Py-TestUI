@@ -7,10 +7,18 @@ setup(
     url="https://testdevlab.com",
     packages=find_packages(),
     install_requires=[
-        "pytest", 'Appium-Python-Client', 'selenium', 'opencv-python',
-        'geckodriver-autoinstaller', 'value', "pytest-xdist",
-        "pytest-testrail", "pure-python-adb", "webdriver-manager", 'numpy',
-        'imutils'
+        "pytest",
+        "Appium-Python-Client",
+        "selenium",
+        "opencv-python",
+        "geckodriver-autoinstaller",
+        "value",
+        "pytest-xdist",
+        "pytest-testrail",
+        "pure-python-adb",
+        "webdriver-manager",
+        "numpy",
+        "imutils",
     ],
-    python_requires='>=3.6',
+    python_requires=">=3.6",
 )

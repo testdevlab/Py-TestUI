@@ -38,7 +38,8 @@ def scroll_by_text(driver, text, element=None, exact_text=False):
 def scroll_by_resource_id(driver, res_id):
     locator = (
         "new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector()."
-        f'resourceId("{res_id}"));')
+        f'resourceId("{res_id}"));'
+    )
     e(driver, "uiautomator", locator)
     return Elements(driver, "uiautomator", locator)
 
@@ -63,7 +64,8 @@ def testui_error(driver, exception: str) -> None:
         logger.log_error(full_exception)
         driver.set_error(full_exception)
         raise ElementException(
-            "There were errors during the UI testing, check the logs")
+            "There were errors during the UI testing, check the logs"
+        )
 
 
 class Error(Exception):
@@ -76,7 +78,7 @@ class ElementException(Error):
         self.expression = expression
 
 
-class Elements():
+class Elements:
     def __init__(self, driver, locator_type: str, locator: str):
         self.logger = driver.logger_name
         self.__soft_assert = driver.soft_assert
@@ -119,7 +121,8 @@ class Elements():
             return self.driver.find_element_by_id(self.locator)
         if self.locator_type == "android_id_match":
             return self.driver.find_element_by_android_uiautomator(
-                f'resourceIdMatches("{self.locator}")')
+                f'resourceIdMatches("{self.locator}")'
+            )
         if self.locator_type == "css":
             return self.driver.find_element_by_css_selector(self.locator)
         if self.locator_type == "className":
@@ -131,8 +134,7 @@ class Elements():
         if self.locator_type == "accessibility":
             return self.driver.find_element_by_accessibility_id(self.locator)
         if self.locator_type == "uiautomator":
-            return self.driver.find_element_by_android_uiautomator(
-                self.locator)
+            return self.driver.find_element_by_android_uiautomator(self.locator)
         if self.locator_type == "classChain":
             return self.driver.find_element_by_ios_class_chain(self.locator)
         if self.locator_type == "predicate":
@@ -145,7 +147,8 @@ class Elements():
             return self.driver.find_elements_by_id(self.locator)
         if self.locator_type == "android_id_match":
             return self.driver.find_elements_by_android_uiautomator(
-                f'resourceIdMatches("{self.locator}")')
+                f'resourceIdMatches("{self.locator}")'
+            )
         if self.locator_type == "css":
             return self.driver.find_elements_by_css_selector(self.locator)
         if self.locator_type == "className":
@@ -158,7 +161,8 @@ class Elements():
             return self.driver.find_elements_by_accessibility_id(self.locator)
         if self.locator_type == "uiautomator":
             return self.driver.find_elements_by_android_uiautomator(
-                self.locator)
+                self.locator
+            )
         if self.locator_type == "classChain":
             return self.driver.find_elements_by_ios_class_chain(self.locator)
         if self.locator_type == "predicate":
@@ -225,15 +229,18 @@ class Elements():
                 return self.__show_error(
                     f"{logger.bcolors.FAIL} {self.device_name} Element {err_text} found with the following locator: "
                     f'"{self.locator_type}:{self.locator}" during the time of {time.time() - start}s'
-                    f"{logger.bcolors.ENDC}")
+                    f"{logger.bcolors.ENDC}"
+                )
         if is_not:
             self.__put_log(
                 f'{self.device_name}: element "{self.locator_type}: {self.locator}" is not visible '
-                f"for {seconds}s")
+                f"for {seconds}s"
+            )
         else:
             self.__put_log(
                 f'{self.device_name}: element "{self.locator_type}: {self.locator}" is visible '
-                f"for {seconds}s")
+                f"for {seconds}s"
+            )
         return self
 
     def wait_until_visible(self, seconds=10.0, log=True) -> "Elements":
@@ -261,7 +268,7 @@ class Elements():
             err_text = "was"
 
         self.__show_error(
-            f'{self.device_name}: Element {err_text} found with the following locator: '
+            f"{self.device_name}: Element {err_text} found with the following locator: "
             f'"{self.locator_type}: {self.locator}" after {time.time() - start}s'
         )
 
@@ -323,11 +330,9 @@ class Elements():
             f'attribute "{attr}" -> "{value}" {info_text} "{text}" after {time.time() - start}s {logger.bcolors.ENDC}'
         )
 
-    def wait_until_contains_sensitive_attribute(self,
-                                                attr,
-                                                text,
-                                                seconds=10.0,
-                                                log=True):
+    def wait_until_contains_sensitive_attribute(
+        self, attr, text, seconds=10.0, log=True
+    ):
         start = time.time()
         err = None
         value = ""
@@ -341,7 +346,8 @@ class Elements():
                     self.__put_log(
                         f'{self.device_name}: element "{self.locator_type}: {self.locator}" has attribute '
                         f'"{attr}" -> "{value}" {info_text} no case sensitive value "{text}" after '
-                        f"{time.time() - start}s")
+                        f"{time.time() - start}s"
+                    )
                     self.__is_not = False
                     return self
             except Exception as error:
@@ -373,7 +379,8 @@ class Elements():
                 element.click()
                 self.__put_log(
                     f'{self.device_name}: element "{self.locator_type}: {self.locator}" clicked after '
-                    f"{time.time() - start}s")
+                    f"{time.time() - start}s"
+                )
                 return self
             except Exception as error:
                 err = error
@@ -402,18 +409,22 @@ class Elements():
                 if not browser:
                     ta = TouchAction(self.driver)
                     ta.press(self.get_element()).wait(
-                        milliseconds).release().perform()
+                        milliseconds
+                    ).release().perform()
                     self.__put_log(
                         f'{self.device_name}: element "{self.locator_type}: {self.locator}" pressed for '
-                        f"{time.time() - start}s")
+                        f"{time.time() - start}s"
+                    )
                     return self
                 else:
                     ta = ActionChains(self.driver)
                     ta.click_and_hold(self.get_element()).pause(
-                        milliseconds // 1000).release().perform()
+                        milliseconds // 1000
+                    ).release().perform()
                     self.__put_log(
                         f'{self.device_name}: element "{self.locator_type}: {self.locator}" pressed for '
-                        f"{time.time() - start}s")
+                        f"{time.time() - start}s"
+                    )
                     return self
             except Exception as error:
                 err = error
@@ -448,13 +459,17 @@ class Elements():
 
     @property
     def location(self):
-        return Dimensions(self.get_element().location.get("x"),
-                          self.get_element().location.get("y"))
+        return Dimensions(
+            self.get_element().location.get("x"),
+            self.get_element().location.get("y"),
+        )
 
     @property
     def dimensions(self):
-        return Dimensions(self.get_element().size.get("width"),
-                          self.get_element().size.get("height"))
+        return Dimensions(
+            self.get_element().size.get("width"),
+            self.get_element().size.get("height"),
+        )
 
     def screenshot(self, image_name="cropped_image.png"):
         """
@@ -463,34 +478,37 @@ class Elements():
         :return:
         """
         self.wait_until_visible()
-        self.testui_driver.save_screenshot(
-            f"{self.device_name}-crop_image.png")
+        self.testui_driver.save_screenshot(f"{self.device_name}-crop_image.png")
         dimensions = self.dimensions
         top_left = self.location
         ImageRecognition(
-            f"testui-{self.device_name}-crop_image.png").crop_original_image(
-                top_left.x + dimensions.x // 2,
-                top_left.y + dimensions.y // 2,
-                dimensions.x,
-                dimensions.y,
-                image_name,
+            f"testui-{self.device_name}-crop_image.png"
+        ).crop_original_image(
+            top_left.x + dimensions.x // 2,
+            top_left.y + dimensions.y // 2,
+            dimensions.x,
+            dimensions.y,
+            image_name,
         )
 
         root_dir = self.testui_driver.configuration.screenshot_path
         if not root_dir:
             root_dir = path.dirname(
-                path.dirname(path.dirname(path.abspath(__file__))))
+                path.dirname(path.dirname(path.abspath(__file__)))
+            )
 
         os.remove(root_dir + f"/testui-{self.device_name}-crop_image.png")
 
         return self
 
-    def find_image_match(self,
-                         image_name,
-                         threshold=0.9,
-                         image_match="",
-                         max_scale=2.0,
-                         min_scale=0.3):
+    def find_image_match(
+        self,
+        image_name,
+        threshold=0.9,
+        image_match="",
+        max_scale=2.0,
+        min_scale=0.3,
+    ):
         """
         Takes screenshot of the element and compares it with the one you provide as 'image_name'
         :param min_scale:
@@ -504,31 +522,39 @@ class Elements():
         self.__is_not = False
         self.screenshot(self.device_name + ".png")
         found, precision = ImageRecognition(
-            self.device_name + ".png", image_name, threshold,
-            self.device_name).compare(image_match=image_match,
-                                      max_scale=max_scale,
-                                      min_scale=min_scale)
+            self.device_name + ".png", image_name, threshold, self.device_name
+        ).compare(
+            image_match=image_match, max_scale=max_scale, min_scale=min_scale
+        )
         if not found and not is_not:
             self.__show_error(
                 f"{self.device_name}: The images compared did not match. threshold={threshold}. "
-                f"Matched = {precision}")
+                f"Matched = {precision}"
+            )
         if found and is_not:
             self.__is_not = False
             self.__show_error(
                 f"{self.device_name}: The images compared matched. threshold={threshold}. "
-                f"Matched = {precision}")
-        root_dir = (os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + "/")
+                f"Matched = {precision}"
+            )
+        root_dir = (
+            os.path.dirname(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            )
+            + "/"
+        )
         os.remove(root_dir + self.device_name + ".png")
 
         return self
 
-    def is_image_match(self,
-                       image_name,
-                       threshold=0.9,
-                       image_match="",
-                       max_scale=2.0,
-                       min_scale=0.3):
+    def is_image_match(
+        self,
+        image_name,
+        threshold=0.9,
+        image_match="",
+        max_scale=2.0,
+        min_scale=0.3,
+    ):
         """
         Takes screenshot of the element and compares it with the one you provide as 'image_name'
         :param min_scale:
@@ -541,28 +567,34 @@ class Elements():
         is_not = self.__is_not
         self.__is_not = False
         self.screenshot(self.device_name + ".png")
-        found, _ = ImageRecognition(self.device_name + ".png", image_name,
-                                    threshold, self.device_name).compare(
-                                        image_match=image_match,
-                                        max_scale=max_scale,
-                                        min_scale=min_scale)
+        found, _ = ImageRecognition(
+            self.device_name + ".png", image_name, threshold, self.device_name
+        ).compare(
+            image_match=image_match, max_scale=max_scale, min_scale=min_scale
+        )
         if not found and not is_not:
             return False
         if found and is_not:
             return False
-        root_dir = (os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + "/")
+        root_dir = (
+            os.path.dirname(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            )
+            + "/"
+        )
         os.remove(root_dir + self.device_name + ".png")
 
         return True
 
-    def swipe(self,
-              start_x=None,
-              start_y=None,
-              end_x=None,
-              end_y=None,
-              el=None,
-              duration=None):
+    def swipe(
+        self,
+        start_x=None,
+        start_y=None,
+        end_x=None,
+        end_y=None,
+        el=None,
+        duration=None,
+    ):
         """
         It swipes from element to the el(second element) or to the coordinates
         you define with start_x, start_y, end_x, end_y. end_x and end_y are
@@ -597,7 +629,8 @@ class Elements():
                         end_y = location2.y
                     action = TouchAction(self.driver)
                     action.press(x=start_x, y=start_y).wait(duration).move_to(
-                        x=end_x, y=end_y).release()
+                        x=end_x, y=end_y
+                    ).release()
                     action.perform()
                 else:
                     if end_x is None:
@@ -658,14 +691,16 @@ class Elements():
         start = time.time()
         for _ in range(max_swipes):
             try:
-                e(self.testui_driver, "uiautomator",
-                  f'textContains("{text}")').wait_until_visible(0.1, False)
+                e(
+                    self.testui_driver, "uiautomator", f'textContains("{text}")'
+                ).wait_until_visible(0.1, False)
                 break
             except Exception:
                 self.swipe(start_x, start_y, end_x, end_y, el, None)
         self.__put_log(
             f'{self.device_name}: element "{self.locator_type}: {self.locator}" with text {text} '
-            f"found after {time.time() - start}s")
+            f"found after {time.time() - start}s"
+        )
         return e(self.testui_driver, "uiautomator", f'textContains("{text}")')
 
     def send_keys(self, value, log=True):
@@ -704,7 +739,8 @@ class Elements():
                 text = self.get_element().text
                 self.__put_log(
                     f'{self.device_name}: element "{self.locator_type}: {self.locator}" '
-                    f'has text "{text}" {time.time() - start}s')
+                    f'has text "{text}" {time.time() - start}s'
+                )
                 return text
             except Exception as error:
                 err = error
@@ -724,7 +760,8 @@ class Elements():
                 text = self.get_element().get_attribute("value")
                 self.__put_log(
                     f'{self.device_name}: element "{self.locator_type}: {self.locator}" '
-                    f' has text "{text}" {time.time() - start}s')
+                    f' has text "{text}" {time.time() - start}s'
+                )
                 return text
             except Exception as error:
                 err = error
@@ -744,7 +781,8 @@ class Elements():
                 text = self.get_element().get_attribute("name")
                 self.__put_log(
                     f'{self.device_name}: element "{self.locator_type}: {self.locator}" '
-                    f'has name "{text}" {time.time() - start}s')
+                    f'has name "{text}" {time.time() - start}s'
+                )
                 return text
             except Exception as error:
                 err = error
@@ -764,7 +802,8 @@ class Elements():
                 text = self.get_element().get_attribute(att)
                 self.__put_log(
                     f'{self.device_name}: element "{self.locator_type}: {self.locator}" '
-                    f' has "{att}: {text}" {time.time() - start}s')
+                    f' has "{att}: {text}" {time.time() - start}s'
+                )
                 return text
             except Exception as error:
                 err = error
@@ -774,12 +813,14 @@ class Elements():
             f'"{self.locator_type}:{self.locator}" after {time.time() - start}s {logger.bcolors.ENDC}'
         )
 
-    def press_and_compare(self,
-                          image,
-                          milliseconds=1000,
-                          threshold=0.9,
-                          fps_reduction=1,
-                          keep_image_as=""):
+    def press_and_compare(
+        self,
+        image,
+        milliseconds=1000,
+        threshold=0.9,
+        fps_reduction=1,
+        keep_image_as="",
+    ):
         self.testui_driver.start_recording_screen()
         self.press_hold_for(milliseconds)
         found = ""
@@ -790,11 +831,12 @@ class Elements():
         if self.__is_not:
             not_found = ""
         if self.testui_driver.stop_recording_and_compare(
-                image, threshold, fps_reduction, self.__is_not, keep_image_as,
-                False):
+            image, threshold, fps_reduction, self.__is_not, keep_image_as, False
+        ):
             self.__put_log(
                 f'{self.device_name}: image {found} found while pressing element "{self.locator_type}: {self.locator}" '
-                f"after {time.time() - start}s")
+                f"after {time.time() - start}s"
+            )
         else:
             self.__show_error(
                 f"{self.device_name}: image {not_found} found while pressing element "
@@ -812,27 +854,26 @@ class Elements():
         self.__is_collection = True
         return len(self.__find_by_collection())
 
-    def find_by_attribute(self,
-                          attribute,
-                          value: str,
-                          timeout=10,
-                          case_sensitive=True):
+    def find_by_attribute(
+        self, attribute, value: str, timeout=10, case_sensitive=True
+    ):
         start = time.time()
         self.wait_until_visible()
         self.__is_collection = True
         while time.time() < start + timeout:
             for i, element in enumerate(self.__find_by_collection()):
-                if case_sensitive and element.get_attribute(
-                        attribute) == value:
+                if case_sensitive and element.get_attribute(attribute) == value:
                     self.__put_log(
                         f'{self.device_name}: element in collection "{self.locator_type}: {self.locator}" '
                         f'with attribute "{attribute}" = "{value}" found after {time.time() - start}s'
                     )
                     self.index = i
                     return self
-                if (not case_sensitive
-                        and element.get_attribute(attribute).lower()
-                        == value.lower()):
+                if (
+                    not case_sensitive
+                    and element.get_attribute(attribute).lower()
+                    == value.lower()
+                ):
                     self.__put_log(
                         f'{self.device_name}: element in collection "{self.locator_type}: {self.locator}" '
                         f'with attribute "{attribute}" = "{value}" found after {time.time() - start}s'
