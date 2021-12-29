@@ -323,7 +323,7 @@ def __start_run_id(args, test_run_name):
 
 
 def __process(markers: list, args, thread=0, test_run_id=None):
-    for _, marker in enumerate(markers):
+    for marker in markers:
         try:
             os.remove(f'.my_cache_dir_{thread}/v/cache/lastfailed')
             os.remove(f'.my_cache_dir_{thread}/v/cache/nodeids')
