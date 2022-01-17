@@ -2,6 +2,8 @@ import atexit
 import os
 import subprocess
 import threading
+import geckodriver_autoinstaller
+
 from pathlib import Path
 from time import sleep
 
@@ -320,8 +322,6 @@ def start_selenium_driver(
                         desired_capabilities=desired_caps, options=options
                     )
                 elif browser.lower() == "firefox":
-                    import geckodriver_autoinstaller
-
                     try:
                         geckodriver_autoinstaller.install()
                     except Exception as error:

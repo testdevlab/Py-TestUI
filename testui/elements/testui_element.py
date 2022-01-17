@@ -823,13 +823,15 @@ class Elements:
     ):
         self.testui_driver.start_recording_screen()
         self.press_hold_for(milliseconds)
+
         found = ""
+        not_found = "not"
         if self.__is_not:
             found = "not"
-        not_found = "not"
-        start = time.time()
-        if self.__is_not:
             not_found = ""
+
+        start = time.time()
+
         if self.testui_driver.stop_recording_and_compare(
             image, threshold, fps_reduction, self.__is_not, keep_image_as, False
         ):

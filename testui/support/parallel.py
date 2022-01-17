@@ -257,7 +257,7 @@ def __str2bool(v):
 
     if v.lower() in ("yes", "true", "t", "y", "1"):
         return True
-    elif v.lower() in ("no", "false", "f", "n", "0"):
+    if v.lower() in ("no", "false", "f", "n", "0"):
         return False
 
     raise argparse.ArgumentTypeError("Boolean value expected.")
@@ -366,10 +366,10 @@ def __process(markers: list, args, thread=0, test_run_id=None):
         cache = f"-o cache_dir=.my_cache_dir_{thread}"
         start_1 = time.time()
         logger.log(
-            f'Starting: pytest {quiet} -m "{marker} {args.general_markers}" {testrail} {args.general} {cache}'
+            f"Starting: pytest {quiet} -m \"{marker} {args.general_markers}\" {testrail} {args.general} {cache}"
         )
         pr_1 = os.system(
-            f'pytest {quiet} -m "{marker} {args.general_markers}" {testrail} {args.general} {cache}'
+            f"pytest {quiet} -m \"{marker} {args.general_markers}\" {testrail} {args.general} {cache}"
         )
         file = open("fails.txt", "a+")
         file.write(f"{pr_1}")
