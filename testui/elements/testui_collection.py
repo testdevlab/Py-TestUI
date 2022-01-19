@@ -14,26 +14,30 @@ def ee(*args):
 
 class Error(Exception):
     """Base class for exceptions in this module."""
+
     pass
 
 
 class CollectionException(Error):
-    def __init__(self, message, expression=''):
+    def __init__(self, message, expression=""):
         self.message = message
         self.expression = expression
 
 
 class Collections(object):
-
     def __init__(self, args):
         self.args = args
-        self.__errors = list()
+        self.__errors = []
 
     def wait_until_all_visible(self, seconds=10.0, log=True):
         start = time.time()
-        threads = list()
+        threads = []
         for arg in self.args:
-            threads.append(threading.Thread(target=arg.wait_until_visible, args=(seconds, log)))
+            threads.append(
+                threading.Thread(
+                    target=arg.wait_until_visible, args=(seconds, log)
+                )
+            )
         for thread in threads:
             thread.start()
         for thread in threads:
@@ -43,13 +47,14 @@ class Collections(object):
                 f"{self.args[0].device_name}: Collection of elements has been found after {time.time() - start}s"
             )
         else:
-            compose_error = ''
+            compose_error = ""
             error: str
             for error in self.__errors:
-                compose_error = compose_error + f'{error} \n'
+                compose_error = compose_error + f"{error} \n"
             self.__show_error(
-                f'{self.args[0].device_name}: Collection of elements has not been found '
-                f'after {time.time() - start}s: \n {compose_error}')
+                f"{self.args[0].device_name}: Collection of elements has not been found "
+                f"after {time.time() - start}s: \n {compose_error}"
+            )
 
     def find_visible(self, seconds=10, return_el_number=False):
         start = time.time()
@@ -58,8 +63,10 @@ class Collections(object):
         while time.time() < start + seconds or i < 1:
             for i, arg in enumerate(self.args):
                 if arg.is_visible(log=False):
-                    logger.log(f'{self.args[i].device_name}: element '
-                               f'"{self.args[i].locator_type}: {self.args[i].locator}" found visible')
+                    logger.log(
+                        f"{self.args[i].device_name}: element "
+                        f'"{self.args[i].locator_type}: {self.args[i].locator}" found visible'
+                    )
                     if return_el_number:
                         return arg, i
                     else:
@@ -67,18 +74,25 @@ class Collections(object):
             i += 1
         self.__show_error(
             f"{self.args[0].device_name}: No element within the collection was found visible "
-            f"after {time.time() - start}s:")
+            f"after {time.time() - start}s:"
+        )
 
     def wait_until_attribute(self, attr_type: list, attr: list, seconds=10):
         start = time.time()
         if len(attr_type) != len(self.args) or len(attr_type) != len(attr):
-            raise Exception('The number of attributes checked must be the same as number of elements in collection')
-        threads = list()
+            raise Exception(
+                "The number of attributes checked must be the same as number of elements in collection"
+            )
+        threads = []
         i = 0
         element: Elements
         for element in self.args:
             threads.append(
-                threading.Thread(target=self.__wait_until_attribute, args=(element, attr_type[i], attr[i], seconds)))
+                threading.Thread(
+                    target=self.__wait_until_attribute,
+                    args=(element, attr_type[i], attr[i], seconds),
+                )
+            )
             i += 1
         for thread in threads:
             thread.start()
@@ -90,19 +104,22 @@ class Collections(object):
                 f"after {time.time() - start}s"
             )
         else:
-            compose_error = ''
+            compose_error = ""
             error: str
             for error in self.__errors:
-                compose_error = compose_error + f'{error} \n'
+                compose_error = compose_error + f"{error} \n"
             self.__show_error(
-                '{self.args[0].device_name}: Collection of elements has not been found with the correct attributes '
-                f'after {time.time() - start}s: \n {compose_error}')
+                "{self.args[0].device_name}: Collection of elements has not been found with the correct attributes "
+                f"after {time.time() - start}s: \n {compose_error}"
+            )
 
     def get(self, index: int):
         element: Elements = self.args[index]
         return element
 
-    def __wait_until_attribute(self, element: Elements, attr_type, attr, seconds):
+    def __wait_until_attribute(
+        self, element: Elements, attr_type, attr, seconds
+    ):
         try:
             element.wait_until_attribute(attr_type, attr, seconds)
         except Exception as err:
