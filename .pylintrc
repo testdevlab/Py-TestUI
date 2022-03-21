@@ -154,7 +154,7 @@ enable =
 	
 	empty-docstring,
 	invalid-characters-in-docstring,
-	missing-docstring,
+	; missing-docstring,
 	wrong-spelling-in-comment,
 	wrong-spelling-in-docstring,
 	
@@ -170,7 +170,6 @@ enable =
 	bad-mcs-method-argument,
 	bad-whitespace,
 	bare-except,
-	broad-except,
 	consider-iterating-dictionary,
 	consider-using-enumerate,
 	global-at-module-level,
@@ -273,6 +272,10 @@ disable =
 	unspecified-encoding,
 	unused-wildcard-import,
 	use-maxsplit-arg,
+	broad-except,
+	missing-module-docstring,
+	missing-function-docstring,
+	missing-class-docstring,
 	
 	feature-toggle-needs-doc,
 	illegal-waffle-usage,
