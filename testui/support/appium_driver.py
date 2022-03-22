@@ -85,7 +85,6 @@ class NewDriver:
         self.__appium_url = appium_url
         return self
 
-    # used for ff
     def set_extra_caps(self, caps=None):
         if caps is None:
             caps = {}
