@@ -69,7 +69,7 @@ Py-TestUI allows configuring the following default global parameters
 - `save_screenshot_on_fail: bool` - sets whether save screenshot on failure
   (default: `True`)
 - `save_full_stacktrace: bool` - sets whether save full stacktrace for error
-  (defualt: `True`)
+  (default: `True`)
 
 ## Configuration via `NewDriver()`
 
