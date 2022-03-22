@@ -165,7 +165,7 @@ l_type, locator) you can start using a series of action/assertion methods that
 are built-in within Elements class.
 
 Action methods are the ones meant to do something over the UI. In case they
-cannot be performed, they will rise an error which will show all the information
+cannot be performed, an error will be raised that will show all the information
 needed for debugging:
 
 ```py
