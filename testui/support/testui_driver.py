@@ -6,9 +6,9 @@ from os import path
 from pathlib import Path
 
 from appium.webdriver.common.touch_action import TouchAction
+from appium.webdriver.webdriver import WebDriver
 from selenium.webdriver import TouchActions, ActionChains
 from selenium.common.exceptions import WebDriverException
-from selenium.webdriver.remote.webdriver import WebDriver as RemoteWebDriver
 
 from testui.elements.testui_element import e
 from testui.support import logger
@@ -219,7 +219,7 @@ class TestUIDriver:
         )
         os.remove(root_dir + f"/testui-{image_name}")
 
-    def get_driver(self) -> RemoteWebDriver:
+    def get_driver(self) -> WebDriver:
         driver = self.__appium_driver
 
         return driver

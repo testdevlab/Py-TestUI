@@ -3,17 +3,16 @@ import atexit
 import os
 import subprocess
 import threading
-import geckodriver_autoinstaller
-
 from pathlib import Path
 from time import sleep
+
+import geckodriver_autoinstaller
 
 from ppadb.client import Client as AdbClient
 from appium.webdriver import Remote
 from appium.webdriver.webdriver import WebDriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
-from selenium.webdriver.remote.webdriver import WebDriver as RemoteWebDriver
 from selenium import webdriver
 from webdriver_manager import chrome
 
@@ -28,7 +27,7 @@ class NewDriver:
 
     def __init__(self):
         self.browser = False
-        self.__driver: RemoteWebDriver = None
+        self.__driver: WebDriver = None
         self.__app_path = None
         self.udid = None
         self.__appium_url = None
@@ -137,7 +136,7 @@ class NewDriver:
         self.__app_activity = app_activity
         return self
 
-    def get_driver(self) -> RemoteWebDriver:
+    def get_driver(self) -> WebDriver:
         driver = self.__driver
         return driver
 
@@ -249,7 +248,9 @@ class NewDriver:
         return self.get_testui_driver()
 
     def set_selenium_driver(
-        self, options: ChromeOptions or FirefoxOptions or None = None
+        self,
+        chrome_options: ChromeOptions or None = None,
+        firefox_options: FirefoxOptions or None = None,
     ) -> TestUIDriver:
         self.__set_selenium_caps()
         self.__driver = start_selenium_driver(
@@ -257,7 +258,8 @@ class NewDriver:
             self.__remote_url,
             self.__debug,
             self.__browser_name,
-            options,
+            chrome_options,
+            firefox_options,
         )
 
         return self.get_testui_driver()
@@ -303,21 +305,17 @@ def start_selenium_driver(
     url=None,
     debug=None,
     browser: str or None = None,
-    # chrome_options: ChromeOptions or None = None,
-    # firefox_options=None,
-    options: ChromeOptions or FirefoxOptions or None = None,
-) -> RemoteWebDriver:
+    chrome_options: ChromeOptions or None = None,
+    firefox_options: FirefoxOptions or None = None,
+) -> WebDriver:
     """Starts a new local session of the specified browser."""
+
+    options = chrome_options
+    if firefox_options is not None:
+        options = firefox_options
 
     if options is not None:
         logger.log(f"setting options: {options.to_capabilities().__str__()}")
-
-    # options = chrome_options
-    # if firefox_options is not None:
-    #     options = firefox_options
-
-    # if options is not None:
-    #     logger.log(f"setting options: {options.to_capabilities().__str__()}")
 
     logger.log(f"setting capabilities: {desired_caps.__str__()}")
     logger.log(f"starting selenium {browser.lower()} driver...")
