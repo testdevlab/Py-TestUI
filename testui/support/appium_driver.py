@@ -1,4 +1,3 @@
-from __future__ import annotations
 import atexit
 import os
 import subprocess
@@ -61,7 +60,7 @@ class NewDriver:
         self.__appium_log_file = file
         return self
 
-    def set_browser(self, browser: str) -> NewDriver:
+    def set_browser(self, browser: str) -> "NewDriver":
         self.__browser_name = browser
         return self
 
@@ -146,7 +145,7 @@ class NewDriver:
     def get_testui_driver(self) -> TestUIDriver:
         return TestUIDriver(self)
 
-    def set_chrome_driver(self, version="") -> NewDriver:
+    def set_chrome_driver(self, version="") -> "NewDriver":
         mobile_version = version
         if version == "":
             if self.udid is None:

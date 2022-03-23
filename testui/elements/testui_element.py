@@ -1,4 +1,3 @@
-from __future__ import annotations
 import time
 import os
 
@@ -753,7 +752,7 @@ class Elements:
             f'"{self.locator_type}:{self.locator}" after {time.time() - start}s {logger.bcolors.ENDC}'
         )
 
-    def clear(self) -> Elements:
+    def clear(self) -> "Elements":
         self.get_element().clear()
 
         return self
