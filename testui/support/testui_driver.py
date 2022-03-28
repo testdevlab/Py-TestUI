@@ -10,7 +10,7 @@ from appium.webdriver.webdriver import WebDriver
 from selenium.webdriver import TouchActions, ActionChains
 from selenium.common.exceptions import WebDriverException
 
-from testui.elements import testui_element
+from testui.elements.testui_element import e
 from testui.support import logger
 from testui.support.helpers import error_with_traceback
 from testui.support.testui_images import get_point_match, ImageRecognition
@@ -20,7 +20,7 @@ from testui.support.configuration import Configuration
 class TestUIDriver:
     __test__ = False
 
-    def __init__(self, driver: "TestUIDriver"):
+    def __init__(self, driver):
         self.__soft_assert = driver.soft_assert
         self.__appium_driver = driver.get_driver()
         self.__process = driver.process
@@ -66,7 +66,7 @@ class TestUIDriver:
         return self.__appium_driver.contexts
 
     def e(self, locator_type, locator):
-        return testui_element.e(self, locator_type, locator)
+        return e(self, locator_type, locator)
 
     def execute(self, driver_command, params=None):
         self.get_driver().execute(driver_command, params)
@@ -221,6 +221,7 @@ class TestUIDriver:
 
     def get_driver(self) -> WebDriver:
         driver = self.__appium_driver
+
         return driver
 
     @property

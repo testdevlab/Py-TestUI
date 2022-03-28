@@ -2,14 +2,16 @@ import atexit
 import os
 import subprocess
 import threading
-import geckodriver_autoinstaller
-
 from pathlib import Path
 from time import sleep
+
+import geckodriver_autoinstaller
 
 from ppadb.client import Client as AdbClient
 from appium.webdriver import Remote
 from appium.webdriver.webdriver import WebDriver
+from selenium.webdriver.chrome.options import Options as ChromeOptions
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium import webdriver
 from webdriver_manager import chrome
 
@@ -49,8 +51,8 @@ class NewDriver:
         self.__desired_capabilities = {}
         self.__chrome_options = {}
 
-    # Possible loggers str: behave, pytest, None
-    def set_logger(self, logger_name="pytest"):
+    def set_logger(self, logger_name: str or None = "pytest"):
+        """Possible loggers str: behave, pytest, None"""
         self.logger_name = logger_name
         return self
 
@@ -58,7 +60,7 @@ class NewDriver:
         self.__appium_log_file = file
         return self
 
-    def set_browser(self, browser):
+    def set_browser(self, browser: str) -> "NewDriver":
         self.__browser_name = browser
         return self
 
@@ -132,7 +134,7 @@ class NewDriver:
         self.__app_activity = app_activity
         return self
 
-    def get_driver(self):
+    def get_driver(self) -> WebDriver:
         driver = self.__driver
         return driver
 
@@ -143,7 +145,7 @@ class NewDriver:
     def get_testui_driver(self) -> TestUIDriver:
         return TestUIDriver(self)
 
-    def set_chrome_driver(self, version=""):
+    def set_chrome_driver(self, version="") -> "NewDriver":
         mobile_version = version
         if version == "":
             if self.udid is None:
@@ -244,7 +246,9 @@ class NewDriver:
         return self.get_testui_driver()
 
     def set_selenium_driver(
-        self, chrome_options=None, firefox_options=None
+        self,
+        chrome_options: ChromeOptions or None = None,
+        firefox_options: FirefoxOptions or None = None,
     ) -> TestUIDriver:
         self.__set_selenium_caps()
         self.__driver = start_selenium_driver(
@@ -255,6 +259,7 @@ class NewDriver:
             chrome_options,
             firefox_options,
         )
+
         return self.get_testui_driver()
 
     def set_driver(self, driver) -> TestUIDriver:
@@ -297,25 +302,32 @@ def start_selenium_driver(
     desired_caps,
     url=None,
     debug=None,
-    browser=None,
-    chrome_options=None,
-    firefox_options=None,
+    browser: str or None = None,
+    chrome_options: ChromeOptions or None = None,
+    firefox_options: FirefoxOptions or None = None,
 ) -> WebDriver:
+    """Starts a new local session of the specified browser."""
+
     options = chrome_options
     if firefox_options is not None:
         options = firefox_options
 
     if options is not None:
-        logger.log("setting options: " + options.to_capabilities().__str__())
+        logger.log(f"setting options: {options.to_capabilities().__str__()}")
 
-    logger.log("setting capabilities: " + desired_caps.__str__())
+    logger.log(f"setting capabilities: {desired_caps.__str__()}")
     logger.log(f"starting selenium {browser.lower()} driver...")
+
     err = None
     for _ in range(2):
         try:
             if url is not None:
                 logger.log(f"selenium running on {url}. \n")
-                driver = webdriver.Remote(url, desired_caps, options=options)
+
+                for key, value in desired_caps.items():
+                    options.set_capability(key, value)
+
+                driver = webdriver.Remote(command_executor=url, options=options)
             else:
                 if browser.lower() == "chrome":
                     driver = webdriver.Chrome(
@@ -331,8 +343,7 @@ def start_selenium_driver(
                     if "marionette" not in desired_caps:
                         desired_caps["marionette"] = True
                     driver = webdriver.Firefox(
-                        firefox_options=options,
-                        desired_capabilities=desired_caps,
+                        desired_capabilities=desired_caps, options=options
                     )
                 elif browser.lower() == "safari":
                     driver = webdriver.Safari(desired_capabilities=desired_caps)
@@ -342,14 +353,10 @@ def start_selenium_driver(
                     driver = webdriver.Ie(capabilities=desired_caps)
                 elif browser.lower() == "opera":
                     driver = webdriver.Opera(desired_capabilities=desired_caps)
-                elif browser.lower() == "phantomjs":
-                    driver = webdriver.PhantomJS(
-                        desired_capabilities=desired_caps
-                    )
                 else:
                     raise Exception(
-                        f"Invalid browser '{browser}'. Please choose one from: chrome,firefox,safari,edge,"
-                        f"ie,opera,phantomjs"
+                        f"Invalid browser '{browser}'. Please choose one "
+                        f"from: chrome, firefox, safari, edge, ie, opera"
                     )
             atexit.register(__quit_driver, driver, debug)
             return driver

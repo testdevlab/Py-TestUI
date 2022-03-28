@@ -8,7 +8,7 @@ Py-TestUI can be installed via `pip`
 pip3 install git+https://github.com/testdevlab/Py-TestUI@v1.0.6
 ```
 
-Or if you prefer `requirements.txt`, you can add the following dependecy
+Or if you prefer `requirements.txt`, you can add the following dependency
 
 ```
 git+https://github.com/testdevlab/Py-TestUI@v1.0.6
@@ -28,23 +28,24 @@ driver: TestUIDriver = (
 )
 ```
 
-By default it takes the first connected device to your machine, but you can specify device by calling `.set_udid("udid")` before the `.set_appium_driver()` call.
+By default it takes the first connected device to your machine, but you can
+specify device by calling `.set_udid("udid")` before the `.set_appium_driver()`
+call.
 
 # Selenium Desktop driver
 
 Py-TestUI supports the following browser drivers:
 
 - Google Chrome (`'chrome'`)
-- Mozzila Firefox (`'firefox'`)
+- Mozilla Firefox (`'firefox'`)
 - Safari (`'safari'`)
 - Microsoft Edge (`'edge'`)
 - Microsoft Internet Explorer (`'ie'`)
 - Opera (`'opera'`)
-- PhantomJS(`'pantomjs'`)
 
 > All these drivers must be installed and added to you `$PATH` variable
 
-> Mozzila Firefox is downloaded automatically and added to `$PATH` but
+> Mozilla Firefox is downloaded automatically and added to `$PATH` but
 > double-check that you have installed
 > [Python certificates if you are using macOS](https://stackoverflow.com/a/53310545/13179904)
 
@@ -63,9 +64,12 @@ driver: TestUIDriver = (
 
 Py-TestUI allows configuring the following default global parameters
 
-- `screenshot_path: str` - sets default path where screenshot will be saved (default: project root directory).
-- `save_screenshot_on_fail: bool` - sets whether save screenshot on failure (default: `True`)
-- `save_full_stacktrace: bool` - sets whether save full stacktrace for error (defualt: `True`)
+- `screenshot_path: str` - sets default path where screenshot will be saved
+  (default: project root directory).
+- `save_screenshot_on_fail: bool` - sets whether save screenshot on failure
+  (default: `True`)
+- `save_full_stacktrace: bool` - sets whether save full stacktrace for error
+  (default: `True`)
 
 ## Configuration via `NewDriver()`
 
@@ -96,7 +100,11 @@ driver.configuration.save_full_stacktrace = False
 
 # Scripts
 
-The automation infrastructure implements the Page Object Model (POM) pattern. This pattern calls for application elements and methods specific to a given screen to be included in the same Class. This improves maintainability as well as usability since any changes to elements in the application would only have to be edited in one place. This is an example:
+The automation infrastructure implements the Page Object Model (POM) pattern.
+This pattern calls for application elements and methods specific to a given
+screen to be included in the same Class. This improves maintainability as well
+as usability since any changes to elements in the application would only have to
+be edited in one place. This is an example:
 
 ```py
     class LoggedInScreen(object):
@@ -120,7 +128,10 @@ The automation infrastructure implements the Page Object Model (POM) pattern. Th
             .
 ```
 
-The test case scripts are in a different class. The scripts import the respective screen package along with additional packages such as PyTest. Each class has any amount of tests. All test methods start with the word "test\_" such as:
+The test case scripts are in a different class. The scripts import the
+respective screen package along with additional packages such as PyTest. Each
+class has any amount of tests. All test methods start with the word "test\_"
+such as:
 
 ```py
     def test_add_existing_contact(self, appium_driver):
@@ -135,7 +146,11 @@ The test case scripts are in a different class. The scripts import the respectiv
 
 ### Element Locators Methods:
 
-The class "Elements" implements default locator methods that are part of the Appium WedDriver package. It adds additional functionality to wait for a configurable amount of time for an element to appear and provides improved error logging. It also implements methods for scrolling and swiping. Example of locators:
+The class "Elements" implements default locator methods that are part of the
+Appium WedDriver package. It adds additional functionality to wait for a
+configurable amount of time for an element to appear and provides improved error
+logging. It also implements methods for scrolling and swiping. Example of
+locators:
 
 ```py
     def e(driver, locator_type, locator):
@@ -145,9 +160,13 @@ The class "Elements" implements default locator methods that are part of the App
         return Elements(driver, locator_type, locator)
 ```
 
-Once you create the definition of the element with the static method e(driver, l_type, locator) you can start using a series of action/assertion methods that are built-in within Elements class.
+Once you create the definition of the element with the static method e(driver,
+l_type, locator) you can start using a series of action/assertion methods that
+are built-in within Elements class.
 
-Action methods are the ones meant to do something over the UI. In case the cannot be performed, they will rise an error which will show all the information needed for debugging:
+Action methods are the ones meant to do something over the UI. In case they
+cannot be performed, an error will be raised that will show all the information
+needed for debugging:
 
 ```py
     element = e(driver, 'id', 'some_id')
@@ -159,7 +178,8 @@ Action methods are the ones meant to do something over the UI. In case the canno
     element.swipe_until_text(text='some_text', el=e(driver, 'id', 'id_2'))  # swipes from element to the element 2
 ```
 
-Assertion methods are the ones meant to check whether the UI is presented with the correct elements and values:
+Assertion methods are the ones meant to check whether the UI is presented with
+the correct elements and values:
 
 ```py
     element = e(driver, 'id', 'some_id')
@@ -173,13 +193,19 @@ Assertion methods are the ones meant to check whether the UI is presented with t
 
 This methods will rise a ElementException in case the conditions are not met.
 
-There is one last method to check whether an element is visible or not which will not rise an error but return a boolean value which is element.is_visible().
+There is one last method to check whether an element is visible or not which
+will not rise an error but return a boolean value which is element.is_visible().
 
-Sometimes one locator identifies more that one single element, in which case you can choose among them by using element.get(index=0).
+Sometimes one locator identifies more that one single element, in which case you
+can choose among them by using element.get(index=0).
 
 ### Collection Methods:
 
-Collections are defined as a list of elements, and you can perform different kind of actions over them, which will improve in performance or functionality. Such methods include finding element within the collection by visibility, or checking their visibility in parallel to improve performance or to check page load time:
+Collections are defined as a list of elements, and you can perform different
+kind of actions over them, which will improve in performance or functionality.
+Such methods include finding element within the collection by visibility, or
+checking their visibility in parallel to improve performance or to check page
+load time:
 
 ```py
     collection = ee(e(driver, 'id', 'some_id'), e(driver, 'id', 'some_id_2'))
@@ -191,7 +217,10 @@ Collections are defined as a list of elements, and you can perform different kin
 
 ### Image Recognition:
 
-In some cases it is useful to check or assert whether a specific element or view is present during the automation, and for this reason, Py-TestUI includes OpenCV as one of the dependencies. You can use directly the methods from OpenCV directly, but you have also built-in methods from testUI:
+In some cases it is useful to check or assert whether a specific element or view
+is present during the automation, and for this reason, Py-TestUI includes OpenCV
+as one of the dependencies. You can use directly the methods from OpenCV
+directly, but you have also built-in methods from testUI:
 
 ```py
     # First field is the image path with wich you want to compare the device screenshot
@@ -205,7 +234,8 @@ In some cases it is useful to check or assert whether a specific element or view
 
 ![Image Recognition](resources/image_reco.png)
 
-If you want to use the compare method by using your own two images, you can use the following methods:
+If you want to use the compare method by using your own two images, you can use
+the following methods:
 
 ```
     ImageRecognition(original, comparison, threshold, device_name).compare()
@@ -215,15 +245,23 @@ If you want to use the compare method by using your own two images, you can use 
     ImageRecognition(original, comparison, threshold, device_name).get_middle_point()
 ```
 
-Note: the image that you use for comparison can be a small portion of the screenshot/bigger one
+Note: the image that you use for comparison can be a small portion of the
+screenshot/bigger one
 
 ### Drivers:
 
-The testui_driver.py declares the TestUIDriver class which implements methods from the Elements class. It also implements methods such as "touch_actions" inherited from Selenium WebDriver TouchActions class.
+The testui_driver.py declares the TestUIDriver class which implements methods
+from the Elements class. It also implements methods such as "touch_actions"
+inherited from Selenium WebDriver TouchActions class.
 
-The appium_driver.py declares the NewDriver class which implements TestUIDriver. It also implements the desired capabilities such as the location of the .apk., the Chrome or iOS drivers, and others such as the Android version.
+The appium_driver.py declares the NewDriver class which implements TestUIDriver.
+It also implements the desired capabilities such as the location of the .apk.,
+the Chrome or iOS drivers, and others such as the Android version.
 
-NewDriver class is meant to generate appium or selenium drivers in a simple way, using default values when not specified, and starting appium server or retrieving chrome drivers automatically if necessary. An example of minimum code to start an appium session for Android app:
+NewDriver class is meant to generate appium or selenium drivers in a simple way,
+using default values when not specified, and starting appium server or
+retrieving chrome drivers automatically if necessary. An example of minimum code
+to start an appium session for Android app:
 
 ```py
     driver = NewDriver().set_app_path('app.apk') \
@@ -252,7 +290,11 @@ Chrome desktop browser:
         .set_selenium_driver()
 ```
 
-Before setting the driver you can choose among a different stacks of class methods to add different capabilities or functionality out-of-the-box from the framework such as "soft asserts" or "log types". Soft asserts make the automation run even when element assertions find errors, but in the end of said automation you can include the following line to rise the errors found:
+Before setting the driver you can choose among a different stacks of class
+methods to add different capabilities or functionality out-of-the-box from the
+framework such as "soft asserts" or "log types". Soft asserts make the
+automation run even when element assertions find errors, but in the end of said
+automation you can include the following line to rise the errors found:
 
 ```py
     driver = NewDriver() \
@@ -261,4 +303,6 @@ Before setting the driver you can choose among a different stacks of class metho
     driver.raise_errors()  # raise the error found with previous command
 ```
 
-The driver creation and stop should be located under pytest fixtures, which works as before/after hooks. This fixtures are located under conftest.py file and you can call those functions by passing them as variables in the test cases.
+The driver creation and stop should be located under pytest fixtures, which
+works as before/after hooks. This fixtures are located under conftest.py file
+and you can call those functions by passing them as variables in the test cases.

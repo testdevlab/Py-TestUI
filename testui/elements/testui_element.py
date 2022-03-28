@@ -14,7 +14,7 @@ from testui.support.helpers import error_with_traceback
 from testui.support.testui_images import Dimensions, ImageRecognition
 
 
-def e(driver, locator_type, locator):
+def e(driver, locator_type: str, locator: str):
     """
     locator types: id, css, className, name, xpath,
         accessibility, uiautomator, classChain, predicate
@@ -118,25 +118,38 @@ class Elements:
 
     def __find_by_element(self) -> WebElement:
         if self.locator_type == "id":
-            return self.driver.find_element_by_id(self.locator)
+            return self.driver.find_element(by=By.ID, value=self.locator)
+
+        if self.locator_type == "css":
+            return self.driver.find_element(
+                by=By.CSS_SELECTOR, value=self.locator
+            )
+
+        if self.locator_type == "className":
+            return self.driver.find_element(
+                by=By.CLASS_NAME, value=self.locator
+            )
+
+        if self.locator_type == "name":
+            return self.driver.find_element(By.NAME, self.locator)
+
+        if self.locator_type == "xpath":
+            return self.driver.find_element(By.XPATH, self.locator)
+
         if self.locator_type == "android_id_match":
             return self.driver.find_element_by_android_uiautomator(
                 f'resourceIdMatches("{self.locator}")'
             )
-        if self.locator_type == "css":
-            return self.driver.find_element_by_css_selector(self.locator)
-        if self.locator_type == "className":
-            return self.driver.find_element_by_class_name(self.locator)
-        if self.locator_type == "name":
-            return self.driver.find_element(By.NAME, self.locator)
-        if self.locator_type == "xpath":
-            return self.driver.find_element(By.XPATH, self.locator)
+
         if self.locator_type == "accessibility":
             return self.driver.find_element_by_accessibility_id(self.locator)
+
         if self.locator_type == "uiautomator":
             return self.driver.find_element_by_android_uiautomator(self.locator)
+
         if self.locator_type == "classChain":
             return self.driver.find_element_by_ios_class_chain(self.locator)
+
         if self.locator_type == "predicate":
             return self.driver.find_element_by_ios_predicate(self.locator)
 
@@ -144,27 +157,40 @@ class Elements:
 
     def __find_by_collection(self) -> List[WebElement]:
         if self.locator_type == "id":
-            return self.driver.find_elements_by_id(self.locator)
+            return self.driver.find_elements(by=By.ID, value=self.locator)
+
+        if self.locator_type == "css":
+            return self.driver.find_elements(
+                by=By.CSS_SELECTOR, value=self.locator
+            )
+
+        if self.locator_type == "className":
+            return self.driver.find_elements(
+                by=By.CLASS_NAME, value=self.locator
+            )
+
+        if self.locator_type == "name":
+            return self.driver.find_elements(By.NAME, self.locator)
+
+        if self.locator_type == "xpath":
+            return self.driver.find_elements(By.XPATH, self.locator)
+
         if self.locator_type == "android_id_match":
             return self.driver.find_elements_by_android_uiautomator(
                 f'resourceIdMatches("{self.locator}")'
             )
-        if self.locator_type == "css":
-            return self.driver.find_elements_by_css_selector(self.locator)
-        if self.locator_type == "className":
-            return self.driver.find_elements_by_class_name(self.locator)
-        if self.locator_type == "name":
-            return self.driver.find_elements(By.NAME, self.locator)
-        if self.locator_type == "xpath":
-            return self.driver.find_elements(By.XPATH, self.locator)
+
         if self.locator_type == "accessibility":
             return self.driver.find_elements_by_accessibility_id(self.locator)
+
         if self.locator_type == "uiautomator":
             return self.driver.find_elements_by_android_uiautomator(
                 self.locator
             )
+
         if self.locator_type == "classChain":
             return self.driver.find_elements_by_ios_class_chain(self.locator)
+
         if self.locator_type == "predicate":
             return self.driver.find_elements_by_ios_predicate(self.locator)
 
@@ -726,8 +752,10 @@ class Elements:
             f'"{self.locator_type}:{self.locator}" after {time.time() - start}s {logger.bcolors.ENDC}'
         )
 
-    def clear(self) -> None:
+    def clear(self) -> "Elements":
         self.get_element().clear()
+
+        return self
 
     def get_text(self):
         timeout = 10  # [seconds]
