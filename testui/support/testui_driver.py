@@ -7,7 +7,7 @@ from pathlib import Path
 
 from appium.webdriver.common.touch_action import TouchAction
 from appium.webdriver.webdriver import WebDriver
-from selenium.webdriver import TouchActions, ActionChains
+from selenium.webdriver import ActionChains
 from selenium.common.exceptions import WebDriverException
 
 from testui.elements.testui_element import e
@@ -92,7 +92,7 @@ class TestUIDriver:
         This method is meant for Appium Drivers Only
         :return:
         """
-        return TouchActions(self.get_driver())
+        return TouchAction(self.get_driver())
 
     def actions(self):
         """
