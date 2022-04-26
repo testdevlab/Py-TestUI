@@ -11,11 +11,14 @@ class TestStringMethods(object):
     def appium_driver(self):
         driver = (
             NewDriver()
-            .set_app_package_activity(
-                "com.android.vending", ".AssetBrowserActivity"
-            )
             .set_logger()
-            .set_soft_assert(True)
+            .set_app_package_activity(
+            "com.android.vending", ".AssetBrowserActivity"
+            )
+            .set_appium_url("http://127.0.0.1:4725")
+            .set_appium_port(4725)
+            .set_grant_permissions(True)
+            .set_udid("R58N53QYCXD")
             .set_appium_driver()
         )
         yield driver

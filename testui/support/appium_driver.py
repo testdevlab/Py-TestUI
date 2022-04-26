@@ -421,7 +421,7 @@ def __local_run(url, desired_caps, use_port, udid, log_file):
             process,
             file_path,
         )
-    return url, desired_caps, None
+    return url, desired_caps, None, None
 
 
 def __local_run_ios(url, desired_caps, use_port, udid, log_file):
