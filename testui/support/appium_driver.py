@@ -332,9 +332,7 @@ def start_selenium_driver(
                 if browser.lower() == "chrome":
                     for key, value in desired_caps.items():
                         options.set_capability(key, value)
-                    driver = webdriver.Chrome(
-                        options=options
-                    )
+                    driver = webdriver.Chrome(options=options)
                 elif browser.lower() == "firefox":
                     try:
                         geckodriver_autoinstaller.install()
