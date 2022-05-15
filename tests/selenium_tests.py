@@ -1,13 +1,13 @@
 import pytest
 from selenium.webdriver.chrome.options import Options
 
-from tests.screens.landing import LandingScreen
+from testui.elements.testui_element import e
 from testui.support import logger
 from testui.support.appium_driver import NewDriver
 from testui.support.testui_driver import TestUIDriver
 
 
-class TestStringMethods(object):
+class TestMethods:
     @pytest.yield_fixture(autouse=True)
     def selenium_driver(self):
         options = Options()
@@ -22,16 +22,19 @@ class TestStringMethods(object):
         yield driver
         driver.quit()
 
-    @pytest.mark.signup
-    def test_sign_up_flow(self, selenium_driver: TestUIDriver):
-        logger.log_test_name("T92701: Create an account")
-        selenium_driver.navigate_to("https://google.com")
-        landing_page = LandingScreen(selenium_driver)
-        landing_page.i_am_in_landing_screen()
-        selenium_driver.navigate_to(
-            "https://github.com/testdevlab/Py-TestUI#image-recognition"
-        )
+    @pytest.mark.sanity
+    def test_sanity(self, selenium_driver: TestUIDriver):
+        logger.log_test_name("T01: API command sanity test")
+        # Navigate to demo page and login
+        selenium_driver.navigate_to("https://saucedemo.com")
+        e(selenium_driver, "css", "#user-name").send_keys("standard_user")
+        e(selenium_driver, "css", "#password").send_keys("secret_sauce")
+        e(selenium_driver, "css", "#login-button").click()
+
+        # Make sure that page is loaded and use image recognition to verify that
+        # the "robot" is visible.
+        e(selenium_driver, "css", ".inventory_item_name").wait_until_visible()
         selenium_driver.find_image_match(
-            "resources/comp.png", 0.9, True, image_match="image.png"
+            "resources/image_reco_robot.png", 0.4, True, image_match="image.png"
         )
         selenium_driver.raise_errors()

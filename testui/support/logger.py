@@ -69,7 +69,8 @@ def log_warn(message, jump_line=False):
     if jump_line:
         new_line = "\n"
     print(
-        f"{new_line}{bcolors.WARNING}[{current_time}] {message}{bcolors.ENDC}{new_line}"
+        f"{new_line}{bcolors.WARNING}[{current_time}] "
+        f"{message}{bcolors.ENDC}{new_line}"
     )
     file = open(__file_log(), "a+")
     file.write(f"{new_line}[{current_time}] {message}\n{new_line}")
@@ -93,7 +94,8 @@ def log_info(message, jump_line=False):
     if jump_line:
         new_line = "\n"
     print(
-        f"{new_line}{bcolors.HEADER}[{current_time}] {message}{bcolors.ENDC}{new_line}"
+        f"{new_line}{bcolors.HEADER}[{current_time}] "
+        f"{message}{bcolors.ENDC}{new_line}"
     )
     file = open(__file_log(), "a+")
     file.write(f"{new_line}[{current_time}] {message}\n{new_line}")

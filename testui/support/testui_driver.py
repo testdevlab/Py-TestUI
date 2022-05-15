@@ -40,19 +40,22 @@ class TestUIDriver:
         try:
             if len(self.__appium_driver.contexts) == 1:
                 logger.log(
-                    f"{self.device_name}: There is only one context: {self.__appium_driver.contexts[context]}"
+                    f"{self.device_name}: There is only one context: "
+                    f"{self.__appium_driver.contexts[context]}"
                 )
             elif context >= len(self.__appium_driver.contexts):
                 logger.log_warn(
-                    f"{self.device_name}: Cannot switch to context {context}: there are just "
-                    f"{len(self.__appium_driver.contexts)} contexts"
+                    f"{self.device_name}: Cannot switch to context {context}: "
+                    f"there are just {len(self.__appium_driver.contexts)} "
+                    "contexts"
                 )
             self.__appium_driver.execute(
                 "switchToContext",
                 {"name": self.__appium_driver.contexts[context]},
             )
             logger.log(
-                f"{self.device_name}: Switched to context: {self.__appium_driver.contexts[context]}"
+                f"{self.device_name}: Switched to context: "
+                f"{self.__appium_driver.contexts[context]}"
             )
         except Exception as err:
             if self.__soft_assert:
@@ -73,8 +76,8 @@ class TestUIDriver:
 
     def remove_log_file(self, when_no_errors=True):
         """
-        removes appium log file. If when_no_errors is False, it will always remove errors, if True, just when there are
-        errors.
+        removes appium log file. If when_no_errors is False, it will always
+        remove errors, if True then just when there are errors.
         :param when_no_errors:
         :return:
         """
@@ -147,7 +150,10 @@ class TestUIDriver:
             image_path, comparison, threshold, self.device_name
         ).compare(image_match)
         if assertion and not found and not not_found:
-            exception = f"{self.device_name}: The images compared did not match. threshold={threshold}, matched = {p}\n"
+            exception = self.new_error_message(
+                "The images compared did not match"
+                f"Threshold={threshold}, matched = {p}"
+            )
             logger.log_error(error_with_traceback(exception))
             raise Exception(exception)
         os.remove(image_path)
@@ -207,7 +213,7 @@ class TestUIDriver:
         self.get_driver().save_screenshot(final_path)
 
         logger.log_debug(
-            f'{self.device_name}: Screenshot saved in "{final_path}"'
+            self.new_error_message(f'Screenshot saved in "{final_path}"')
         )
 
         return final_path
@@ -249,12 +255,12 @@ class TestUIDriver:
     def set_power_capacity(self, capacity: int):
         try:
             self.get_driver().set_power_capacity(capacity)
-        except WebDriverException:
-            exception = f"{self.device_name}: powerCapacity method is only available for emulators"
-            logger.log_error(error_with_traceback(exception))
-            raise Exception(
+        except WebDriverException as wd_exception:
+            exception = self.new_error_message(
                 "powerCapacity method is only available for emulators"
             )
+            logger.log_error(error_with_traceback(exception))
+            raise Exception(exception) from wd_exception
 
     def background_app(self, seconds):
         self.get_driver().background_app(seconds)
@@ -301,19 +307,27 @@ class TestUIDriver:
         if not found and not not_found:
             if assertion:
                 raise Exception(
-                    f"{self.device_name}: The image and video compared did not match. "
-                    f"Threshold={threshold}"
+                    self.new_error_message(
+                        "The image and video compared did not match. "
+                        f"Threshold={threshold}"
+                    )
                 )
 
             return False
         if found and not_found:
             if assertion:
                 raise Exception(
-                    f"{self.device_name}: The image and video compared matched. threshold={threshold}"
+                    self.new_error_message(
+                        "The image and video compared matched. "
+                        f"Threshold={threshold}"
+                    )
                 )
 
             return False
         return True
+
+    def new_error_message(self, message) -> str:
+        return f"{self.device_name}: {message}"
 
     def hide_keyboard(self):
         self.get_driver().hide_keyboard()
