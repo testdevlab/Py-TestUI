@@ -947,6 +947,8 @@ def e(driver, locator_type: str, locator: str) -> Elements:
         predicate
     """
 
+    # TODO: Locator types should be enums.
+
     return Elements(driver, locator_type, locator)
 
 

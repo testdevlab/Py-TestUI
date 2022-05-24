@@ -228,7 +228,7 @@ as one of the dependencies. You can use directly the methods from OpenCV
 directly, but you have also built-in methods from testUI:
 
 ```py
-    # First field is the image path with wich you want to compare the device 
+    # First field is the image path with which you want to compare the device 
     # screenshot.
     # Second field is the Threshold or how much alike the images should be 
     # (0.75-1 is considere high)
