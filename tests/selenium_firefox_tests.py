@@ -10,7 +10,7 @@ from testui.support.appium_driver import NewDriver
 from testui.support.testui_driver import TestUIDriver
 
 
-class TestStringMethods(object):
+class TestStringMethods:
     @pytest.yield_fixture(autouse=True)
     def selenium_driver(self):
         options = Options()
