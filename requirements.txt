@@ -3,15 +3,15 @@ pylint==2.14.5
 black==22.6.0
 
 # lib
-pytest==7.1.2
+pytest==6.2.5
 Appium-Python-Client==2.6.0
-selenium==4.3.0
+selenium==4.1.0
 opencv-python==4.6.0.66
 geckodriver-autoinstaller==0.1.0
 value==0.1.0
 pytest-xdist==2.5.0
 pytest-testrail==2.9.0
 pure-python-adb==0.3.0.dev0
-webdriver-manager==3.8.2
-numpy==1.23.1
+webdriver-manager==3.6.3
+numpy==1.21.6
 imutils==0.5.4
