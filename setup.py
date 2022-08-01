@@ -17,7 +17,7 @@ setup(
         "pytest-testrail==2.9.0",
         "pure-python-adb==0.3.0.dev0",
         "webdriver-manager==3.6.3",
-        "numpy==1.21.6",
+        "numpy==1.22.0",
         "imutils==0.5.4",
     ],
     python_requires=">=3.6",
