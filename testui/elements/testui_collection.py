@@ -7,24 +7,17 @@ from testui.support.configuration import Configuration
 from testui.support.helpers import error_with_traceback
 
 
-def ee(*args):
-    """locator types: id, css, className, name, xpath, accessibility, uiautomator, classChain, predicate"""
-    return Collections(args)
-
-
 class Error(Exception):
     """Base class for exceptions in this module."""
 
-    pass
-
-
+# pylint: disable=super-init-not-called
 class CollectionException(Error):
     def __init__(self, message, expression=""):
         self.message = message
         self.expression = expression
 
 
-class Collections(object):
+class Collections:
     def __init__(self, args):
         self.args = args
         self.__errors = []
@@ -44,7 +37,8 @@ class Collections(object):
             thread.join()
         if time.time() < start + seconds:
             logger.log(
-                f"{self.args[0].device_name}: Collection of elements has been found after {time.time() - start}s"
+                f"{self.args[0].device_name}: Collection of elements has been "
+                f"found after {time.time() - start}s"
             )
         else:
             compose_error = ""
@@ -52,8 +46,8 @@ class Collections(object):
             for error in self.__errors:
                 compose_error = compose_error + f"{error} \n"
             self.__show_error(
-                f"{self.args[0].device_name}: Collection of elements has not been found "
-                f"after {time.time() - start}s: \n {compose_error}"
+                f"{self.args[0].device_name}: Collection of elements has not "
+                f"been found after {time.time() - start}s: \n {compose_error}"
             )
 
     def find_visible(self, seconds=10, return_el_number=False):
@@ -65,7 +59,8 @@ class Collections(object):
                 if arg.is_visible(log=False):
                     logger.log(
                         f"{self.args[i].device_name}: element "
-                        f'"{self.args[i].locator_type}: {self.args[i].locator}" found visible'
+                        f'"{self.args[i].locator_type}: '
+                        f'{self.args[i].locator}" found visible'
                     )
                     if return_el_number:
                         return arg, i
@@ -73,15 +68,16 @@ class Collections(object):
                         return arg
             i += 1
         self.__show_error(
-            f"{self.args[0].device_name}: No element within the collection was found visible "
-            f"after {time.time() - start}s:"
+            f"{self.args[0].device_name}: No element within the collection was "
+            f"found visible after {time.time() - start}s:"
         )
 
     def wait_until_attribute(self, attr_type: list, attr: list, seconds=10):
         start = time.time()
         if len(attr_type) != len(self.args) or len(attr_type) != len(attr):
             raise Exception(
-                "The number of attributes checked must be the same as number of elements in collection"
+                "The number of attributes checked must be the same as number "
+                "of elements in collection"
             )
         threads = []
         i = 0
@@ -100,7 +96,8 @@ class Collections(object):
             thread.join()
         if time.time() < start + seconds:
             logger.log(
-                f"{self.args[0].device_name}: Collection of elements has been found with the correct attributes "
+                f"{self.args[0].device_name}: Collection of elements has been "
+                "found with the correct attributes "
                 f"after {time.time() - start}s"
             )
         else:
@@ -109,7 +106,8 @@ class Collections(object):
             for error in self.__errors:
                 compose_error = compose_error + f"{error} \n"
             self.__show_error(
-                "{self.args[0].device_name}: Collection of elements has not been found with the correct attributes "
+                f"{self.args[0].device_name}: Collection of elements has not "
+                "been found with the correct attributes "
                 f"after {time.time() - start}s: \n {compose_error}"
             )
 
@@ -143,3 +141,19 @@ class Collections(object):
             logger.log_error(full_exception)
             driver.set_error(full_exception)
             raise CollectionException(exception)
+
+
+def ee(*args) -> Collections:
+    """
+    locator types:
+        id,
+        css,
+        className,
+        name,
+        xpath,
+        accessibility,
+        uiautomator,
+        classChain,
+        predicate
+    """
+    return Collections(args)

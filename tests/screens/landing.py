@@ -2,7 +2,7 @@ from testui.elements.testui_collection import ee
 from testui.elements.testui_element import e
 
 
-class LandingScreen(object):
+class LandingScreen:
     #  Page Element Definitions
     def __init__(self, driver):
         self.__log_in_button = e(driver, "name", "btnK")

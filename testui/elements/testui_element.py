@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import time
 import os
 
@@ -13,37 +15,6 @@ from testui.support import logger
 from testui.support.helpers import error_with_traceback
 from testui.support.testui_images import Dimensions, ImageRecognition
 
-
-def e(driver, locator_type: str, locator: str):
-    """
-    locator types: id, css, className, name, xpath,
-        accessibility, uiautomator, classChain, predicate
-    """
-    return Elements(driver, locator_type, locator)
-
-
-def scroll_by_text(driver, text, element=None, exact_text=False):
-    if exact_text:
-        method_text = "text"
-    else:
-        method_text = "textContains"
-    if element is None:
-        locator = f'new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView({method_text}("{text}"));'
-    else:
-        locator = f'new UiScrollable(new UiSelector().{element}).scrollIntoView({method_text}("{text}"));'
-    e(driver, "uiautomator", locator)
-    return Elements(driver, "uiautomator", locator)
-
-
-def scroll_by_resource_id(driver, res_id):
-    locator = (
-        "new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector()."
-        f'resourceId("{res_id}"));'
-    )
-    e(driver, "uiautomator", locator)
-    return Elements(driver, "uiautomator", locator)
-
-
 def testui_error(driver, exception: str) -> None:
     config = driver.configuration
 
@@ -51,7 +22,10 @@ def testui_error(driver, exception: str) -> None:
         try:
             driver.save_screenshot()
         except Exception as error:
-            exception += f"{logger.bcolors.FAIL} \nCould not take screenshot:{logger.bcolors.ENDC}\n {error}"
+            exception += (
+                f"{logger.bcolors.FAIL} \n"
+                f"Could not take screenshot:{logger.bcolors.ENDC}\n {error}"
+            )
 
     full_exception = exception
     if config.save_full_stacktrace:
@@ -72,6 +46,7 @@ class Error(Exception):
     """Base class for exceptions in this module."""
 
 
+# pylint: disable=super-init-not-called
 class ElementException(Error):
     def __init__(self, message, expression=""):
         self.message = message
@@ -81,6 +56,9 @@ class ElementException(Error):
 class Elements:
     def __init__(self, driver, locator_type: str, locator: str):
         self.logger = driver.logger_name
+        # TODO: Investigate if should be used in functionality or should be
+        # removed.
+        # pylint: disable=unused-private-member
         self.__soft_assert = driver.soft_assert
         self.testui_driver = driver
         self.device_name = driver.device_name
@@ -89,6 +67,9 @@ class Elements:
         self.locator_type = locator_type
         self.__is_collection = False
         self.index = 0
+        # TODO: Investigate if should be used in functionality or should be
+        # removed.
+        # pylint: disable=unused-private-member
         self.__errors = []
         self.__is_not = False
 
@@ -253,19 +234,20 @@ class Elements:
             self.__is_not = is_not
             if not self.is_visible():
                 return self.__show_error(
-                    f"{logger.bcolors.FAIL} {self.device_name} Element {err_text} found with the following locator: "
-                    f'"{self.locator_type}:{self.locator}" during the time of {time.time() - start}s'
-                    f"{logger.bcolors.ENDC}"
+                    f"{logger.bcolors.FAIL} {self.device_name} Element "
+                    f"{err_text} found with the following locator: "
+                    f'"{self.locator_type}:{self.locator}" during the time of '
+                    f"{time.time() - start}s {logger.bcolors.ENDC}"
                 )
         if is_not:
             self.__put_log(
-                f'{self.device_name}: element "{self.locator_type}: {self.locator}" is not visible '
-                f"for {seconds}s"
+                f'{self.device_name}: element "{self.locator_type}: '
+                f'{self.locator}" is not visible for {seconds}s'
             )
         else:
             self.__put_log(
-                f'{self.device_name}: element "{self.locator_type}: {self.locator}" is visible '
-                f"for {seconds}s"
+                f'{self.device_name}: element "{self.locator_type}: '
+                f'{self.locator}" is visible for {seconds}s'
             )
         return self
 
@@ -283,8 +265,8 @@ class Elements:
         if is_visible:
             if log:
                 self.__put_log(
-                    f'{self.device_name}: Element "{self.locator_type}: {self.locator}" '
-                    f"was visible in {time.time() - start}s"
+                    f'{self.device_name}: Element "{self.locator_type}: '
+                    f'{self.locator}" was visible in {time.time() - start}s'
                 )
 
             return self
@@ -294,8 +276,9 @@ class Elements:
             err_text = "was"
 
         self.__show_error(
-            f"{self.device_name}: Element {err_text} found with the following locator: "
-            f'"{self.locator_type}: {self.locator}" after {time.time() - start}s'
+            f"{self.device_name}: Element {err_text} found with the following "
+            f'locator: "{self.locator_type}: {self.locator}" '
+            f"after {time.time() - start}s"
         )
 
         return self
@@ -312,8 +295,9 @@ class Elements:
                 value = self.get_element().get_attribute(attr)
                 if (value == text) != self.__is_not:
                     self.__put_log(
-                        f'{self.device_name}: element "{self.locator_type}: {self.locator}" has attribute '
-                        f'"{attr}" -> "{value}" {info_text} "{text}" after {time.time() - start}s'
+                        f'{self.device_name}: element "{self.locator_type}: '
+                        f'{self.locator}" has attribute "{attr}" -> "{value}" '
+                        f'{info_text} "{text}" after {time.time() - start}s'
                     )
                     self.__is_not = False
                     return self
@@ -323,9 +307,11 @@ class Elements:
         if err is None:
             err = ""
         return self.__show_error(
-            f"{logger.bcolors.FAIL}{err} {self.device_name} Element {err_text} found with the following locator: "
+            f"{logger.bcolors.FAIL}{err} {self.device_name} Element {err_text} "
+            f"found with the following locator: "
             f'"{self.locator_type}:{self.locator}" and '
-            f'attribute "{attr}" -> "{value}" {err_text} "{text}" after {time.time() - start}s{logger.bcolors.ENDC}'
+            f'attribute "{attr}" -> "{value}" {err_text} "{text}" after '
+            f"{time.time() - start}s{logger.bcolors.ENDC}"
         )
 
     def wait_until_contains_attribute(self, attr, text, seconds=10):
@@ -340,8 +326,9 @@ class Elements:
                 value = self.get_element().get_attribute(attr)
                 if value.__contains__(text) != self.__is_not:
                     self.__put_log(
-                        f'element "{self.locator_type}: {self.locator}" has attribute '
-                        f'"{attr}" {info_text} "{text}" after {time.time() - start}s'
+                        f'element "{self.locator_type}: {self.locator}" has '
+                        f'attribute "{attr}" {info_text} "{text}" after '
+                        f"{time.time() - start}s"
                     )
                     self.__is_not = False
                     return self
@@ -351,9 +338,11 @@ class Elements:
         if err is None:
             err = ""
         return self.__show_error(
-            f"{logger.bcolors.FAIL}{err} {self.device_name} Element{err_text} found with the following locator: "
+            f"{logger.bcolors.FAIL}{err} {self.device_name} Element{err_text} "
+            f"found with the following locator: "
             f'"{self.locator_type}:{self.locator}" and '
-            f'attribute "{attr}" -> "{value}" {info_text} "{text}" after {time.time() - start}s {logger.bcolors.ENDC}'
+            f'attribute "{attr}" -> "{value}" {info_text} "{text}" '
+            f"after {time.time() - start}s {logger.bcolors.ENDC}"
         )
 
     def wait_until_contains_sensitive_attribute(
@@ -370,8 +359,9 @@ class Elements:
                 value = self.get_element().get_attribute(attr)
                 if value.lower().__contains__(text.lower()) != self.__is_not:
                     self.__put_log(
-                        f'{self.device_name}: element "{self.locator_type}: {self.locator}" has attribute '
-                        f'"{attr}" -> "{value}" {info_text} no case sensitive value "{text}" after '
+                        f'{self.device_name}: element "{self.locator_type}: '
+                        f'{self.locator}" has attribute "{attr}" -> "{value}" '
+                        f'{info_text} no case sensitive value "{text}" after '
                         f"{time.time() - start}s"
                     )
                     self.__is_not = False
@@ -383,9 +373,11 @@ class Elements:
             err = ""
         if log:
             return self.__show_error(
-                f"{logger.bcolors.FAIL}{err} {self.device_name} Element {err_text} found with the following locator: "
-                f'"{self.locator_type}:{self.locator}" and attribute "{attr}" containing no case '
-                f'sensitive value "{text}" {err_text} "{value}" after {time.time() - start}s {logger.bcolors.ENDC}'
+                f"{logger.bcolors.FAIL}{err} {self.device_name} Element "
+                f"{err_text} found with the following locator: "
+                f'"{self.locator_type}:{self.locator}" and attribute "{attr}" '
+                f'containing no case sensitive value "{text}" {err_text} '
+                f'"{value}" after {time.time() - start}s {logger.bcolors.ENDC}'
             )
 
         raise ElementException(err)
@@ -404,16 +396,17 @@ class Elements:
                 element = self.get_element()
                 element.click()
                 self.__put_log(
-                    f'{self.device_name}: element "{self.locator_type}: {self.locator}" clicked after '
-                    f"{time.time() - start}s"
+                    f'{self.device_name}: element "{self.locator_type}: '
+                    f'{self.locator}" pressed for {time.time() - start}s'
                 )
                 return self
             except Exception as error:
                 err = error
                 time.sleep(0.2)
         return self.__show_error(
-            f'{logger.bcolors.FAIL}{err} {self.device_name}: Element "{self.locator_type}: {self.locator}" '
-            f"could not be clicked after {time.time() - start}s {logger.bcolors.ENDC}"
+            f"{logger.bcolors.FAIL}{err} {self.device_name}: Element "
+            f'"{self.locator_type}: {self.locator}" could not be clicked after '
+            f"{time.time() - start}s {logger.bcolors.ENDC}"
         )
 
     def press_hold_for(self, milliseconds=1000):
@@ -437,27 +430,24 @@ class Elements:
                     ta.press(self.get_element()).wait(
                         milliseconds
                     ).release().perform()
-                    self.__put_log(
-                        f'{self.device_name}: element "{self.locator_type}: {self.locator}" pressed for '
-                        f"{time.time() - start}s"
-                    )
-                    return self
                 else:
                     ta = ActionChains(self.driver)
                     ta.click_and_hold(self.get_element()).pause(
                         milliseconds // 1000
                     ).release().perform()
-                    self.__put_log(
-                        f'{self.device_name}: element "{self.locator_type}: {self.locator}" pressed for '
-                        f"{time.time() - start}s"
-                    )
-                    return self
+
+                self.__put_log(
+                    f'{self.device_name}: element "{self.locator_type}: '
+                    f'{self.locator}" pressed for {time.time() - start}s'
+                )
+                return self
             except Exception as error:
                 err = error
                 time.sleep(0.2)
         return self.__show_error(
-            f"{logger.bcolors.FAIL}{err} {self.device_name}: Element not found with the following locator: "
-            f'"{self.locator_type}:{self.locator}" after {time.time() - start}s {logger.bcolors.ENDC}'
+            f"{logger.bcolors.FAIL}{err} {self.device_name}: Element not found "
+            f'with the following locator: "{self.locator_type}:{self.locator}" '
+            f"after {time.time() - start}s {logger.bcolors.ENDC}"
         )
 
     def click_by_coordinates(self, x, y):
@@ -472,15 +462,17 @@ class Elements:
                 ta = TouchAction(self.driver)
                 ta.tap(x=x, y=y).perform()
                 self.__put_log(
-                    f'{self.device_name}: element "x={x}: y={y}" clicked after {time.time() - start}s'
+                    f'{self.device_name}: element "x={x}: y={y}" clicked after '
+                    f"{time.time() - start}s"
                 )
                 return self
             except Exception as error:
                 err = error
                 time.sleep(0.2)
         return self.__show_error(
-            f"{logger.bcolors.FAIL}{err} {self.device_name}: Element not found with the following locator: "
-            f'"{self.locator_type}:{self.locator}" after {time.time() - start}s {logger.bcolors.ENDC}'
+            f"{logger.bcolors.FAIL}{err} {self.device_name}: Element not found "
+            f'with the following locator: "{self.locator_type}:{self.locator}" '
+            f"after {time.time() - start}s {logger.bcolors.ENDC}"
         )
 
     @property
@@ -536,7 +528,8 @@ class Elements:
         min_scale=0.3,
     ):
         """
-        Takes screenshot of the element and compares it with the one you provide as 'image_name'
+        Takes screenshot of the element and compares it with the one you provide
+        as 'image_name'
         :param min_scale:
         :param max_scale:
         :param image_match: returns the image with a rectangle showing the match
@@ -554,14 +547,14 @@ class Elements:
         )
         if not found and not is_not:
             self.__show_error(
-                f"{self.device_name}: The images compared did not match. threshold={threshold}. "
-                f"Matched = {precision}"
+                f"{self.device_name}: The images compared did not match. "
+                f"Threshold={threshold}, matched = {precision}"
             )
         if found and is_not:
             self.__is_not = False
             self.__show_error(
-                f"{self.device_name}: The images compared matched. threshold={threshold}. "
-                f"Matched = {precision}"
+                f"{self.device_name}: The images compared matched. "
+                f"Threshold={threshold}, matched = {precision}"
             )
         root_dir = (
             os.path.dirname(
@@ -582,7 +575,8 @@ class Elements:
         min_scale=0.3,
     ):
         """
-        Takes screenshot of the element and compares it with the one you provide as 'image_name'
+        Takes screenshot of the element and compares it with the one you provide
+        as 'image_name'
         :param min_scale:
         :param max_scale:
         :param image_match: returns the image with a rectangle showing the match
@@ -674,8 +668,9 @@ class Elements:
             except Exception as error:
                 err = error
         return self.__show_error(
-            f"{logger.bcolors.FAIL}{err} {self.device_name}: Element not found with the following locator: "
-            f'"{self.locator_type}:{self.locator}" after {time.time() - start}s {logger.bcolors.ENDC}'
+            f"{logger.bcolors.FAIL}{err} {self.device_name}: Element not found "
+            f'with the following locator: "{self.locator_type}:{self.locator}" '
+            f"after {time.time() - start}s {logger.bcolors.ENDC}"
         )
 
     def slide_percentage(self, percentage, start_x=None):
@@ -696,8 +691,10 @@ class Elements:
         max_swipes=50,
     ):
         """
-        Swipe until an element with that text appears and Returns the element that contains the text. endX and
-        endY are mandatory if el(element) is not defined. text is mandatory
+        Swipe until an element with that text appears and Returns the element
+        that contains the text.
+        endX and endY are mandatory if el(element) is not defined.
+        text is mandatory
         :param start_x:
         :param start_y:
         :param end_x:
@@ -710,7 +707,8 @@ class Elements:
 
         if el is None and (start_x is None or end_y is None):
             raise Exception(
-                "if element not specified, end_x and end_y must be to be able to swipe"
+                "if element not specified, end_x and end_y are required "
+                "to be able to swipe"
             )
         if text is None:
             raise Exception("text cannot be None for swipe_until_text method")
@@ -724,7 +722,8 @@ class Elements:
             except Exception:
                 self.swipe(start_x, start_y, end_x, end_y, el, None)
         self.__put_log(
-            f'{self.device_name}: element "{self.locator_type}: {self.locator}" with text {text} '
+            f'{self.device_name}: element "{self.locator_type}: '
+            f'{self.locator}" with text {text} '
             f"found after {time.time() - start}s"
         )
         return e(self.testui_driver, "uiautomator", f'textContains("{text}")')
@@ -740,16 +739,18 @@ class Elements:
                 self.get_element().send_keys(value)
                 if log:
                     self.__put_log(
-                        f'{self.device_name}: element "{self.locator_type}: {self.locator}" '
-                        f'received keys "{value}" after {time.time() - start}s'
+                        f'{self.device_name}: element "{self.locator_type}: '
+                        '{self.locator}" received keys "{value}" after '
+                        f"{time.time() - start}s"
                     )
                 return self
             except Exception as error:
                 err = error
                 time.sleep(0.2)
         return self.__show_error(
-            f"{logger.bcolors.FAIL}{err} {self.device_name}: Element not found with the following locator: "
-            f'"{self.locator_type}:{self.locator}" after {time.time() - start}s {logger.bcolors.ENDC}'
+            f"{logger.bcolors.FAIL}{err} {self.device_name}: Element not found "
+            f'with the following locator: "{self.locator_type}:{self.locator}" '
+            f"after {time.time() - start}s {logger.bcolors.ENDC}"
         )
 
     def clear(self) -> "Elements":
@@ -766,16 +767,17 @@ class Elements:
             try:
                 text = self.get_element().text
                 self.__put_log(
-                    f'{self.device_name}: element "{self.locator_type}: {self.locator}" '
-                    f'has text "{text}" {time.time() - start}s'
+                    f'{self.device_name}: element "{self.locator_type}: '
+                    f'{self.locator}" has text "{text}" {time.time() - start}s'
                 )
                 return text
             except Exception as error:
                 err = error
                 time.sleep(0.2)
         self.__show_error(
-            f"{logger.bcolors.FAIL}{err} {self.device_name}: Element not found with the following locator: "
-            f'"{self.locator_type}:{self.locator}" after {time.time() - start}s {logger.bcolors.ENDC}'
+            f"{logger.bcolors.FAIL}{err} {self.device_name}: Element not found "
+            f'with the following locator: "{self.locator_type}:{self.locator}" '
+            f"after {time.time() - start}s {logger.bcolors.ENDC}"
         )
 
     def get_value(self):
@@ -787,16 +789,17 @@ class Elements:
             try:
                 text = self.get_element().get_attribute("value")
                 self.__put_log(
-                    f'{self.device_name}: element "{self.locator_type}: {self.locator}" '
-                    f' has text "{text}" {time.time() - start}s'
+                    f'{self.device_name}: element "{self.locator_type}: '
+                    f'{self.locator}" has text "{text}" {time.time() - start}s'
                 )
                 return text
             except Exception as error:
                 err = error
                 time.sleep(0.2)
         self.__show_error(
-            f"{logger.bcolors.FAIL}{err} {self.device_name}: Element not found with the following locator: "
-            f'"{self.locator_type}:{self.locator}" after {time.time() - start}s {logger.bcolors.ENDC}'
+            f"{logger.bcolors.FAIL}{err} {self.device_name}: Element not found "
+            f'with the following locator: "{self.locator_type}:{self.locator}" '
+            f"after {time.time() - start}s {logger.bcolors.ENDC}"
         )
 
     def get_name(self):
@@ -808,16 +811,18 @@ class Elements:
             try:
                 text = self.get_element().get_attribute("name")
                 self.__put_log(
-                    f'{self.device_name}: element "{self.locator_type}: {self.locator}" '
-                    f'has name "{text}" {time.time() - start}s'
+                    f'{self.device_name}: element "{self.locator_type}: '
+                    f'{self.locator}" has name "{text}" {time.time() - start}s'
                 )
                 return text
             except Exception as error:
                 err = error
                 time.sleep(0.2)
         self.__show_error(
-            f"{logger.bcolors.FAIL}{err} {self.device_name}: Element not found with the following locator: "
-            f'"{self.locator_type}:{self.locator}" after {time.time() - start}s {logger.bcolors.ENDC}'
+            f"{logger.bcolors.FAIL}{err} {self.device_name}: Element not "
+            "found with the following locator: "
+            f'"{self.locator_type}:{self.locator}" after '
+            f"{time.time() - start}s {logger.bcolors.ENDC}"
         )
 
     def get_attribute(self, att):
@@ -829,16 +834,18 @@ class Elements:
             try:
                 text = self.get_element().get_attribute(att)
                 self.__put_log(
-                    f'{self.device_name}: element "{self.locator_type}: {self.locator}" '
-                    f' has "{att}: {text}" {time.time() - start}s'
+                    f'{self.device_name}: element "{self.locator_type}: '
+                    f'{self.locator}" has "{att}: {text}" '
+                    f"{time.time() - start}s"
                 )
                 return text
             except Exception as error:
                 err = error
                 time.sleep(0.2)
         self.__show_error(
-            f"{logger.bcolors.FAIL}{err} {self.device_name}: Element not found with the following locator: "
-            f'"{self.locator_type}:{self.locator}" after {time.time() - start}s {logger.bcolors.ENDC}'
+            f"{logger.bcolors.FAIL}{err} {self.device_name}: Element not found "
+            f'with the following locator: "{self.locator_type}:{self.locator}" '
+            f"after {time.time() - start}s {logger.bcolors.ENDC}"
         )
 
     def press_and_compare(
@@ -864,13 +871,15 @@ class Elements:
             image, threshold, fps_reduction, self.__is_not, keep_image_as, False
         ):
             self.__put_log(
-                f'{self.device_name}: image {found} found while pressing element "{self.locator_type}: {self.locator}" '
+                f"{self.device_name}: image {found} found while pressing "
+                f'element "{self.locator_type}: {self.locator}" '
                 f"after {time.time() - start}s"
             )
         else:
             self.__show_error(
-                f"{self.device_name}: image {not_found} found while pressing element "
-                f'"{self.locator_type}: {self.locator}" after {time.time() - start}s'
+                f"{self.device_name}: image {not_found} found while pressing "
+                f'element "{self.locator_type}: {self.locator}" '
+                f"after {time.time() - start}s"
             )
         self.__is_not = False
         return self
@@ -894,8 +903,10 @@ class Elements:
             for i, element in enumerate(self.__find_by_collection()):
                 if case_sensitive and element.get_attribute(attribute) == value:
                     self.__put_log(
-                        f'{self.device_name}: element in collection "{self.locator_type}: {self.locator}" '
-                        f'with attribute "{attribute}" = "{value}" found after {time.time() - start}s'
+                        f"{self.device_name}: element in collection "
+                        f'{self.locator_type}: {self.locator}" with attribute '
+                        f'"{attribute}" = "{value}" found after '
+                        f"{time.time() - start}s"
                     )
                     self.index = i
                     return self
@@ -905,25 +916,81 @@ class Elements:
                     == value.lower()
                 ):
                     self.__put_log(
-                        f'{self.device_name}: element in collection "{self.locator_type}: {self.locator}" '
-                        f'with attribute "{attribute}" = "{value}" found after {time.time() - start}s'
+                        f"{self.device_name}: element in collection "
+                        f'{self.locator_type}: {self.locator}" with attribute '
+                        f'"{attribute}" = "{value}" found after '
+                        f"{time.time() - start}s"
                     )
                     self.index = i
                     return self
         self.__show_error(
             f"{self.device_name}: no element in collection "
-            f'"{self.locator_type}: {self.locator}" had attribute "{attribute}" = "{value}" after {time.time() - start}s'
+            f'"{self.locator_type}: {self.locator}" had attribute '
+            f'"{attribute}" = "{value}" after {time.time() - start}s'
         )
 
 
-class AndroidLocator(object):
+def e(driver, locator_type: str, locator: str) -> Elements:
+    """
+    Args:
+        driver: Driver that is going to fetch element.
+        locator_type (str): Type of the pattern in which locator is written.
+        locator (str): Pattern which describes target.
+
+    Possible locator types:
+        id,
+        css,
+        className,
+        name,
+        xpath,
+        accessibility,
+        uiautomator,
+        classChain,
+        predicate
+    """
+
+    # TODO: Locator types should be enums.
+
+    return Elements(driver, locator_type, locator)
+
+
+def scroll_by_text(driver, text, element=None, exact_text=False) -> Elements:
+    if exact_text:
+        method_text = "text"
+    else:
+        method_text = "textContains"
+    if element is None:
+        element = "scrollable(true)"
+
+    return e(
+        driver,
+        "uiautomator",
+        (
+            f"new UiScrollable(new UiSelector().{element})."
+            f'scrollIntoView({method_text}("{text}"));'
+        ),
+    )
+
+
+def scroll_by_resource_id(driver, res_id) -> Elements:
+    locator = (
+        "new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView"
+        f'(new UiSelector().resourceId("{res_id}"));'
+    )
+
+    return e(driver, "uiautomator", locator)
+
+
+class AndroidLocator:
     @classmethod
     def scroll(cls, method: str, scrollable_element=None):
         if scrollable_element is None:
-            locator = f"new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView({method});"
-        else:
-            locator = f"new UiScrollable(new UiSelector().{scrollable_element}).scrollIntoView({method});"
-        return locator
+            scrollable_element = "scrollable(true)"
+
+        return (
+            f"new UiScrollable(new UiSelector()."
+            f"{scrollable_element}).scrollIntoView({method});"
+        )
 
     @classmethod
     def text(cls, text: str):

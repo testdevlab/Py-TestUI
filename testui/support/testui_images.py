@@ -62,16 +62,18 @@ def __compare(
     global matched
     maxVal = 0.0
     for scale in np.linspace(min_scale, max_scale, 5)[::-1]:
-        # resize the image according to the scale, and keep track of the ratio of the resizing
+        # resize the image according to the scale, and keep track of the ratio
+        # of the resizing.
         resized = imutils.resize(image, width=int(image.shape[1] * scale))
         r = image.shape[1] / float(resized.shape[1])
-        # if the resized image is smaller than the template, then break
-        # from the loop
+        # if the resized image is smaller than the template, then break from
+        # the loop
         if resized.shape[0] < tH or resized.shape[1] < tW:
             break
         result = cv2.matchTemplate(resized, template, cv2.TM_CCOEFF_NORMED)
         (_, maxVal, _, maxLoc) = cv2.minMaxLoc(result)
-        # if we have found a new maximum correlation value, then update the bookkeeping variable
+        # if we have found a new maximum correlation value, then update the
+        # bookkeeping variable
         if found is None or maxVal > found[0]:
             lock = threading.Lock()
             lock.acquire()
@@ -82,15 +84,16 @@ def __compare(
             found = (maxVal, maxLoc, r)
             if maxVal > threshold:
                 if image_match != "" and found is not None:
-                    # unpack the bookkeeping variable and compute the (x, y) coordinates
-                    # of the bounding box based on the resized ratio
+                    # unpack the bookkeeping variable and compute the (x, y)
+                    # coordinates of the bounding box based on the resized ratio
                     (_, maxLoc, r) = found
                     (startX, startY) = (int(maxLoc[0] * r), int(maxLoc[1] * r))
                     (endX, endY) = (
                         int((maxLoc[0] + tW) * r),
                         int((maxLoc[1] + tH) * r),
                     )
-                    # draw a bounding box around the detected result and display the image
+                    # draw a bounding box around the detected result and display
+                    # the image
                     cv2.rectangle(
                         image, (startX, startY), (endX, endY), (0, 0, 255), 2
                     )
@@ -216,7 +219,8 @@ def compare_images(
                 alive = True
         if not alive:
             break
-    logger.log(f"Image Recognition took {time.time() - start}s")
+
+    logger.log(f"Image recognition took {time.time() - start}s")
     return found_image, matched
 
 
@@ -235,16 +239,18 @@ def get_point_match(
     found = None
     # loop over the scales of the image
     for scale in np.linspace(0.2, 1.0, 10)[::-1]:
-        # resize the image according to the scale, and keep track of the ratio of the resizing
+        # resize the image according to the scale, and keep track of the ratio
+        # of the resizing
         resized = imutils.resize(image, width=int(image.shape[1] * scale))
         r = image.shape[1] / float(resized.shape[1])
-        # if the resized image is smaller than the template, then break
-        # from the loop
+        # if the resized image is smaller than the template, then break from
+        # the loop
         if resized.shape[0] < tH or resized.shape[1] < tW:
             break
         result = cv2.matchTemplate(resized, template, cv2.TM_CCOEFF_NORMED)
         (_, maxVal, _, maxLoc) = cv2.minMaxLoc(result)
-        # if we have found a new maximum correlation value, then update the bookkeeping variable
+        # if we have found a new maximum correlation value, then update the
+        # bookkeeping variable
         if found is None or maxVal > found[0]:
             found = (maxVal, maxLoc, r)
             if maxVal > threshold:
@@ -296,7 +302,7 @@ def size(image_path):
     return width, height
 
 
-class ImageRecognition(object):
+class ImageRecognition:
     def __init__(
         self, original: str, comparison="", threshold=0.9, device_name="Device"
     ):
@@ -316,14 +322,16 @@ class ImageRecognition(object):
         )
         if self.__threshold > p1:
             logger.log_debug(
-                f"{self.__device_name}: Image match not found between: {self.__original} "
-                f"and {self.__comparison}. Threshold={self.__threshold}, matched = {p1}"
+                f"{self.__device_name}: Image match not found between: "
+                f"{self.__original} and {self.__comparison}. "
+                f"Threshold={self.__threshold}, matched = {p1}"
             )
             return False, p1
 
         logger.log_debug(
-            f"{self.__device_name}: Image match found between: {self.__original} "
-            f"and {self.__comparison}. Threshold={self.__threshold}, matched = {p1}"
+            f"{self.__device_name}: Image match found between: "
+            f"{self.__original} and {self.__comparison}. "
+            f"Threshold={self.__threshold}, matched = {p1}"
         )
         return True, p1
 
@@ -340,14 +348,16 @@ class ImageRecognition(object):
         )
         if found:
             logger.log_debug(
-                f"{self.__device_name}: Image match found between video: {self.__original} "
-                f"and image {self.__comparison}. Threshold={self.__threshold}, matched = {p}"
+                f"{self.__device_name}: Image match found between "
+                f"video: {self.__original} and image {self.__comparison}. "
+                f"Threshold={self.__threshold}, matched = {p}"
             )
             return True
 
         logger.log_debug(
-            f"{self.__device_name}: Image match not found between video: {self.__original} "
-            f"and image {self.__comparison}. Threshold={self.__threshold}, matched = {p}"
+            f"{self.__device_name}: Image match not found between "
+            f"video: {self.__original} and image {self.__comparison}. "
+            f"Threshold={self.__threshold}, matched = {p}"
         )
         return False
 
@@ -398,7 +408,7 @@ class ImageRecognition(object):
         return self
 
 
-class Dimensions(object):
+class Dimensions:
     def __init__(self, x, y):
         self.x = x
         self.y = y

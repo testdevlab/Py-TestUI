@@ -107,7 +107,7 @@ as usability since any changes to elements in the application would only have to
 be edited in one place. This is an example:
 
 ```py
-    class LoggedInScreen(object):
+    class LoggedInScreen:
         #  Page Element Definitions
         def __init__(self, driver: TestUIDriver):
             self.driver = driver
@@ -175,7 +175,8 @@ needed for debugging:
     element.swipe(end_y=end_y, end_x=end_x)
     element.press_hold_for(milliseconds)
     element.click_by_coordinates(x, y)
-    element.swipe_until_text(text='some_text', el=e(driver, 'id', 'id_2'))  # swipes from element to the element 2
+    # swipes from element to the element 2
+    element.swipe_until_text(text='some_text', el=e(driver, 'id', 'id_2'))
 ```
 
 Assertion methods are the ones meant to check whether the UI is presented with
@@ -186,9 +187,13 @@ the correct elements and values:
     element.wait_until_visible(seconds=10)
     element.wait_until_attribute(attr='text', text='something', seconds=10)
     element.wait_until_contains_attribute(attr='text', text='something')
-    element.wait_until_contains_sensitive_attribute(attr='text', text='something')
-    element.visible_for(seconds=1)  # Checks if visible along the set amount of time
-    element.find_image_match('relative/path/image.png', threshold) # Takes screenshot of the element and compares with the provided image
+    element.wait_until_contains_sensitive_attribute(
+        attr='text', text='something'
+    )
+    # Checks if visible along the set amount of time
+    element.visible_for(seconds=1)
+    # Takes screenshot of the element and compares with the provided image
+    element.find_image_match('relative/path/image.png', threshold)
 ```
 
 This methods will rise a ElementException in case the conditions are not met.
@@ -223,11 +228,16 @@ as one of the dependencies. You can use directly the methods from OpenCV
 directly, but you have also built-in methods from testUI:
 
 ```py
-    # First field is the image path with wich you want to compare the device screenshot
-    # Second field is the Threshold or how much alike the images should be (0.75-1 is considere high)
+    # First field is the image path with which you want to compare the device 
+    # screenshot.
+    # Second field is the Threshold or how much alike the images should be 
+    # (0.75-1 is considere high)
     # Third is if you want to rise an exception when the image is not found
-    # The forth is if you want to keep the image of the matched region, which will be marked with a rectangle
-    testui_driver.find_image_match('relative/path/image.png', 0.95, True, 'path/matched/image.png')
+    # The forth is if you want to keep the image of the matched region, which 
+    # will be marked with a rectangle
+    testui_driver.find_image_match(
+        'relative/path/image.png', 0.95, True, 'path/matched/image.png'
+    )
 
     testui_driver.click_by_image('relative/path/image.png', threshold)
 ```

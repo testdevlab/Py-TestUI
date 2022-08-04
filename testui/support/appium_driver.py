@@ -43,12 +43,18 @@ class NewDriver:
         self.__full_reset = False
         self.__debug = False
         self.soft_assert = False
+        # TODO: Investigate if functionality can be implemented or should be
+        # removed.
+        # pylint: disable=unused-private-member
         self.__auto_accept_alerts = True
         self.process = None
         self.file_name = None
         self.__appium_log_file = "appium-stdout.log"
         self.__chromedriverArgs = ["relaxed security"]
         self.__desired_capabilities = {}
+        # TODO: Investigate if should be used in functionality or should be
+        # removed.
+        # pylint: disable=unused-private-member
         self.__chrome_options = {}
 
     def set_logger(self, logger_name: str or None = "pytest"):
@@ -126,6 +132,7 @@ class NewDriver:
         return self
 
     def set_grant_permissions(self, permissions: bool):
+        # pylint: disable=unused-private-member
         self.__auto_accept_alerts = permissions
         return self
 
@@ -501,7 +508,8 @@ def get_device_udid(number: int):
     else:
         new_number = number - (number // len(devices)) * len(devices)
         logger.log_warn(
-            f"You choose device number {number + 1} but there are only {len(devices)} connected. "
+            f"You choose device number {number + 1} but there are only "
+            f"{len(devices)} connected. "
             f"Will use device number {new_number + 1} instead",
             jump_line=True,
         )
@@ -538,6 +546,8 @@ def check_chrome_version(udid):
         return get_chrome_version(
             response.__str__().split("versionName=")[1].split(".")[0]
         )
+
+    return None
 
 
 def __quit_driver(driver, debug):

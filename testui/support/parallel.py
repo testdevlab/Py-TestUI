@@ -25,11 +25,12 @@ def parallel_testui():
     elif args.testrail is not None:
         test_run_id = __start_run_id(args, args.testrail)
         logger.log_info(
-            f"Created testrail run {test_run_id} with testrail name: {args.testrail}"
+            f"Created testrail run {test_run_id} "
+            f"with testrail name: {args.testrail}"
         )
     number_of_cases = get_total_number_of_cases(args)
     logger.log_info(
-        f"------------ Total Number of Test Cases: {number_of_cases} ---------------"
+        f"----------- Total Number of Test Cases: {number_of_cases} -----------"
     )
     start = time.time()
     __start_processes(args.markers, args, test_run_id)
@@ -49,33 +50,34 @@ def parallel_testui():
         number_of_fails = __check_number_of_fails()
         percentage = 100 - 100 * number_of_fails / number_of_cases
         logger.log_error(
-            f"------------ Total Number of Test Cases: {number_of_cases}. "
-            f"Percentage Passed {percentage.__round__(3)}% ---------------"
+            f"----------- Total Number of Test Cases: {number_of_cases}. "
+            f"Percentage Passed {percentage.__round__(3)}% -----------"
         )
         logger.log_error(
-            f"------------ Tests Finished with errors! {fail} markers failed and {passed} passed."
-            f" Execution Time {__seconds_to_minutes(end_time)} ---------------"
+            f"----------- Tests Finished with errors! "
+            f"{fail} markers failed and {passed} passed."
+            f" Execution Time {__seconds_to_minutes(end_time)} -----------"
         )
         logger.log_error(
-            f"------------ Total Number of Test Failed: {__check_number_of_fails()} ---------------"
+            "----------- Total Number of Test Failed: "
+            f"{__check_number_of_fails()} -----------"
         )
         logger.log_error(f"There were test fails: \n\n{__check_txt_fails()}")
-        raise Exception(
-            "------------ Tests Finished with errors! ---------------"
-        )
+        raise Exception("----------- Tests Finished with errors! -----------")
 
     try:
         os.remove("fails.txt")
     except FileNotFoundError:
         logger.log_error(
-            "There were not errors file, there might be some other issues during the execution..."
+            "There were not errors file, there might be some other issues "
+            "during the execution..."
         )
     logger.log_pass(
-        f"------------- Total Number of Test Cases: {number_of_cases} -------------"
+        f"----------- Total Number of Test Cases: {number_of_cases} -----------"
     )
     logger.log_pass(
-        f"------------- Tests Finished successfully. {passed} markers passed. "
-        f"Total Execution Time {__seconds_to_minutes(end_time)} -------------"
+        f"----------- Tests Finished successfully. {passed} markers passed. "
+        f"Total Execution Time {__seconds_to_minutes(end_time)} -----------"
     )
 
 
@@ -246,7 +248,8 @@ def __arg_parser():
         logger.log(f"General flags: {args.general}")
     if args.single_thread_marker is not None:
         logger.log_info(
-            f"Single Thread marker: {args.single_thread_marker} {args.general_markers}"
+            "Single Thread marker: "
+            f"{args.single_thread_marker} {args.general_markers}"
         )
     return args
 
@@ -366,10 +369,12 @@ def __process(markers: list, args, thread=0, test_run_id=None):
         cache = f"-o cache_dir=.my_cache_dir_{thread}"
         start_1 = time.time()
         logger.log(
-            f"Starting: pytest {quiet} -m \"{marker} {args.general_markers}\" {testrail} {args.general} {cache}"
+            f'Starting: pytest {quiet} -m "{marker} {args.general_markers}" '
+            f"{testrail} {args.general} {cache}"
         )
         pr_1 = os.system(
-            f"pytest {quiet} -m \"{marker} {args.general_markers}\" {testrail} {args.general} {cache}"
+            f'pytest {quiet} -m "{marker} {args.general_markers}" '
+            f"{testrail} {args.general} {cache}"
         )
         file = open("fails.txt", "a+")
         file.write(f"{pr_1}")
@@ -381,7 +386,8 @@ def __process(markers: list, args, thread=0, test_run_id=None):
             )
         else:
             logger.log_error(
-                f"FINISHED RUN WITH ERRORS AFTER {__seconds_to_minutes(time.time() - start_1)}. "
+                "FINISHED RUN WITH ERRORS AFTER "
+                f"{__seconds_to_minutes(time.time() - start_1)}. "
                 f'MARKERS: "{marker} {args.general_markers}"'
             )
         __set_fails_file(f".my_cache_dir_{thread}")
@@ -402,7 +408,7 @@ def __check_number_of_fails():
         file.close()
         return len(fails.split("tests/")) - 1
     except FileNotFoundError:
-        pass
+        return 0
 
 
 def __check_txt_fails():
