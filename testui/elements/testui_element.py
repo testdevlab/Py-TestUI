@@ -4,6 +4,8 @@ import os
 from os import path
 from typing import List
 
+from __future__ import annotations
+
 from appium.webdriver.common.touch_action import TouchAction
 from appium.webdriver.webelement import WebElement
 from selenium.webdriver import ActionChains
@@ -12,7 +14,6 @@ from selenium.webdriver.common.by import By
 from testui.support import logger
 from testui.support.helpers import error_with_traceback
 from testui.support.testui_images import Dimensions, ImageRecognition
-
 
 def testui_error(driver, exception: str) -> None:
     config = driver.configuration
@@ -45,6 +46,7 @@ class Error(Exception):
     """Base class for exceptions in this module."""
 
 
+# pylint: disable=super-init-not-called
 class ElementException(Error):
     def __init__(self, message, expression=""):
         self.message = message

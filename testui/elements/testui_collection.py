@@ -10,7 +10,7 @@ from testui.support.helpers import error_with_traceback
 class Error(Exception):
     """Base class for exceptions in this module."""
 
-
+# pylint: disable=super-init-not-called
 class CollectionException(Error):
     def __init__(self, message, expression=""):
         self.message = message
