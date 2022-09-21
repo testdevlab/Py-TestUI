@@ -1,6 +1,7 @@
 # dev
 pylint==2.14.5
 black==22.6.0
+build
 
 # lib
 pytest==6.2.5
