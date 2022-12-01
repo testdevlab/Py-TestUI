@@ -124,8 +124,8 @@ class Elements:
                 f'resourceIdMatches("{self.locator}")'
             )
 
-        if self.locator_type == "accessibility":
-            return self.driver.find_element_by_accessibility_id(self.locator)
+        if self.locator_type == "accessibilityId":
+            return self.driver.find_element(AppiumBy.ACCESSIBILITY_ID, self.locator)
 
         if self.locator_type == "uiautomator":
             return self.driver.find_element(AppiumBy.ANDROID_UIAUTOMATOR, self.locator)
@@ -163,8 +163,8 @@ class Elements:
                 f'resourceIdMatches("{self.locator}")'
             )
 
-        if self.locator_type == "accessibility":
-            return self.driver.find_elements_by_accessibility_id(self.locator)
+        if self.locator_type == "accessibilityId":
+            return self.driver.find_elements(AppiumBy.ACCESSIBILITY_ID, self.locator)
 
         if self.locator_type == "uiautomator":
             return self.driver.find_elements(AppiumBy.ANDROID_UIAUTOMATOR,
