@@ -28,6 +28,7 @@ class NewDriver:
         self.browser = False
         self.__driver: WebDriver = None
         self.__app_path = None
+        self.__bundle_id = None
         self.udid = None
         self.__appium_url = None
         self.__remote_url = None
@@ -111,6 +112,10 @@ class NewDriver:
 
     def set_udid(self, udid: str):
         self.udid = udid
+        return self
+
+    def set_bundle_id(self, bundle_id: str):
+        self.__bundle_id = bundle_id
         return self
 
     def set_udid_if_exists(self, udid: str, number=None):
@@ -225,13 +230,15 @@ class NewDriver:
     def __set_ios_caps(self):
         if self.__automation_name is None:
             self.__automation_name = "XCUITest"
-        if self.__app_path is None and self.__app_package is None:
+        if self.__app_path is None and self.__bundle_id is None and self.__app_package is None:
             self.__desired_capabilities["browserName"] = "safari"
             self.browser = True
         if self.__app_path is not None:
             self.__desired_capabilities["app"] = self.__app_path
+        if self.__bundle_id is not None:
+            self.__desired_capabilities["bundleId"] = self.__bundle_id
         if self.__version is None:
-            self.__desired_capabilities["platformVersion"] = "13.2"
+            self.__desired_capabilities["platformVersion"] = "15.5"
 
     def __set_selenium_caps(self):
         self.__desired_capabilities["browserName"] = self.__browser_name
@@ -294,7 +301,11 @@ def start_driver(desired_caps, url, debug, port, udid, log_file):
     err = None
     for _ in range(2):
         try:
-            driver = Remote(url, desired_caps)
+            import warnings
+            with warnings.catch_warnings():
+                # To suppress a warning from an issue on selenium side
+                warnings.filterwarnings("ignore", category=DeprecationWarning)
+                driver = Remote(url, desired_caps)
             atexit.register(__quit_driver, driver, debug)
             logger.log(f"appium running on {url}. \n")
             lock.release()
@@ -331,9 +342,11 @@ def start_selenium_driver(
             if url is not None:
                 logger.log(f"selenium running on {url}. \n")
 
+                if options is None:
+                    options = ChromeOptions()
                 for key, value in desired_caps.items():
                     options.set_capability(key, value)
-
+                logger.log(f"final options: {options.to_capabilities().__str__()}")
                 driver = webdriver.Remote(command_executor=url, options=options)
             else:
                 if browser.lower() == "chrome":
@@ -349,8 +362,15 @@ def start_selenium_driver(
                         )
                     if "marionette" not in desired_caps:
                         desired_caps["marionette"] = True
+
+                    if options is None:
+                        options = FirefoxOptions()
+                    for key, value in desired_caps.items():
+                        options.set_capability(key, value)
+                    logger.log(f"final options: {options.to_capabilities().__str__()}")
+
                     driver = webdriver.Firefox(
-                        desired_capabilities=desired_caps, options=options
+                        options=options
                     )
                 elif browser.lower() == "safari":
                     driver = webdriver.Safari(desired_capabilities=desired_caps)
