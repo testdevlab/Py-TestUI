@@ -10,10 +10,12 @@ from appium.webdriver.common.touch_action import TouchAction
 from appium.webdriver.webelement import WebElement
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
+from appium.webdriver.common.appiumby import AppiumBy
 
 from testui.support import logger
 from testui.support.helpers import error_with_traceback
 from testui.support.testui_images import Dimensions, ImageRecognition
+
 
 def testui_error(driver, exception: str) -> None:
     config = driver.configuration
@@ -126,13 +128,13 @@ class Elements:
             return self.driver.find_element_by_accessibility_id(self.locator)
 
         if self.locator_type == "uiautomator":
-            return self.driver.find_element_by_android_uiautomator(self.locator)
+            return self.driver.find_element(AppiumBy.ANDROID_UIAUTOMATOR, self.locator)
 
         if self.locator_type == "classChain":
-            return self.driver.find_element_by_ios_class_chain(self.locator)
+            return self.driver.find_element(AppiumBy.IOS_CLASS_CHAIN, self.locator)
 
         if self.locator_type == "predicate":
-            return self.driver.find_element_by_ios_predicate(self.locator)
+            return self.driver.find_element(AppiumBy.IOS_PREDICATE, self.locator)
 
         raise ElementException(f"locator not supported: {self.locator_type}")
 
@@ -157,7 +159,7 @@ class Elements:
             return self.driver.find_elements(By.XPATH, self.locator)
 
         if self.locator_type == "android_id_match":
-            return self.driver.find_elements_by_android_uiautomator(
+            return self.driver.find_elements(AppiumBy.ANDROID_UIAUTOMATOR,
                 f'resourceIdMatches("{self.locator}")'
             )
 
@@ -165,15 +167,15 @@ class Elements:
             return self.driver.find_elements_by_accessibility_id(self.locator)
 
         if self.locator_type == "uiautomator":
-            return self.driver.find_elements_by_android_uiautomator(
-                self.locator
-            )
+            return self.driver.find_elements(AppiumBy.ANDROID_UIAUTOMATOR,
+                                             self.locator
+                                             )
 
         if self.locator_type == "classChain":
-            return self.driver.find_elements_by_ios_class_chain(self.locator)
+            return self.driver.find_elements(AppiumBy.IOS_CLASS_CHAIN, self.locator)
 
         if self.locator_type == "predicate":
-            return self.driver.find_elements_by_ios_predicate(self.locator)
+            return self.driver.find_elements(AppiumBy.IOS_PREDICATE, self.locator)
 
         raise ElementException(f"locator not supported: {self.locator_type}")
 
@@ -346,7 +348,7 @@ class Elements:
         )
 
     def wait_until_contains_sensitive_attribute(
-        self, attr, text, seconds=10.0, log=True
+            self, attr, text, seconds=10.0, log=True
     ):
         start = time.time()
         err = None
@@ -520,12 +522,12 @@ class Elements:
         return self
 
     def find_image_match(
-        self,
-        image_name,
-        threshold=0.9,
-        image_match="",
-        max_scale=2.0,
-        min_scale=0.3,
+            self,
+            image_name,
+            threshold=0.9,
+            image_match="",
+            max_scale=2.0,
+            min_scale=0.3,
     ):
         """
         Takes screenshot of the element and compares it with the one you provide
@@ -557,22 +559,22 @@ class Elements:
                 f"Threshold={threshold}, matched = {precision}"
             )
         root_dir = (
-            os.path.dirname(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            )
-            + "/"
+                os.path.dirname(
+                    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                )
+                + "/"
         )
         os.remove(root_dir + self.device_name + ".png")
 
         return self
 
     def is_image_match(
-        self,
-        image_name,
-        threshold=0.9,
-        image_match="",
-        max_scale=2.0,
-        min_scale=0.3,
+            self,
+            image_name,
+            threshold=0.9,
+            image_match="",
+            max_scale=2.0,
+            min_scale=0.3,
     ):
         """
         Takes screenshot of the element and compares it with the one you provide
@@ -597,23 +599,23 @@ class Elements:
         if found and is_not:
             return False
         root_dir = (
-            os.path.dirname(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            )
-            + "/"
+                os.path.dirname(
+                    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                )
+                + "/"
         )
         os.remove(root_dir + self.device_name + ".png")
 
         return True
 
     def swipe(
-        self,
-        start_x=None,
-        start_y=None,
-        end_x=None,
-        end_y=None,
-        el=None,
-        duration=None,
+            self,
+            start_x=None,
+            start_y=None,
+            end_x=None,
+            end_y=None,
+            el=None,
+            duration=None,
     ):
         """
         It swipes from element to the el(second element) or to the coordinates
@@ -681,14 +683,14 @@ class Elements:
         self.swipe(start_x=start_x, end_x=end_width)
 
     def swipe_until_text(
-        self,
-        start_x=None,
-        start_y=None,
-        end_x=None,
-        end_y=None,
-        text=None,
-        el=None,
-        max_swipes=50,
+            self,
+            start_x=None,
+            start_y=None,
+            end_x=None,
+            end_y=None,
+            text=None,
+            el=None,
+            max_swipes=50,
     ):
         """
         Swipe until an element with that text appears and Returns the element
@@ -849,12 +851,12 @@ class Elements:
         )
 
     def press_and_compare(
-        self,
-        image,
-        milliseconds=1000,
-        threshold=0.9,
-        fps_reduction=1,
-        keep_image_as="",
+            self,
+            image,
+            milliseconds=1000,
+            threshold=0.9,
+            fps_reduction=1,
+            keep_image_as="",
     ):
         self.testui_driver.start_recording_screen()
         self.press_hold_for(milliseconds)
@@ -868,7 +870,7 @@ class Elements:
         start = time.time()
 
         if self.testui_driver.stop_recording_and_compare(
-            image, threshold, fps_reduction, self.__is_not, keep_image_as, False
+                image, threshold, fps_reduction, self.__is_not, keep_image_as, False
         ):
             self.__put_log(
                 f"{self.device_name}: image {found} found while pressing "
@@ -894,7 +896,7 @@ class Elements:
         return len(self.__find_by_collection())
 
     def find_by_attribute(
-        self, attribute, value: str, timeout=10, case_sensitive=True
+            self, attribute, value: str, timeout=10, case_sensitive=True
     ):
         start = time.time()
         self.wait_until_visible()
@@ -911,9 +913,9 @@ class Elements:
                     self.index = i
                     return self
                 if (
-                    not case_sensitive
-                    and element.get_attribute(attribute).lower()
-                    == value.lower()
+                        not case_sensitive
+                        and element.get_attribute(attribute).lower()
+                        == value.lower()
                 ):
                     self.__put_log(
                         f"{self.device_name}: element in collection "
