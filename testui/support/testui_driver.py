@@ -301,11 +301,15 @@ class TestUIDriver:
         root_dir = os.path.dirname(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         )
+        if self.__configuration.screenshot_path != "":
+            root_dir = self.__configuration.screenshot_path
         found = ImageRecognition(
-            video_name, comparison, threshold, device_name=self.device_name
+            video_name, comparison, threshold,
+            device_name=self.device_name,
+            path=root_dir
         ).compare_video(keep_image_as, frame_rate_reduction=fps_reduction)
 
-        os.remove(root_dir + f"/{video_name}")
+        os.remove(os.path.join(root_dir, video_name))
         if not found and not not_found:
             if assertion:
                 raise Exception(

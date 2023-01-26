@@ -31,8 +31,9 @@ def compare_video_image(
     matching_list = []
 
     root_dir = path
-    cap = cv2.VideoCapture(root_dir + "/" + video)
-    template = cv2.imread(root_dir + "/" + comparison)
+    logger.log(root_dir)
+    cap = cv2.VideoCapture(os.path.join(root_dir, video))
+    template = cv2.imread(os.path.join(root_dir, comparison))
     i = 0
     percentage = 0.0
     while cap.isOpened():
