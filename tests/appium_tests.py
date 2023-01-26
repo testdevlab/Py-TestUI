@@ -1,6 +1,7 @@
+import time
+
 import pytest
 
-from tests.screens.landing import LandingScreen
 from testui.support import logger
 from testui.support.appium_driver import NewDriver
 from testui.support.testui_driver import TestUIDriver
@@ -20,9 +21,16 @@ class TestStringMethods:
         driver.quit()
 
     @pytest.mark.signup
-    def test_sign_up_flow(self, selenium_driver: TestUIDriver):
+    def test_screenshot_methods(self, selenium_driver: TestUIDriver):
         logger.log_test_name("T92701: Create an account")
-        selenium_driver.navigate_to("https://google.com")
-        landing_page = LandingScreen(selenium_driver)
-        landing_page.i_am_in_mobile_landing_screen()
+        selenium_driver.navigate_to(
+            "https://github.com/testdevlab/Py-TestUI#image-recognition"
+        )
+        selenium_driver.start_recording_screen()
+        time.sleep(1)
+        selenium_driver.stop_recording_and_compare("resources/comp.png", fps_reduction=30, keep_image_as="v_image.png")
+        selenium_driver.find_image_match(
+            "resources/comp.png", 0.9, True, image_match="image.png"
+        )
+        selenium_driver.click_by_image("resources/comp.png")
         selenium_driver.raise_errors()

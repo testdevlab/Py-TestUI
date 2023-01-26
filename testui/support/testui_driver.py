@@ -147,7 +147,7 @@ class TestUIDriver:
         image_name = f"{self.device_udid}{current_time}.png"
         image_path = self.save_screenshot(image_name)
         found, p = ImageRecognition(
-            image_path, comparison, threshold, self.device_name
+            image_path, comparison, threshold, self.device_name, self.configuration.screenshot_path
         ).compare(image_match)
         if assertion and not found and not not_found:
             exception = self.new_error_message(
@@ -164,16 +164,16 @@ class TestUIDriver:
         now = datetime.now()
         current_time = now.strftime("%Y-%m-%d%H%M%S")
         image_name = f"{self.device_udid}{current_time}.png"
-        self.save_screenshot(image_name)
+        im_path = self.save_screenshot(image_name)
         x, y = get_point_match(
-            f"testui-{image_name}", f"{image}", threshold, self.device_name
+            im_path, image, threshold, self.device_name
         )
         ta = TouchAction(self.__appium_driver)
         if webview:
             y = y + 120
         ta.tap(x=x, y=y).perform()
-        logger.log(f"{self.device_name}: element with image {image} clicked")
-        self.__delete_screenshot(image_name)
+        logger.log(f"{self.device_name}: element with image {image} clicked on point ({x},{y})")
+        self.__delete_screenshot(im_path)
 
     def get_dimensions(self):
         now = datetime.now()
@@ -181,9 +181,15 @@ class TestUIDriver:
         image_name = f"{self.device_udid}{current_time}.png"
         self.save_screenshot(image_name)
         dimensions = ImageRecognition(
-            f"testui-{image_name}"
+            original=image_name,
+            path=self.configuration.screenshot_path
         ).image_original_size()
-        self.__delete_screenshot(image_name)
+        im_path = os.path.join(
+            self.configuration.screenshot_path,
+            image_name
+        )
+        logger.log(f"Deleting screenshot: {im_path}")
+        self.__delete_screenshot(im_path)
         return dimensions
 
     def click(self, x, y):
@@ -220,10 +226,7 @@ class TestUIDriver:
 
     @classmethod
     def __delete_screenshot(cls, image_name):
-        root_dir = os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        )
-        os.remove(root_dir + f"/testui-{image_name}")
+        os.remove(image_name)
 
     def get_driver(self) -> WebDriver:
         driver = self.__appium_driver
@@ -277,10 +280,9 @@ class TestUIDriver:
     def stop_recording_screen(self, file_name="testui-video.mp4"):
         file = self.get_driver().stop_recording_screen()
         decoded_string = base64.b64decode(file)
-        root_dir = os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        )
-        with open(root_dir + f"/{file_name}", "wb") as wfile:
+        root_dir = self.configuration.screenshot_path
+        logger.log(f"Recording stopped in {os.path.join(root_dir, file_name)}")
+        with open(os.path.join(root_dir, file_name), "wb") as wfile:
             wfile.write(decoded_string)
 
     def stop_recording_and_compare(

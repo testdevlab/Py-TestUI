@@ -556,13 +556,8 @@ class Elements:
                 f"{self.device_name}: The images compared matched. "
                 f"Threshold={threshold}, matched = {precision}"
             )
-        root_dir = (
-            os.path.dirname(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            )
-            + "/"
-        )
-        os.remove(root_dir + self.device_name + ".png")
+        root_dir = self.testui_driver.configuration.screenshot_path
+        os.remove(os.path.join(root_dir, self.device_name + ".png"))
 
         return self
 
@@ -596,13 +591,8 @@ class Elements:
             return False
         if found and is_not:
             return False
-        root_dir = (
-            os.path.dirname(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            )
-            + "/"
-        )
-        os.remove(root_dir + self.device_name + ".png")
+        root_dir = self.testui_driver.configuration.screenshot_path
+        os.remove(os.path.join(root_dir, self.device_name + ".png"))
 
         return True
 
