@@ -179,17 +179,12 @@ class TestUIDriver:
         now = datetime.now()
         current_time = now.strftime("%Y-%m-%d%H%M%S")
         image_name = f"{self.device_udid}{current_time}.png"
-        self.save_screenshot(image_name)
+        path_s = self.save_screenshot(image_name)
         dimensions = ImageRecognition(
-            original=image_name,
-            path=self.configuration.screenshot_path
+            original=path_s
         ).image_original_size()
-        im_path = os.path.join(
-            self.configuration.screenshot_path,
-            image_name
-        )
-        logger.log(f"Deleting screenshot: {im_path}")
-        self.__delete_screenshot(im_path)
+        logger.log(f"Deleting screenshot: {path_s}")
+        self.__delete_screenshot(path_s)
         return dimensions
 
     def click(self, x, y):

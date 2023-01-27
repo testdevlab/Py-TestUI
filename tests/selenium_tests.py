@@ -6,7 +6,6 @@ from testui.support import logger
 from testui.support.appium_driver import NewDriver
 from testui.support.testui_driver import TestUIDriver
 
-REPORTS_DIRECTORY = "./target"
 
 class TestStringMethods:
     @pytest.yield_fixture(autouse=True)
@@ -17,7 +16,6 @@ class TestStringMethods:
         driver = (
             NewDriver()
             .set_logger()
-            .set_screenshot_path(str(REPORTS_DIRECTORY))
             .set_browser("chrome")
             .set_soft_assert(True)
             .set_selenium_driver(chrome_options=options)
