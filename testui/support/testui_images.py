@@ -393,7 +393,10 @@ class ImageRecognition:
         return self
 
     def image_original_size(self):
-        path = os.path.join(self.__path, self.__original)
+        path = self.__original
+        if self.__path != "":
+            path = os.path.join(self.__path, self.__original)
+        logger.log(f"Checking size of image: {path}")
         size_image = size(path)
         logger.log(f"The size of the image is {size_image}")
         return Dimensions(size_image[0], size_image[1])
