@@ -13,7 +13,6 @@ def get_chrome_version(version: str):
     # TODO: it is not pulling the version. I just updated all phones to
     # latest chrome
     chrome_version = ""
-    logger.log(version)
     mytree = ET.ElementTree(ET.fromstring(r.text))
     root = mytree.getroot()
     for child in root:
