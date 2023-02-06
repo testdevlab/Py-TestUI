@@ -418,8 +418,8 @@ class ImageRecognition:
         x = center_x - width // 2
         if x < 0:
             x *= -1
-        img_2 = img[y : y + height, x : x + width]
-        cv2.imwrite(root_dir + "/" + image_name, img_2)
+        img_2 = img[y:y + height, x:x + width]
+        cv2.imwrite(image_name, img_2)
         return self
 
 

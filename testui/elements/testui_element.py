@@ -6,6 +6,7 @@ import os
 from os import path
 from typing import List
 
+from appium.webdriver.common.appiumby import AppiumBy
 from appium.webdriver.common.touch_action import TouchAction
 from appium.webdriver.webelement import WebElement
 from selenium.webdriver import ActionChains
@@ -14,6 +15,7 @@ from selenium.webdriver.common.by import By
 from testui.support import logger
 from testui.support.helpers import error_with_traceback
 from testui.support.testui_images import Dimensions, ImageRecognition
+
 
 def testui_error(driver, exception: str) -> None:
     config = driver.configuration
@@ -118,21 +120,24 @@ class Elements:
             return self.driver.find_element(By.XPATH, self.locator)
 
         if self.locator_type == "android_id_match":
-            return self.driver.find_element_by_android_uiautomator(
-                f'resourceIdMatches("{self.locator}")'
-            )
+            return self.driver.find_element(AppiumBy.ANDROID_UIAUTOMATOR,
+                                            f"resourceIdMatches(\"{self.locator}\")"
+                                            )
 
         if self.locator_type == "accessibility":
-            return self.driver.find_element_by_accessibility_id(self.locator)
+            return self.driver.find_element(
+                AppiumBy.ACCESSIBILITY_ID, self.locator)
 
         if self.locator_type == "uiautomator":
-            return self.driver.find_element_by_android_uiautomator(self.locator)
+            return self.driver.find_element(
+                AppiumBy.ANDROID_UIAUTOMATOR, self.locator)
 
         if self.locator_type == "classChain":
-            return self.driver.find_element_by_ios_class_chain(self.locator)
+            return self.driver.find_element(
+                AppiumBy.IOS_CLASS_CHAIN, self.locator)
 
         if self.locator_type == "predicate":
-            return self.driver.find_element_by_ios_predicate(self.locator)
+            return self.driver.find_element(AppiumBy.IOS_PREDICATE, self.locator)
 
         raise ElementException(f"locator not supported: {self.locator_type}")
 
@@ -157,23 +162,24 @@ class Elements:
             return self.driver.find_elements(By.XPATH, self.locator)
 
         if self.locator_type == "android_id_match":
-            return self.driver.find_elements_by_android_uiautomator(
-                f'resourceIdMatches("{self.locator}")'
-            )
+            return self.driver.find_elements(AppiumBy.ANDROID_UIAUTOMATOR,
+                                             f'resourceIdMatches("{self.locator}")'
+                                             )
 
         if self.locator_type == "accessibility":
-            return self.driver.find_elements_by_accessibility_id(self.locator)
+            return self.driver.find_elements(AppiumBy.ACCESSIBILITY_ID, self.locator)
 
         if self.locator_type == "uiautomator":
-            return self.driver.find_elements_by_android_uiautomator(
+            return self.driver.find_elements(
+                AppiumBy.ANDROID_UIAUTOMATOR,
                 self.locator
             )
 
         if self.locator_type == "classChain":
-            return self.driver.find_elements_by_ios_class_chain(self.locator)
+            return self.driver.find_elements(AppiumBy.IOS_CLASS_CHAIN, self.locator)
 
         if self.locator_type == "predicate":
-            return self.driver.find_elements_by_ios_predicate(self.locator)
+            return self.driver.find_elements(AppiumBy.IOS_PREDICATE, self.locator)
 
         raise ElementException(f"locator not supported: {self.locator_type}")
 
@@ -496,26 +502,24 @@ class Elements:
         :return:
         """
         self.wait_until_visible()
-        self.testui_driver.save_screenshot(f"{self.device_name}-crop_image.png")
-        dimensions = self.dimensions
-        top_left = self.location
-        ImageRecognition(
-            f"testui-{self.device_name}-crop_image.png"
-        ).crop_original_image(
-            top_left.x + dimensions.x // 2,
-            top_left.y + dimensions.y // 2,
-            dimensions.x,
-            dimensions.y,
-            image_name,
-        )
-
-        root_dir = self.testui_driver.configuration.screenshot_path
-        if not root_dir:
-            root_dir = path.dirname(
-                path.dirname(path.dirname(path.abspath(__file__)))
+        try:
+            self.get_element().screenshot(image_name)
+        except Exception:
+            path_img = self.testui_driver.save_screenshot(f"{self.device_name}-crop_image.png")
+            dimensions = self.dimensions
+            top_left = self.location
+            print(top_left.x, top_left.y, dimensions.x, dimensions.y)
+            ImageRecognition(
+                path_img
+            ).crop_original_image(
+                (top_left.x + dimensions.x // 2),
+                (top_left.y + dimensions.y // 2),
+                dimensions.x,
+                dimensions.y,
+                image_name,
             )
 
-        os.remove(root_dir + f"/testui-{self.device_name}-crop_image.png")
+            os.remove(path_img)
 
         return self
 
