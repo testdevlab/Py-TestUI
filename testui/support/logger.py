@@ -4,6 +4,9 @@ from pathlib import Path
 
 
 class bcolors:
+    """
+    Colors for console output
+    """
     HEADER = "\033[95m"
     OKBLUE = "\033[94m"
     OKGREEN = "\033[92m"
@@ -15,6 +18,11 @@ class bcolors:
 
 
 def log(message, jump_line=False):
+    """
+    Log a message to the console and to the log file
+    :param message: String
+    :param jump_line: Boolean
+    """
     now = datetime.now()
     current_time = now.strftime("%Y-%m-%d %H:%M:%S")
     new_line = ""
@@ -27,6 +35,11 @@ def log(message, jump_line=False):
 
 
 def log_pass(message, jump_line=False):
+    """
+    Log a message to the console and to the log file
+    :param message: String
+    :param jump_line: Boolean
+    """
     now = datetime.now()
     current_time = now.strftime("%Y-%m-%d %H:%M:%S")
     new_line = ""
@@ -41,6 +54,11 @@ def log_pass(message, jump_line=False):
 
 
 def log_error(message, use_date=False):
+    """
+    Log an error message to the console and to the log file
+    :param message: String
+    :param use_date: Boolean
+    """
     now = datetime.now()
     current_time = now.strftime("%Y-%m-%d %H:%M:%S")
     date = ""
@@ -54,6 +72,10 @@ def log_error(message, use_date=False):
 
 
 def log_debug(message):
+    """
+    Log a debug message to the console and to the log file
+    :param message: String
+    """
     now = datetime.now()
     current_time = now.strftime("%Y-%m-%d %H:%M:%S")
     print(f"{bcolors.OKBLUE}[{current_time}] {message}{bcolors.ENDC}")
@@ -63,6 +85,11 @@ def log_debug(message):
 
 
 def log_warn(message, jump_line=False):
+    """
+    Log a warning message to the console and to the log file
+    :param message: String
+    :param jump_line: Boolean
+    """
     now = datetime.now()
     current_time = now.strftime("%Y-%m-%d %H:%M:%S")
     new_line = ""
@@ -78,6 +105,11 @@ def log_warn(message, jump_line=False):
 
 
 def log_test_name(message, jump_line=False):
+    """
+    Log a test name message to the console and to the log file
+    :param message: String
+    :param jump_line: Boolean
+    """
     log_info(message, jump_line)
     new_line = ""
     if jump_line:
@@ -88,6 +120,11 @@ def log_test_name(message, jump_line=False):
 
 
 def log_info(message, jump_line=False):
+    """
+    Log a info message to the console and to the log file
+    :param message: String
+    :param jump_line: Boolean
+    """
     now = datetime.now()
     current_time = now.strftime("%Y-%m-%d %H:%M:%S")
     new_line = ""
@@ -103,6 +140,11 @@ def log_info(message, jump_line=False):
 
 
 def __file_log(log_file="stdout.log"):
+    """
+    Get the path of the log file
+    :param log_file: String
+    :return: String
+    """
     root_dir = (
         os.path.dirname(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -119,6 +161,11 @@ def __file_log(log_file="stdout.log"):
 
 
 def __file_tests(log_file="report_cases.txt"):
+    """
+    Get the path of the log file
+    :param log_file: String
+    :return: String
+    """
     root_dir = (
         os.path.dirname(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
