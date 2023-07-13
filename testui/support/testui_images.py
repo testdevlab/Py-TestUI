@@ -22,6 +22,16 @@ def compare_video_image(
     max_scale=2.0,
     path=""
 ):
+    """
+    Compare an image to a video and return the percentage of similarity
+    :param video: the video to compare
+    :param comparison: the image to compare
+    :param threshold: the threshold of similarity
+    :param image_match: the image to save if a match is found
+    :param frame_rate_reduction: the frame rate reduction
+    :param max_scale: the maximum scale of the image
+    :return: True if a match is found, False otherwise
+    """
     global matching_list
     global matched
     global found_image
@@ -69,6 +79,18 @@ def __compare(
     min_scale=0.1,
     divisions=25
 ):
+    """
+    Compare a template image to a larger image and return the percentage of
+    similarity
+    :param image: the larger image
+    :param template: the template image
+    :param threshold: the threshold of similarity
+    :param image_match: the image to save if a match is found
+    :param root_dir: the root directory of the project
+    :param max_scale: the maximum scale of the image
+    :param min_scale: the minimum scale of the image
+    :return: True if a match is found, False otherwise
+    """
     (tH, tW) = template.shape[:2]
     # loop over the scales of the image
     found = None
@@ -133,6 +155,16 @@ def compare_images(
     min_scale=0.3,
     path=""
 ):
+    """
+    Compare two images and return a boolean if they are similar or not
+    :param original: The original image
+    :param comparison: The image to compare
+    :param threshold: The threshold to compare the images
+    :param image_match: The image to save the match
+    :param max_scale: The maximum scale to compare the images
+    :param min_scale: The minimum scale to compare the images
+    :return: A boolean if the images are similar or not
+    """
     # Read the images from the file
     global found_image
     global matched
@@ -245,6 +277,14 @@ def compare_images(
 def get_point_match(
     original: str, comparison: str, threshold=0.9, device_name="Device"
 ):
+    """
+    Get the point where the images match. If the images don't match, return None
+    :param original: The original image
+    :param comparison: The image to compare to
+    :param threshold: The threshold to match the images
+    :param device_name: The device name
+    :return: The point where the images match
+    """
     _ = device_name
 
     # Read the images from the file
@@ -283,6 +323,13 @@ def get_point_match(
 def draw_match(
     original: str, comparison: str, threshold=0.9, device_name="Device"
 ):
+    """
+    Draws a rectangle around the match of the two images.
+    :param original: The original image
+    :param comparison: The image to compare to
+    :param threshold: The threshold to match the images
+    :param device_name: The device name
+    """
     method = cv2.TM_CCOEFF_NORMED
 
     # Read the images from the file
@@ -305,13 +352,23 @@ def draw_match(
     cv2.imwrite("something.png", suh)
 
 
+
 def size(image_path):
+    """
+    Gets the size of an image.
+    :param image_path: The path to the image.
+    :return: The width and height of the image.
+    """
     img = cv2.imread(image_path)
     height, width, _ = img.shape
     return width, height
 
 
 class ImageRecognition:
+    """
+    Class for image recognition.
+    """
+
     def __init__(
         self, original: str, comparison="", threshold=0.9, device_name="Device", path=""
     ):
@@ -326,6 +383,13 @@ class ImageRecognition:
         self.__path = path
 
     def compare(self, image_match="", max_scale=2.0, min_scale=0.3):
+        """
+        Compares the image to a given image.
+        :param image_match: The image to compare to.
+        :param max_scale: The maximum scale to compare the image to.
+        :param min_scale: The minimum scale to compare the image to.
+        :return: True if the image is found, False if not.
+        """
         _, p1 = compare_images(
             self.__original,
             self.__comparison,
@@ -353,6 +417,14 @@ class ImageRecognition:
     def compare_video(
         self, image_match="", frame_rate_reduction=1, max_scale=2.0
     ):
+        """
+        Compares the image to a video
+        :param image_match: The image to match
+        :param frame_rate_reduction: The frame rate reduction
+        :param max_scale: The max scale
+        :return: True if the image is found in the video
+        """
+
         found, p = compare_video_image(
             self.__original,
             self.__comparison,
@@ -378,6 +450,10 @@ class ImageRecognition:
         return False
 
     def get_middle_point(self):
+        """
+        Returns the middle point of the image match
+        :return: ImageRecognition
+        """
         get_point_match(
             self.__original,
             self.__comparison,
@@ -387,6 +463,10 @@ class ImageRecognition:
         return self
 
     def draw_image_match(self):
+        """
+        Draws a rectangle around the image match
+        :return: ImageRecognition
+        """
         draw_match(
             self.__original,
             self.__comparison,
@@ -396,6 +476,10 @@ class ImageRecognition:
         return self
 
     def image_original_size(self):
+        """
+        Returns the size of the original image
+        :return: Dimensions
+        """
         path = self.__original
         if self.__path != "":
             path = os.path.join(self.__path, self.__original)
@@ -405,6 +489,10 @@ class ImageRecognition:
         return Dimensions(size_image[0], size_image[1])
 
     def image_comparison_size(self):
+        """
+        Returns the size of the comparison image
+        :return: Dimensions
+        """
         size_image = size(self.__comparison)
         logger.log(f"The size of the image is {size_image}")
         return Dimensions(size_image[0], size_image[1])
@@ -412,6 +500,15 @@ class ImageRecognition:
     def crop_original_image(
         self, center_x, center_y, width, height, image_name="cropped_image.png"
     ):
+        """
+        Crops the original image and saves it in the root directory
+        :param center_x: int
+        :param center_y: int
+        :param width: int
+        :param height: int
+        :param image_name: str
+        :return: ImageRecognition
+        """
         # Read the images from the file
         path = os.path.join(self.__path, self.__original)
         img = cv2.imread(path)
@@ -427,6 +524,10 @@ class ImageRecognition:
 
 
 class Dimensions:
+    """
+    Class to store the dimensions of an image
+    """
+
     def __init__(self, x, y):
         self.x = x
         self.y = y

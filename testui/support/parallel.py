@@ -8,6 +8,10 @@ from testui.support import logger
 
 
 def parallel_testui():
+    """
+    This function is the main function of the parallel execution.
+    It will start the execution of the test cases in parallel.
+    """
     remove_logs()
     args = __arg_parser()
     try:
@@ -82,6 +86,9 @@ def parallel_testui():
 
 
 def remove_logs():
+    """
+    Will remove the logs from the previous execution.
+    """
     root_dir = os.path.dirname(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     )
@@ -110,6 +117,11 @@ def remove_logs():
 
 
 def get_total_number_of_cases(args):
+    """
+    Will get the total number of cases that will be executed.
+    :param args: The arguments that will be used to execute the test cases.
+    :return: The total number of cases that will be executed.
+    """
     number_of_cases = 0
     for marker in args.markers:
         output = subprocess.run(
@@ -151,20 +163,22 @@ def get_total_number_of_cases(args):
 
 
 def __seconds_to_minutes(time_seconds):
+    """
+    Will convert seconds to minutes.
+    :param time_seconds: The time in seconds.
+    :return: The time in minutes.
+    """
     minutes = int(time_seconds // 60)
     seconds = int(time_seconds % 60)
-    if minutes < 10:
-        ms = f"0{minutes}"
-    else:
-        ms = f"{minutes}"
-    if seconds < 10:
-        s = f"0{seconds}"
-    else:
-        s = f"{seconds}"
+    ms = f"0{minutes}" if minutes < 10 else f"{minutes}"
+    s = f"0{seconds}" if seconds < 10 else f"{seconds}"
     return f"{ms}:{s} ({time_seconds}s)"
 
-
 def __arg_parser():
+    """
+    Will parse the arguments that will be used to execute the test cases.
+    :return: The arguments that will be used to execute the test cases.
+    """
     parser = argparse.ArgumentParser(description="Parallel Testing")
     parser.add_argument(
         "markers",
@@ -255,6 +269,11 @@ def __arg_parser():
 
 
 def __str2bool(v):
+    """
+    Will convert a string to a boolean.
+    :param v: The string to be converted.
+    :return: The boolean value.
+    """
     if isinstance(v, bool):
         return v
 
@@ -267,6 +286,12 @@ def __str2bool(v):
 
 
 def __start_processes(markers: list, args, test_run_id=None):
+    """
+    Will start the processes for parallel test execution.
+    :param markers: The markers to be used.
+    :param args: The arguments to be used.
+    :param test_run_id: The test run id.
+    """
     ps = []
     amount = len(markers) // args.parallel
     amount_plus = 0
@@ -299,6 +324,12 @@ def __start_processes(markers: list, args, test_run_id=None):
 
 
 def __start_run_id(args, test_run_name):
+    """
+    Will start the test run id.
+    :param args: The arguments to be used.
+    :param test_run_name: The test run name.
+    :return: The test run id.
+    """
     end_marker = ""
     for i, marker in enumerate(args.markers):
         if i == len(args.markers):
@@ -349,6 +380,13 @@ def __start_run_id(args, test_run_name):
 
 
 def __process(markers: list, args, thread=0, test_run_id=None):
+    """
+    Will start a single test process.
+    :param markers: The markers to be used.
+    :param args: The arguments to be used.
+    :param thread: The thread number.
+    :param test_run_id: The test run id.
+    """
     for marker in markers:
         try:
             os.remove(f".my_cache_dir_{thread}/v/cache/lastfailed")
@@ -394,6 +432,10 @@ def __process(markers: list, args, thread=0, test_run_id=None):
 
 
 def __set_fails_file(cache_dir):
+    """
+    Will set the fails file.
+    :param cache_dir: The cache directory.
+    """
     fails = __check_fails(cache_dir)
     for fail in fails:
         file = open("report_fails.txt", "a+")
@@ -402,6 +444,11 @@ def __set_fails_file(cache_dir):
 
 
 def __check_number_of_fails():
+    """
+    Will check the number of fails within report file.
+    :return: The number of fails.
+
+    """
     try:
         file = open("report_fails.txt")
         fails = file.read()
@@ -412,6 +459,10 @@ def __check_number_of_fails():
 
 
 def __check_txt_fails():
+    """
+    Will return content of reported fails.
+    :return: The fails.
+    """
     try:
         file = open("report_fails.txt")
         text = file.read()
@@ -422,6 +473,11 @@ def __check_txt_fails():
 
 
 def __check_fails(cache=".pytest_cache"):
+    """
+    Will check latest fails wihin cache.
+    :param cache: The cache directory.
+    :return: The fails.
+    """
     try:
         f = open(f"{cache}/v/cache/lastfailed")
         fails = f.read()
@@ -443,6 +499,11 @@ def __check_fails(cache=".pytest_cache"):
 
 
 def __clean_str(string: str):
+    """
+    Will clean the provided string from unnecessary characters.
+    :param string: The string to be cleaned.
+    :return: The cleaned string.
+    """
     return (
         string.replace('"', "")
         .replace("}", "")
