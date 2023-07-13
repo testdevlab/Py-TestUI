@@ -21,4 +21,4 @@ class LandingScreen:
         self.__log_in_button_2.wait_until_visible()
 
     def i_am_in_google_play_landing_screen(self):
-        self.__google_play_screen.wait_until_visible().get_text()
+        self.__google_play_screen.wait_until_visible().screenshot()
