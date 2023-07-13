@@ -31,9 +31,12 @@ def compare_video_image(
     matching_list = []
 
     root_dir = path
-    logger.log(root_dir)
+    logger.log_debug(f'root directory: {root_dir}')
     cap = cv2.VideoCapture(os.path.join(root_dir, video))
     template = cv2.imread(os.path.join(root_dir, comparison))
+    if template is None:
+        logger.log_warn(f'trying to compare with an image that doesn\'t exist! {os.path.join(root_dir, comparison)}')
+        return False, 0.0
     i = 0
     percentage = 0.0
     while cap.isOpened():

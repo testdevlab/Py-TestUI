@@ -508,7 +508,7 @@ class Elements:
             path_img = self.testui_driver.save_screenshot(f"{self.device_name}-crop_image.png")
             dimensions = self.dimensions
             top_left = self.location
-            print(top_left.x, top_left.y, dimensions.x, dimensions.y)
+            logger.log_debug(f'crop dimensions (x,y,w,h):({top_left.x},{top_left.y},{dimensions.x},{dimensions.y})')
             ImageRecognition(
                 path_img
             ).crop_original_image(

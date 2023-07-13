@@ -13,7 +13,6 @@ class TestStringMethods:
         driver = (
             NewDriver()
             .set_logger()
-            # .set_screenshot_path("report_screenshots")
             .set_chrome_driver()
             .set_soft_assert(True)
             .set_appium_driver()
