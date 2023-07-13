@@ -14,7 +14,6 @@ class TestStringMethods:
             .set_platform("ios")
             .set_udid("5671CF6A-373A-4A11-8FE3-AD8E29D70F35")  # Change UDID for iOS device
             .set_logger()
-            # .set_soft_assert(True)
             .set_appium_driver()
         )
         yield driver
@@ -26,6 +25,3 @@ class TestStringMethods:
         logger.log_test_name("T92701: Test IOS app")
         appium_driver.navigate_to("https://google.com")
         e(appium_driver, "classChain", "**/XCUIElementTypeButton[`label == \"PART 1\"`]").click()
-        # landing_page = LandingScreen(selenium_driver)
-        # landing_page.i_am_in_mobile_landing_screen()
-        # selenium_driver.raise_errors()
