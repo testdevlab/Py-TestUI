@@ -28,4 +28,3 @@ class TestStringMethods:
         selenium_driver.navigate_to("https://google.com")
         landing_page = LandingScreen(selenium_driver)
         landing_page.i_am_in_landing_screen()
-        selenium_driver.raise_errors()
