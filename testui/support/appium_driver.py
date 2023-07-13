@@ -103,9 +103,7 @@ class NewDriver:
         if os.path.isabs(self.__app_path):
             return self
         else:
-            root_dir = os.path.dirname(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            )
+            root_dir = self.configuration.screenshot_path
             self.__app_path = os.path.join(root_dir, path)
             logger.log(self.__app_path)
             return self
@@ -163,6 +161,7 @@ class NewDriver:
             if self.udid is None:
                 self.udid = get_device_udid(0)
             mobile_version = check_chrome_version(self.udid)
+        logger.log(f"Installing chromedriver version: {mobile_version}")
         chrome_driver = chrome.ChromeDriverManager(
             version=mobile_version
         ).install()
@@ -524,6 +523,7 @@ def get_device_udid(number: int):
     if len(devices) == 0:
         raise Exception("There are 0 devices connected to the computer!")
     if len(devices) > number:
+        logger.log(f"Setting device: {devices[number].get_serial_no()}")
         return devices[number].get_serial_no()
     else:
         new_number = number - (number // len(devices)) * len(devices)

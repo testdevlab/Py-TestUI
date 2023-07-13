@@ -10,6 +10,7 @@ from testui.support import logger
 
 found_image = False
 matched = 0.0
+matching_list = []
 
 
 def compare_video_image(
@@ -19,20 +20,42 @@ def compare_video_image(
     image_match,
     frame_rate_reduction=1,
     max_scale=2.0,
+    path=""
 ):
-    root_dir = os.path.dirname(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    )
-    cap = cv2.VideoCapture(root_dir + "/" + video)
-    template = cv2.imread(root_dir + "/" + comparison)
+    """
+    Compare an image to a video and return the percentage of similarity
+    :param video: the video to compare
+    :param comparison: the image to compare
+    :param threshold: the threshold of similarity
+    :param image_match: the image to save if a match is found
+    :param frame_rate_reduction: the frame rate reduction
+    :param max_scale: the maximum scale of the image
+    :return: True if a match is found, False otherwise
+    """
+    global matching_list
+    global matched
+    global found_image
+
+    found_image = False
+    matched = 0.0
+    matching_list = []
+
+    root_dir = path
+    logger.log_debug(f'root directory: {root_dir}')
+    cap = cv2.VideoCapture(os.path.join(root_dir, video))
+    template = cv2.imread(os.path.join(root_dir, comparison))
+    if template is None:
+        logger.log_warn(f'trying to compare with an image that doesn\'t exist! {os.path.join(root_dir, comparison)}')
+        return False, 0.0
     i = 0
     percentage = 0.0
     while cap.isOpened():
         # Capture frame-by-frame
         ret, frame = cap.read()
         if ret and i % frame_rate_reduction == 0:
+            logger.log(f"frame evaluation = {i}")
             found, percentage = __compare(
-                frame, template, threshold, image_match, root_dir, max_scale
+                frame, template, threshold, image_match, root_dir, max_scale, 0.1, 50
             )
             if found:
                 cap.release()
@@ -54,14 +77,28 @@ def __compare(
     root_dir: str,
     max_scale: float,
     min_scale=0.1,
+    divisions=25
 ):
+    """
+    Compare a template image to a larger image and return the percentage of
+    similarity
+    :param image: the larger image
+    :param template: the template image
+    :param threshold: the threshold of similarity
+    :param image_match: the image to save if a match is found
+    :param root_dir: the root directory of the project
+    :param max_scale: the maximum scale of the image
+    :param min_scale: the minimum scale of the image
+    :return: True if a match is found, False otherwise
+    """
     (tH, tW) = template.shape[:2]
     # loop over the scales of the image
     found = None
     global found_image
     global matched
+    global matching_list
     maxVal = 0.0
-    for scale in np.linspace(min_scale, max_scale, 5)[::-1]:
+    for scale in np.linspace(min_scale, max_scale, divisions)[::-1]:
         # resize the image according to the scale, and keep track of the ratio
         # of the resizing.
         resized = imutils.resize(image, width=int(image.shape[1] * scale))
@@ -80,6 +117,7 @@ def __compare(
             if found_image:
                 lock.release()
                 return True, matched
+            matching_list.append(maxVal)
             lock.release()
             found = (maxVal, maxLoc, r)
             if maxVal > threshold:
@@ -98,13 +136,14 @@ def __compare(
                         image, (startX, startY), (endX, endY), (0, 0, 255), 2
                     )
                     cv2.imwrite(os.path.join(root_dir, image_match), image)
+                    logger.log(os.path.join(root_dir, image_match))
                 lock.acquire()
                 found_image = True
                 lock.release()
                 matched = maxVal
                 return True, maxVal
-    matched = maxVal
-    return False, maxVal
+    matched = max(matching_list)
+    return False, matched
 
 
 def compare_images(
@@ -114,17 +153,28 @@ def compare_images(
     image_match="",
     max_scale=2.0,
     min_scale=0.3,
+    path=""
 ):
+    """
+    Compare two images and return a boolean if they are similar or not
+    :param original: The original image
+    :param comparison: The image to compare
+    :param threshold: The threshold to compare the images
+    :param image_match: The image to save the match
+    :param max_scale: The maximum scale to compare the images
+    :param min_scale: The minimum scale to compare the images
+    :return: A boolean if the images are similar or not
+    """
     # Read the images from the file
     global found_image
     global matched
+    global matching_list
 
     start = time.time()
     matched = 0.0
+    matching_list = []
     found_image = False
-    root_dir = os.path.dirname(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    )
+    root_dir = path
     if not os.path.exists(comparison):
         comparison = os.path.join(root_dir, comparison)
         if not os.path.exists(comparison):
@@ -221,24 +271,29 @@ def compare_images(
             break
 
     logger.log(f"Image recognition took {time.time() - start}s")
-    return found_image, matched
+    return found_image, max(matching_list)
 
 
 def get_point_match(
     original: str, comparison: str, threshold=0.9, device_name="Device"
 ):
+    """
+    Get the point where the images match. If the images don't match, return None
+    :param original: The original image
+    :param comparison: The image to compare to
+    :param threshold: The threshold to match the images
+    :param device_name: The device name
+    :return: The point where the images match
+    """
     _ = device_name
 
     # Read the images from the file
-    root_dir = os.path.dirname(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    )
-    template = cv2.imread(root_dir + "/" + comparison)
+    template = cv2.imread(comparison)
     (tH, tW) = template.shape[:2]
-    image = cv2.imread(root_dir + "/" + original)
+    image = cv2.imread(original)
     found = None
     # loop over the scales of the image
-    for scale in np.linspace(0.2, 1.0, 10)[::-1]:
+    for scale in np.linspace(0.2, 2.0, 30)[::-1]:
         # resize the image according to the scale, and keep track of the ratio
         # of the resizing
         resized = imutils.resize(image, width=int(image.shape[1] * scale))
@@ -268,14 +323,18 @@ def get_point_match(
 def draw_match(
     original: str, comparison: str, threshold=0.9, device_name="Device"
 ):
+    """
+    Draws a rectangle around the match of the two images.
+    :param original: The original image
+    :param comparison: The image to compare to
+    :param threshold: The threshold to match the images
+    :param device_name: The device name
+    """
     method = cv2.TM_CCOEFF_NORMED
 
     # Read the images from the file
-    root_dir = os.path.dirname(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    )
-    large_image = cv2.imread(root_dir + "/" + comparison)
-    small_image = cv2.imread(root_dir + "/" + original)
+    large_image = cv2.imread(comparison)
+    small_image = cv2.imread(original)
 
     logger.log_debug(
         f'{device_name}: Comparing "{original}" with "{comparison}"'
@@ -293,25 +352,44 @@ def draw_match(
     cv2.imwrite("something.png", suh)
 
 
+
 def size(image_path):
-    root_dir = os.path.dirname(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    )
-    img = cv2.imread(root_dir + "/" + image_path)
+    """
+    Gets the size of an image.
+    :param image_path: The path to the image.
+    :return: The width and height of the image.
+    """
+    img = cv2.imread(image_path)
     height, width, _ = img.shape
     return width, height
 
 
 class ImageRecognition:
+    """
+    Class for image recognition.
+    """
+
     def __init__(
-        self, original: str, comparison="", threshold=0.9, device_name="Device"
+        self, original: str, comparison="", threshold=0.9, device_name="Device", path=""
     ):
         self.__original = original
         self.__comparison = comparison
         self.__threshold = threshold
         self.__device_name = device_name
+        if path == "":
+            path = os.path.dirname(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            )
+        self.__path = path
 
     def compare(self, image_match="", max_scale=2.0, min_scale=0.3):
+        """
+        Compares the image to a given image.
+        :param image_match: The image to compare to.
+        :param max_scale: The maximum scale to compare the image to.
+        :param min_scale: The minimum scale to compare the image to.
+        :return: True if the image is found, False if not.
+        """
         _, p1 = compare_images(
             self.__original,
             self.__comparison,
@@ -319,6 +397,7 @@ class ImageRecognition:
             image_match,
             max_scale,
             min_scale,
+            self.__path
         )
         if self.__threshold > p1:
             logger.log_debug(
@@ -338,6 +417,14 @@ class ImageRecognition:
     def compare_video(
         self, image_match="", frame_rate_reduction=1, max_scale=2.0
     ):
+        """
+        Compares the image to a video
+        :param image_match: The image to match
+        :param frame_rate_reduction: The frame rate reduction
+        :param max_scale: The max scale
+        :return: True if the image is found in the video
+        """
+
         found, p = compare_video_image(
             self.__original,
             self.__comparison,
@@ -345,6 +432,7 @@ class ImageRecognition:
             image_match,
             frame_rate_reduction,
             max_scale,
+            self.__path
         )
         if found:
             logger.log_debug(
@@ -362,6 +450,10 @@ class ImageRecognition:
         return False
 
     def get_middle_point(self):
+        """
+        Returns the middle point of the image match
+        :return: ImageRecognition
+        """
         get_point_match(
             self.__original,
             self.__comparison,
@@ -371,6 +463,10 @@ class ImageRecognition:
         return self
 
     def draw_image_match(self):
+        """
+        Draws a rectangle around the image match
+        :return: ImageRecognition
+        """
         draw_match(
             self.__original,
             self.__comparison,
@@ -380,11 +476,23 @@ class ImageRecognition:
         return self
 
     def image_original_size(self):
-        size_image = size(self.__original)
+        """
+        Returns the size of the original image
+        :return: Dimensions
+        """
+        path = self.__original
+        if self.__path != "":
+            path = os.path.join(self.__path, self.__original)
+        logger.log(f"Checking size of image: {path}")
+        size_image = size(path)
         logger.log(f"The size of the image is {size_image}")
         return Dimensions(size_image[0], size_image[1])
 
     def image_comparison_size(self):
+        """
+        Returns the size of the comparison image
+        :return: Dimensions
+        """
         size_image = size(self.__comparison)
         logger.log(f"The size of the image is {size_image}")
         return Dimensions(size_image[0], size_image[1])
@@ -392,23 +500,34 @@ class ImageRecognition:
     def crop_original_image(
         self, center_x, center_y, width, height, image_name="cropped_image.png"
     ):
+        """
+        Crops the original image and saves it in the root directory
+        :param center_x: int
+        :param center_y: int
+        :param width: int
+        :param height: int
+        :param image_name: str
+        :return: ImageRecognition
+        """
         # Read the images from the file
-        root_dir = os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        )
-        img = cv2.imread(root_dir + "/" + self.__original)
+        path = os.path.join(self.__path, self.__original)
+        img = cv2.imread(path)
         y = center_y - height // 2
         if y < 0:
             y *= -1
         x = center_x - width // 2
         if x < 0:
             x *= -1
-        img_2 = img[y : y + height, x : x + width]
-        cv2.imwrite(root_dir + "/" + image_name, img_2)
+        img_2 = img[y:y + height, x:x + width]
+        cv2.imwrite(image_name, img_2)
         return self
 
 
 class Dimensions:
+    """
+    Class to store the dimensions of an image
+    """
+
     def __init__(self, x, y):
         self.x = x
         self.y = y

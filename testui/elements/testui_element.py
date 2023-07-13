@@ -6,6 +6,7 @@ import os
 from os import path
 from typing import List
 
+from appium.webdriver.common.appiumby import AppiumBy
 from appium.webdriver.common.touch_action import TouchAction
 from appium.webdriver.webelement import WebElement
 from selenium.webdriver import ActionChains
@@ -120,18 +121,20 @@ class Elements:
             return self.driver.find_element(By.XPATH, self.locator)
 
         if self.locator_type == "android_id_match":
-            return self.driver.find_element_by_android_uiautomator(
-                f'resourceIdMatches("{self.locator}")'
-            )
-
-        if self.locator_type == "accessibilityId":
-            return self.driver.find_element(AppiumBy.ACCESSIBILITY_ID, self.locator)
+            return self.driver.find_element(AppiumBy.ANDROID_UIAUTOMATOR,
+                                            f"resourceIdMatches(\"{self.locator}\")"
+                                            )
+        if self.locator_type == "accessibility":
+            return self.driver.find_element(
+                AppiumBy.ACCESSIBILITY_ID, self.locator)
 
         if self.locator_type == "uiautomator":
-            return self.driver.find_element(AppiumBy.ANDROID_UIAUTOMATOR, self.locator)
+            return self.driver.find_element(
+                AppiumBy.ANDROID_UIAUTOMATOR, self.locator)
 
         if self.locator_type == "classChain":
-            return self.driver.find_element(AppiumBy.IOS_CLASS_CHAIN, self.locator)
+            return self.driver.find_element(
+                AppiumBy.IOS_CLASS_CHAIN, self.locator)
 
         if self.locator_type == "predicate":
             return self.driver.find_element(AppiumBy.IOS_PREDICATE, self.locator)
@@ -160,17 +163,17 @@ class Elements:
 
         if self.locator_type == "android_id_match":
             return self.driver.find_elements(AppiumBy.ANDROID_UIAUTOMATOR,
-                f'resourceIdMatches("{self.locator}")'
-            )
+                                             f'resourceIdMatches("{self.locator}")'
+                                             )
 
-        if self.locator_type == "accessibilityId":
+        if self.locator_type == "accessibility":
             return self.driver.find_elements(AppiumBy.ACCESSIBILITY_ID, self.locator)
 
         if self.locator_type == "uiautomator":
-            return self.driver.find_elements(AppiumBy.ANDROID_UIAUTOMATOR,
-                                             self.locator
-                                             )
-
+            return self.driver.find_elements(
+                AppiumBy.ANDROID_UIAUTOMATOR,
+                self.locator
+            )
         if self.locator_type == "classChain":
             return self.driver.find_elements(AppiumBy.IOS_CLASS_CHAIN, self.locator)
 
@@ -498,26 +501,24 @@ class Elements:
         :return:
         """
         self.wait_until_visible()
-        self.testui_driver.save_screenshot(f"{self.device_name}-crop_image.png")
-        dimensions = self.dimensions
-        top_left = self.location
-        ImageRecognition(
-            f"testui-{self.device_name}-crop_image.png"
-        ).crop_original_image(
-            top_left.x + dimensions.x // 2,
-            top_left.y + dimensions.y // 2,
-            dimensions.x,
-            dimensions.y,
-            image_name,
-        )
-
-        root_dir = self.testui_driver.configuration.screenshot_path
-        if not root_dir:
-            root_dir = path.dirname(
-                path.dirname(path.dirname(path.abspath(__file__)))
+        try:
+            self.get_element().screenshot(image_name)
+        except Exception:
+            path_img = self.testui_driver.save_screenshot(f"{self.device_name}-crop_image.png")
+            dimensions = self.dimensions
+            top_left = self.location
+            logger.log_debug(f'crop dimensions (x,y,w,h):({top_left.x},{top_left.y},{dimensions.x},{dimensions.y})')
+            ImageRecognition(
+                path_img
+            ).crop_original_image(
+                (top_left.x + dimensions.x // 2),
+                (top_left.y + dimensions.y // 2),
+                dimensions.x,
+                dimensions.y,
+                image_name,
             )
 
-        os.remove(root_dir + f"/testui-{self.device_name}-crop_image.png")
+            os.remove(path_img)
 
         return self
 
@@ -558,13 +559,8 @@ class Elements:
                 f"{self.device_name}: The images compared matched. "
                 f"Threshold={threshold}, matched = {precision}"
             )
-        root_dir = (
-                os.path.dirname(
-                    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-                )
-                + "/"
-        )
-        os.remove(root_dir + self.device_name + ".png")
+        root_dir = self.testui_driver.configuration.screenshot_path
+        os.remove(os.path.join(root_dir, self.device_name + ".png"))
 
         return self
 
@@ -598,13 +594,8 @@ class Elements:
             return False
         if found and is_not:
             return False
-        root_dir = (
-                os.path.dirname(
-                    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-                )
-                + "/"
-        )
-        os.remove(root_dir + self.device_name + ".png")
+        root_dir = self.testui_driver.configuration.screenshot_path
+        os.remove(os.path.join(root_dir, self.device_name + ".png"))
 
         return True
 
