@@ -12,7 +12,7 @@ class TestStringMethods:
             NewDriver()
             .set_bundle_id("com.apple.Preferences")
             .set_platform("ios")
-            .set_udid("5671CF6A-373A-4A11-8FE3-AD8E29D70F35")  # Change UDID for iOS device
+            .set_udid("CC69C1D7-352E-4856-BFD0-B3E908747170")  # Change UDID for iOS device
             .set_logger()
             .set_appium_driver()
         )
@@ -21,7 +21,5 @@ class TestStringMethods:
 
     @pytest.mark.signup
     def test_ios_app(self, appium_driver: TestUIDriver):
-        from testui.elements.testui_element import e
         logger.log_test_name("T92701: Test IOS app")
         appium_driver.navigate_to("https://google.com")
-        e(appium_driver, "classChain", "**/XCUIElementTypeButton[`label == \"PART 1\"`]").click()
