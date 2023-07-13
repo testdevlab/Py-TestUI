@@ -3,10 +3,7 @@ from __future__ import annotations
 import time
 import os
 
-from os import path
 from typing import List
-
-from appium.webdriver.common.appiumby import AppiumBy
 from appium.webdriver.common.touch_action import TouchAction
 from appium.webdriver.webelement import WebElement
 from selenium.webdriver import ActionChains
