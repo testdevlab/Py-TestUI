@@ -348,7 +348,7 @@ class Elements:
         )
 
     def wait_until_contains_sensitive_attribute(
-            self, attr, text, seconds=10.0, log=True
+        self, attr, text, seconds=10.0, log=True
     ):
         start = time.time()
         err = None
@@ -520,12 +520,12 @@ class Elements:
         return self
 
     def find_image_match(
-            self,
-            image_name,
-            threshold=0.9,
-            image_match="",
-            max_scale=2.0,
-            min_scale=0.3,
+        self,
+        image_name,
+        threshold=0.9,
+        image_match="",
+        max_scale=2.0,
+        min_scale=0.3,
     ):
         """
         Takes screenshot of the element and compares it with the one you provide
@@ -562,12 +562,12 @@ class Elements:
         return self
 
     def is_image_match(
-            self,
-            image_name,
-            threshold=0.9,
-            image_match="",
-            max_scale=2.0,
-            min_scale=0.3,
+        self,
+        image_name,
+        threshold=0.9,
+        image_match="",
+        max_scale=2.0,
+        min_scale=0.3,
     ):
         """
         Takes screenshot of the element and compares it with the one you provide
@@ -597,13 +597,13 @@ class Elements:
         return True
 
     def swipe(
-            self,
-            start_x=None,
-            start_y=None,
-            end_x=None,
-            end_y=None,
-            el=None,
-            duration=None,
+        self,
+        start_x=None,
+        start_y=None,
+        end_x=None,
+        end_y=None,
+        el=None,
+        duration=None,
     ):
         """
         It swipes from element to the el(second element) or to the coordinates
@@ -671,14 +671,14 @@ class Elements:
         self.swipe(start_x=start_x, end_x=end_width)
 
     def swipe_until_text(
-            self,
-            start_x=None,
-            start_y=None,
-            end_x=None,
-            end_y=None,
-            text=None,
-            el=None,
-            max_swipes=50,
+        self,
+        start_x=None,
+        start_y=None,
+        end_x=None,
+        end_y=None,
+        text=None,
+        el=None,
+        max_swipes=50,
     ):
         """
         Swipe until an element with that text appears and Returns the element
@@ -839,12 +839,12 @@ class Elements:
         )
 
     def press_and_compare(
-            self,
-            image,
-            milliseconds=1000,
-            threshold=0.9,
-            fps_reduction=1,
-            keep_image_as="",
+        self,
+        image,
+        milliseconds=1000,
+        threshold=0.9,
+        fps_reduction=1,
+        keep_image_as="",
     ):
         self.testui_driver.start_recording_screen()
         self.press_hold_for(milliseconds)
@@ -858,7 +858,7 @@ class Elements:
         start = time.time()
 
         if self.testui_driver.stop_recording_and_compare(
-                image, threshold, fps_reduction, self.__is_not, keep_image_as, False
+            image, threshold, fps_reduction, self.__is_not, keep_image_as, False
         ):
             self.__put_log(
                 f"{self.device_name}: image {found} found while pressing "
@@ -884,7 +884,7 @@ class Elements:
         return len(self.__find_by_collection())
 
     def find_by_attribute(
-            self, attribute, value: str, timeout=10, case_sensitive=True
+        self, attribute, value: str, timeout=10, case_sensitive=True
     ):
         start = time.time()
         self.wait_until_visible()
@@ -901,9 +901,9 @@ class Elements:
                     self.index = i
                     return self
                 if (
-                        not case_sensitive
-                        and element.get_attribute(attribute).lower()
-                        == value.lower()
+                    not case_sensitive
+                    and element.get_attribute(attribute).lower()
+                    == value.lower()
                 ):
                     self.__put_log(
                         f"{self.device_name}: element in collection "
