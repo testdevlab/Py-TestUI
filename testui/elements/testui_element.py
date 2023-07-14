@@ -3,14 +3,12 @@ from __future__ import annotations
 import time
 import os
 
-from os import path
 from typing import List
-
-from appium.webdriver.common.appiumby import AppiumBy
 from appium.webdriver.common.touch_action import TouchAction
 from appium.webdriver.webelement import WebElement
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
+from appium.webdriver.common.appiumby import AppiumBy
 
 from testui.support import logger
 from testui.support.helpers import error_with_traceback
@@ -123,7 +121,6 @@ class Elements:
             return self.driver.find_element(AppiumBy.ANDROID_UIAUTOMATOR,
                                             f"resourceIdMatches(\"{self.locator}\")"
                                             )
-
         if self.locator_type == "accessibility":
             return self.driver.find_element(
                 AppiumBy.ACCESSIBILITY_ID, self.locator)
@@ -174,7 +171,6 @@ class Elements:
                 AppiumBy.ANDROID_UIAUTOMATOR,
                 self.locator
             )
-
         if self.locator_type == "classChain":
             return self.driver.find_elements(AppiumBy.IOS_CLASS_CHAIN, self.locator)
 
