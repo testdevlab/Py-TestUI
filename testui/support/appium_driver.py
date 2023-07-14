@@ -411,19 +411,14 @@ def __local_run(url, desired_caps, use_port, udid, log_file):
         if udid is None:
             desired_caps = __set_android_device(desired_caps, device)
         logger.log(f'setting device for automation: {desired_caps["udid"]}')
-        root_dir = (
-            os.path.dirname(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            )
-            + "/"
-        )
-        Path(root_dir + "appium_logs").mkdir(parents=True, exist_ok=True)
+        root_dir = "./logs"
+        Path(os.path.join(root_dir, "appium_logs")).mkdir(parents=True, exist_ok=True)
         file_path: str
         if log_file == "appium-stdout.log":
-            file = f"appium_logs/testui-{udid}-" + log_file
+            file = os.path.join(root_dir, f"testui-{udid}-" + log_file)
         else:
-            file = f"appium_logs/{log_file}"
-        with open(root_dir + file, "wb") as out:
+            file = os.path.join(root_dir, log_file)
+        with open(file, "wb") as out:
             process = subprocess.Popen(
                 ["appium", "-p", port.__str__(), "-bp", bport.__str__()],
                 stdout=out,
@@ -465,19 +460,14 @@ def __local_run_ios(url, desired_caps, use_port, udid, log_file):
                 os.getenv("PYTEST_XDIST_WORKER").split("w")[1]
             )
         logger.log(f"running: appium -p {port.__str__()}")
-        root_dir = (
-            os.path.dirname(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            )
-            + "/"
-        )
-        Path(root_dir + "appium_logs").mkdir(parents=True, exist_ok=True)
+        root_dir = "./logs"
+        Path(os.path.join(root_dir, "appium_logs")).mkdir(parents=True, exist_ok=True)
         file_path: str
         if log_file == "appium-stdout.log":
-            file = f"appium_logs/testui-{udid}-" + log_file
+            file = os.path.join(root_dir, f"testui-{udid}-" + log_file)
         else:
-            file = f"appium_logs/{log_file}"
-        with open(root_dir + file, "wb") as out:
+            file = os.path.join(root_dir, log_file)
+        with open(file, "wb") as out:
             process = subprocess.Popen(
                 ["appium", "-p", port.__str__()],
                 stdout=out,

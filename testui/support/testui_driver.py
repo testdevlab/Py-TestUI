@@ -270,7 +270,7 @@ class TestUIDriver:
         image_name = f"{self.device_udid}{current_time}.png"
         path_s = self.save_screenshot(image_name)
         dimensions = ImageRecognition(
-            original=path_s
+            original=path_s, path=""
         ).image_original_size()
         logger.log(f"Deleting screenshot: {path_s}")
         self.__delete_screenshot(path_s)
@@ -299,9 +299,7 @@ class TestUIDriver:
 
         root_dir = config.screenshot_path
         if not config.screenshot_path:
-            root_dir = path.dirname(
-                path.dirname(path.dirname(path.abspath(__file__)))
-            )
+            root_dir = "./logs"
             root_dir = path.join(root_dir, "report_screenshots")
 
         Path(root_dir).mkdir(parents=True, exist_ok=True)
@@ -328,9 +326,6 @@ class TestUIDriver:
         :param image_name:
         :return:
         """
-        root_dir = os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        )
         os.remove(image_name)
 
     def get_driver(self) -> WebDriver:
@@ -464,9 +459,7 @@ class TestUIDriver:
         current_time = now.strftime("%Y-%m-%d%H%M%S")
         video_name = f"{self.device_udid}{current_time}.mp4"
         self.stop_recording_screen(video_name)
-        root_dir = os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        )
+        root_dir = "./logs"
         if self.__configuration.screenshot_path != "":
             root_dir = self.__configuration.screenshot_path
         found = ImageRecognition(

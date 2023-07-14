@@ -370,16 +370,12 @@ class ImageRecognition:
     """
 
     def __init__(
-        self, original: str, comparison="", threshold=0.9, device_name="Device", path=""
+        self, original: str, comparison="", threshold=0.9, device_name="Device", path="./logs"
     ):
         self.__original = original
         self.__comparison = comparison
         self.__threshold = threshold
         self.__device_name = device_name
-        if path == "":
-            path = os.path.dirname(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            )
         self.__path = path
 
     def compare(self, image_match="", max_scale=2.0, min_scale=0.3):

@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 from pathlib import Path
 
+ROOT_DIR = "./logs"
 
 class bcolors:
     """
@@ -145,19 +146,13 @@ def __file_log(log_file="stdout.log"):
     :param log_file: String
     :return: String
     """
-    root_dir = (
-        os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        )
-        + "/"
-    )
-    Path(root_dir + "appium_logs").mkdir(parents=True, exist_ok=True)
+    Path(ROOT_DIR).mkdir(parents=True, exist_ok=True)
     file_name: str
     if log_file == "stdout.log":
-        file_name = f"appium_logs/TEST_UI-{log_file}"
+        file_name = os.path.join(ROOT_DIR, f"TEST_UI-{log_file}")
     else:
-        file_name = f"appium_logs/{log_file}"
-    return root_dir + file_name
+        file_name = os.path.join(ROOT_DIR, log_file)
+    return file_name
 
 
 def __file_tests(log_file="report_cases.txt"):
@@ -166,11 +161,5 @@ def __file_tests(log_file="report_cases.txt"):
     :param log_file: String
     :return: String
     """
-    root_dir = (
-        os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        )
-        + "/"
-    )
-    Path(root_dir + "appium_logs").mkdir(parents=True, exist_ok=True)
-    return root_dir + log_file
+    Path(ROOT_DIR).mkdir(parents=True, exist_ok=True)
+    return os.path.join(ROOT_DIR, log_file)

@@ -31,7 +31,7 @@ class TestStringMethods:
             "https://github.com/testdevlab/Py-TestUI#image-recognition"
         )
         selenium_driver.find_image_match(
-            "resources/comp.png", 0.9, True, image_match="image.png"
+            "resources/comp.png", 0.9, True, image_match="./logs/image.png"
         )
         selenium_driver.raise_errors()
 
