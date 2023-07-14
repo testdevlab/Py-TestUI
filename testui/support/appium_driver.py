@@ -418,7 +418,7 @@ def __local_run(url, desired_caps, use_port, udid, log_file):
             file = os.path.join(root_dir, f"testui-{udid}-" + log_file)
         else:
             file = os.path.join(root_dir, log_file)
-        with open(file, "wb") as out:
+        with open(file, "a+") as out:
             process = subprocess.Popen(
                 ["appium", "-p", port.__str__(), "-bp", bport.__str__()],
                 stdout=out,
@@ -467,7 +467,7 @@ def __local_run_ios(url, desired_caps, use_port, udid, log_file):
             file = os.path.join(root_dir, f"testui-{udid}-" + log_file)
         else:
             file = os.path.join(root_dir, log_file)
-        with open(file, "wb") as out:
+        with open(file, "a+") as out:
             process = subprocess.Popen(
                 ["appium", "-p", port.__str__()],
                 stdout=out,
