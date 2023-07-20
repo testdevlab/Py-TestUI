@@ -8,21 +8,36 @@ from testui.support.helpers import error_with_traceback
 
 
 class Error(Exception):
-    """Base class for exceptions in this module."""
+    """Base class for exceptions in this module"""
+
 
 # pylint: disable=super-init-not-called
 class CollectionException(Error):
+    """Exception raised for errors in the input"""
+
     def __init__(self, message, expression=""):
         self.message = message
         self.expression = expression
 
 
 class Collections:
+    """
+    Class for working with collections of elements
+    """
+
     def __init__(self, args):
+        """
+        :param args: list of elements
+        """
         self.args = args
         self.__errors = []
 
     def wait_until_all_visible(self, seconds=10.0, log=True):
+        """
+        Wait until all elements in collection are visible
+        :param seconds: timeout
+        :param log: log to console
+        """
         start = time.time()
         threads = []
         for arg in self.args:
@@ -51,6 +66,12 @@ class Collections:
             )
 
     def find_visible(self, seconds=10, return_el_number=False):
+        """
+        Find first visible element in collection
+        :param seconds: timeout
+        :param return_el_number: return element number
+        :return: element
+        """
         start = time.time()
         arg: Elements
         i = 0
@@ -64,8 +85,8 @@ class Collections:
                     )
                     if return_el_number:
                         return arg, i
-                    else:
-                        return arg
+
+                    return arg
             i += 1
         self.__show_error(
             f"{self.args[0].device_name}: No element within the collection was "
@@ -73,6 +94,12 @@ class Collections:
         )
 
     def wait_until_attribute(self, attr_type: list, attr: list, seconds=10):
+        """
+        Wait until all elements in collection have the correct attribute
+        :param attr_type: list of attribute types
+        :param attr: list of attributes
+        :param seconds: timeout
+        """
         start = time.time()
         if len(attr_type) != len(self.args) or len(attr_type) != len(attr):
             raise Exception(
@@ -112,18 +139,34 @@ class Collections:
             )
 
     def get(self, index: int):
+        """
+        Get element by index
+        :param index: element index
+        :return: element
+        """
         element: Elements = self.args[index]
         return element
 
     def __wait_until_attribute(
         self, element: Elements, attr_type, attr, seconds
     ):
+        """
+        Wait until element has the correct attribute
+        :param element: element
+        :param attr_type: attribute type
+        :param attr: attribute
+        :param seconds: timeout
+        """
         try:
             element.wait_until_attribute(attr_type, attr, seconds)
         except Exception as err:
             self.__errors.append(err)
 
     def __show_error(self, exception) -> None:
+        """
+        Show error for provided expectation
+        :param exception: exception
+        """
         driver = self.args[0].testui_driver
         config: Configuration = driver.configuration
 
@@ -145,7 +188,8 @@ class Collections:
 
 def ee(*args) -> Collections:
     """
-    locator types:
+    Create collection of elements
+    Available locator types:
         id,
         css,
         className,
@@ -155,5 +199,7 @@ def ee(*args) -> Collections:
         uiautomator,
         classChain,
         predicate
+    :param args: list of elements
+    :return: collection of elements
     """
     return Collections(args)
