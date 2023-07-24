@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 from pathlib import Path
 
-ROOT_DIR = "./logs"
+LOG_DIR = "./logs"
 
 class bcolors:
     """
@@ -146,12 +146,12 @@ def __file_log(log_file="stdout.log"):
     :param log_file: String
     :return: String
     """
-    Path(ROOT_DIR).mkdir(parents=True, exist_ok=True)
+    Path(LOG_DIR).mkdir(parents=True, exist_ok=True)
     file_name: str
     if log_file == "stdout.log":
-        file_name = os.path.join(ROOT_DIR, f"TEST_UI-{log_file}")
+        file_name = os.path.join(LOG_DIR, f"TEST_UI-{log_file}")
     else:
-        file_name = os.path.join(ROOT_DIR, log_file)
+        file_name = os.path.join(LOG_DIR, log_file)
     return file_name
 
 
@@ -161,5 +161,5 @@ def __file_tests(log_file="report_cases.txt"):
     :param log_file: String
     :return: String
     """
-    Path(ROOT_DIR).mkdir(parents=True, exist_ok=True)
-    return os.path.join(ROOT_DIR, log_file)
+    Path(LOG_DIR).mkdir(parents=True, exist_ok=True)
+    return os.path.join(LOG_DIR, log_file)
