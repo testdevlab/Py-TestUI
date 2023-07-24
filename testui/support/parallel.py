@@ -104,21 +104,21 @@ def remove_logs():
         pass
     i = 0
     try:
-        for filename in os.listdir(log_dir):
-            file_path = os.path.join(log_dir, filename)
-            os.remove(file_path)
-            if i == 0:
-                logger.log("Cleaning logs folder...")
-                i += 1
-    except (IsADirectoryError, PermissionError, FileNotFoundError):
-        pass
-    i = 0
-    try:
         for filename in os.listdir(os.path.join(log_dir, "appium_logs")):
             file_path = os.path.join(log_dir, filename)
             os.remove(file_path)
             if i == 0:
                 logger.log("Cleaning appium_logs folder...")
+                i += 1
+    except (IsADirectoryError, PermissionError, FileNotFoundError):
+        pass
+    i = 0
+    try:
+        for filename in os.listdir(log_dir):
+            file_path = os.path.join(log_dir, filename)
+            os.remove(file_path)
+            if i == 0:
+                logger.log("Cleaning logs folder...")
                 i += 1
     except (IsADirectoryError, PermissionError, FileNotFoundError):
         pass
