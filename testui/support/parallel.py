@@ -108,6 +108,16 @@ def remove_logs():
             file_path = os.path.join(root_dir, filename)
             os.remove(file_path)
             if i == 0:
+                logger.log("Cleaning logs folder...")
+                i += 1
+    except FileNotFoundError:
+        pass
+    i = 0
+    try:
+        for filename in os.listdir(os.path.join(root_dir, "appium_logs")):
+            file_path = os.path.join(root_dir, filename)
+            os.remove(file_path)
+            if i == 0:
                 logger.log("Cleaning appium_logs folder...")
                 i += 1
     except FileNotFoundError:
