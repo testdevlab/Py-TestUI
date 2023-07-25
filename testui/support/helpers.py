@@ -10,8 +10,6 @@ def error_with_traceback(exception):
     )
     line: str
     for line in traceback.extract_stack().format():
-        if line.__contains__(root_dir) and not line.__contains__(
-            "traceback.extract_stack()"
-        ):
+        if root_dir in line and not "traceback.extract_stack()" in line:
             exception += logger.bcolors.FAIL + line + logger.bcolors.ENDC
     return exception

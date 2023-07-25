@@ -1,7 +1,9 @@
 import atexit
+import datetime
 import os
 import subprocess
 import threading
+import time
 from pathlib import Path
 from time import sleep
 
@@ -411,26 +413,20 @@ def __local_run(url, desired_caps, use_port, udid, log_file):
         if udid is None:
             desired_caps = __set_android_device(desired_caps, device)
         logger.log(f'setting device for automation: {desired_caps["udid"]}')
-        root_dir = (
-            os.path.dirname(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            )
-            + "/"
-        )
-        Path(root_dir + "appium_logs").mkdir(parents=True, exist_ok=True)
+        log_dir = os.path.join("./logs", "appium_logs")
+        Path(log_dir).mkdir(parents=True, exist_ok=True)
         file_path: str
         if log_file == "appium-stdout.log":
-            file = f"appium_logs/testui-{udid}-" + log_file
+            file_path = os.path.join(log_dir, f"testui-{udid}-{time.time()}-" + log_file)
         else:
-            file = f"appium_logs/{log_file}"
-        with open(root_dir + file, "wb") as out:
+            file_path = os.path.join(log_dir, log_file)
+        with open(file_path, "wb") as out:
             process = subprocess.Popen(
                 ["appium", "-p", port.__str__(), "-bp", bport.__str__()],
                 stdout=out,
                 stderr=subprocess.STDOUT,
             )
             atexit.register(process.kill)
-        file_path = root_dir + file
         while True:
             sleep(0.5)
             out = open(file_path)
@@ -465,26 +461,20 @@ def __local_run_ios(url, desired_caps, use_port, udid, log_file):
                 os.getenv("PYTEST_XDIST_WORKER").split("w")[1]
             )
         logger.log(f"running: appium -p {port.__str__()}")
-        root_dir = (
-            os.path.dirname(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            )
-            + "/"
-        )
-        Path(root_dir + "appium_logs").mkdir(parents=True, exist_ok=True)
+        log_dir = os.path.join("./logs", "appium_logs")
+        Path(log_dir).mkdir(parents=True, exist_ok=True)
         file_path: str
         if log_file == "appium-stdout.log":
-            file = f"appium_logs/testui-{udid}-" + log_file
+            file_path = os.path.join(log_dir, f"testui-{udid}-{time.time()}-" + log_file)
         else:
-            file = f"appium_logs/{log_file}"
-        with open(root_dir + file, "wb") as out:
+            file_path = os.path.join(log_dir, log_file)
+        with open(file_path, "wb") as out:
             process = subprocess.Popen(
                 ["appium", "-p", port.__str__()],
                 stdout=out,
                 stderr=subprocess.STDOUT,
             )
             atexit.register(process.kill)
-        file_path = root_dir + file
         if udid is None:
             desired_caps = __set_ios_device(desired_caps, device)
         while True:
