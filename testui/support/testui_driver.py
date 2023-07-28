@@ -223,6 +223,10 @@ class TestUIDriver:
         current_time = now.strftime("%Y-%m-%d%H%M%S")
         image_name = f"{self.device_udid}{current_time}.png"
         image_path = self.save_screenshot(image_name)
+        comparison = os.path.join(
+            self.__configuration.screenshot_path,
+            comparison
+        )
         found, p = ImageRecognition(
             image_path, comparison, threshold, self.device_name, self.configuration.screenshot_path
         ).compare(image_match)
@@ -457,9 +461,9 @@ class TestUIDriver:
         """
         now = datetime.now()
         current_time = now.strftime("%Y-%m-%d%H%M%S")
+        log_dir = self.__configuration.screenshot_path
         video_name = f"{self.device_udid}{current_time}.mp4"
-        self.stop_recording_screen(video_name)
-        log_dir = "./logs"
+        self.stop_recording_screen(os.path.join(log_dir, video_name))
         if self.__configuration.screenshot_path != "":
             log_dir = self.__configuration.screenshot_path
         found = ImageRecognition(
