@@ -395,7 +395,6 @@ def start_selenium_driver(
 
 
 def __local_run(url, desired_caps, use_port, udid, log_file):
-    appium_version_2 = False
     if url is None:
         port = use_port
         bport = use_port + 1
@@ -421,16 +420,9 @@ def __local_run(url, desired_caps, use_port, udid, log_file):
             file_path = os.path.join(log_dir, f"testui-{udid}-{time.time()}-" + log_file)
         else:
             file_path = os.path.join(log_dir, log_file)
-        # Check Appium Version
-        command = ["appium", "-p", port.__str__(), "-bp", bport.__str__()]
-        result = subprocess.run(["appium", "-v"], stdout=subprocess.PIPE).stdout
-        if result.decode('utf-8').startswith("2."):
-            # for Appium version > 2.0.0
-            appium_version_2 = True
-            command = ["appium", "-p", port.__str__()]
         with open(file_path, "wb") as out:
             process = subprocess.Popen(
-                command,
+                ["appium", "-p", port.__str__()],
                 stdout=out,
                 stderr=subprocess.STDOUT,
             )
@@ -445,10 +437,12 @@ def __local_run(url, desired_caps, use_port, udid, log_file):
                 out.close()
                 break
             out.close()
-        if appium_version_2:
+        # Check Appium Version
+        result = subprocess.run(["appium", "-v"], stdout=subprocess.PIPE).stdout
+        url = f"http://localhost:{port.__str__()}/wd/hub"
+        if result.decode('utf-8').startswith("2."):
+            # for Appium version > 2.0.0
             url = f"http://localhost:{port.__str__()}"
-        else:
-            url = f"http://localhost:{port.__str__()}/wd/hub"
         return url, desired_caps, process, file_path
 
     return url, desired_caps, None, None
@@ -456,7 +450,6 @@ def __local_run(url, desired_caps, use_port, udid, log_file):
 
 def __local_run_ios(url, desired_caps, use_port, udid, log_file):
     process = None
-    appium_version_2 = False
     if url is None:
         port = use_port + 100
         device = 0
@@ -477,11 +470,6 @@ def __local_run_ios(url, desired_caps, use_port, udid, log_file):
             file_path = os.path.join(log_dir, f"testui-{udid}-{time.time()}-" + log_file)
         else:
             file_path = os.path.join(log_dir, log_file)
-        # Check Appium Version
-        result = subprocess.run(["appium", "-v"], stdout=subprocess.PIPE).stdout
-        if result.decode('utf-8').startswith("2."):
-            # for Appium version > 2.0.0
-            appium_version_2 = True
         with open(file_path, "wb") as out:
             process = subprocess.Popen(
                 ["appium", "-p", port.__str__()],
@@ -501,10 +489,12 @@ def __local_run_ios(url, desired_caps, use_port, udid, log_file):
                 out.close()
                 break
             out.close()
-        if appium_version_2:
+        # Check Appium Version
+        url = f"http://localhost:{port.__str__()}/wd/hub"
+        result = subprocess.run(["appium", "-v"], stdout=subprocess.PIPE).stdout
+        if result.decode('utf-8').startswith("2."):
+            # for Appium version > 2.0.0
             url = f"http://localhost:{port.__str__()}"
-        else:
-            url = f"http://localhost:{port.__str__()}/wd/hub"
         return url, desired_caps, file_path
 
     return url, desired_caps, process

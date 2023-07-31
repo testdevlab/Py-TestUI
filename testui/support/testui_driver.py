@@ -464,8 +464,6 @@ class TestUIDriver:
         log_dir = self.__configuration.screenshot_path
         video_name = f"{self.device_udid}{current_time}.mp4"
         self.stop_recording_screen(os.path.join(log_dir, video_name))
-        if self.__configuration.screenshot_path != "":
-            log_dir = self.__configuration.screenshot_path
         found = ImageRecognition(
             video_name, comparison, threshold,
             device_name=self.device_name,

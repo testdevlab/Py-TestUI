@@ -15,7 +15,6 @@ class TestStringMethods:
             .set_logger()
             .set_chrome_driver()
             .set_soft_assert(True)
-            # .set_appium_url("http://localhost:4723")
             .set_appium_driver()
         )
         driver.configuration.save_full_stacktrace
