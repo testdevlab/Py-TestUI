@@ -409,7 +409,7 @@ def __local_run(url, desired_caps, use_port, udid, log_file):
                 os.getenv("PYTEST_XDIST_WORKER").split("w")[1]
             )
             bport += int(os.getenv("PYTEST_XDIST_WORKER").split("w")[1]) * 2
-        logger.log(f"running: appium -p {port.__str__()} -bp {bport.__str__()}")
+        logger.log(f"running: appium -p {port.__str__()}")
         if udid is None:
             desired_caps = __set_android_device(desired_caps, device)
         logger.log(f'setting device for automation: {desired_caps["udid"]}')
@@ -422,7 +422,7 @@ def __local_run(url, desired_caps, use_port, udid, log_file):
             file_path = os.path.join(log_dir, log_file)
         with open(file_path, "wb") as out:
             process = subprocess.Popen(
-                ["appium", "-p", port.__str__(), "-bp", bport.__str__()],
+                ["appium", "-p", port.__str__()],
                 stdout=out,
                 stderr=subprocess.STDOUT,
             )
@@ -437,13 +437,15 @@ def __local_run(url, desired_caps, use_port, udid, log_file):
                 out.close()
                 break
             out.close()
-        return (
-            f"http://localhost:{port.__str__()}/wd/hub",
-            desired_caps,
-            process,
-            file_path,
-        )
-    return url, desired_caps, None
+        # Check Appium Version
+        result = subprocess.run(["appium", "-v"], stdout=subprocess.PIPE).stdout
+        url = f"http://localhost:{port.__str__()}/wd/hub"
+        if result.decode('utf-8').startswith("2."):
+            # for Appium version > 2.0.0
+            url = f"http://localhost:{port.__str__()}"
+        return url, desired_caps, process, file_path
+
+    return url, desired_caps, None, None
 
 
 def __local_run_ios(url, desired_caps, use_port, udid, log_file):
@@ -487,11 +489,14 @@ def __local_run_ios(url, desired_caps, use_port, udid, log_file):
                 out.close()
                 break
             out.close()
-        return (
-            f"http://localhost:{port.__str__()}/wd/hub",
-            desired_caps,
-            file_path,
-        )
+        # Check Appium Version
+        url = f"http://localhost:{port.__str__()}/wd/hub"
+        result = subprocess.run(["appium", "-v"], stdout=subprocess.PIPE).stdout
+        if result.decode('utf-8').startswith("2."):
+            # for Appium version > 2.0.0
+            url = f"http://localhost:{port.__str__()}"
+        return url, desired_caps, file_path
+
     return url, desired_caps, process
 
 
