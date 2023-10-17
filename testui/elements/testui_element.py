@@ -22,6 +22,7 @@ def testui_error(driver, exception: str) -> None:
     :param exception: exception
     """
     config = driver.configuration
+    exception += "\n"
 
     if config.save_screenshot_on_fail:
         try:
@@ -43,7 +44,7 @@ def testui_error(driver, exception: str) -> None:
         logger.log_error(full_exception)
         driver.set_error(full_exception)
         raise ElementException(
-            "There were errors during the UI testing, check the logs"
+            f'There were errors during the UI testing, check the logs:\n{full_exception}'
         )
 
 

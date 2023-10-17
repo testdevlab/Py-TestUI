@@ -231,6 +231,10 @@ class TestUIDriver:
         current_time = now.strftime("%Y-%m-%d%H%M%S")
         image_name = f"{self.device_udid}{current_time}.png"
         image_path = self.save_screenshot(image_name)
+        comparison = os.path.join(
+            self.__configuration.screenshot_path,
+            comparison
+        )
         found, p = ImageRecognition(
             image_path,
             comparison,
@@ -284,7 +288,9 @@ class TestUIDriver:
         current_time = now.strftime("%Y-%m-%d%H%M%S")
         image_name = f"{self.device_udid}{current_time}.png"
         path_s = self.save_screenshot(image_name)
-        dimensions = ImageRecognition(original=path_s).image_original_size()
+        dimensions = ImageRecognition(
+            original=path_s, path=""
+        ).image_original_size()
         logger.log(f"Deleting screenshot: {path_s}")
         self.__delete_screenshot(path_s)
         return dimensions
@@ -311,21 +317,19 @@ class TestUIDriver:
         """
         config = self.__configuration
 
-        root_dir = config.screenshot_path
+        log_dir = config.screenshot_path
         if not config.screenshot_path:
-            root_dir = path.dirname(
-                path.dirname(path.dirname(path.abspath(__file__)))
-            )
-            root_dir = path.join(root_dir, "report_screenshots")
+            log_dir = "./logs"
+            log_dir = path.join(log_dir, "report_screenshots")
 
-        Path(root_dir).mkdir(parents=True, exist_ok=True)
+        Path(log_dir).mkdir(parents=True, exist_ok=True)
 
         current_time = datetime.now().strftime("%Y-%m-%d%H%M%S")
 
         if not image_name:
             image_name = f"ERROR-{self.device_name}-{current_time}.png"
 
-        final_path = path.join(root_dir, image_name)
+        final_path = path.join(log_dir, image_name)
 
         self.get_driver().save_screenshot(final_path)
 
@@ -342,9 +346,6 @@ class TestUIDriver:
         :param image_name:
         :return:
         """
-        root_dir = os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        )
         os.remove(image_name)
 
     @property
@@ -456,9 +457,9 @@ class TestUIDriver:
         """
         file = self.get_driver().stop_recording_screen()
         decoded_string = base64.b64decode(file)
-        root_dir = self.configuration.screenshot_path
-        logger.log(f"Recording stopped in {os.path.join(root_dir, file_name)}")
-        with open(os.path.join(root_dir, file_name), "wb") as wfile:
+        log_dir = self.configuration.screenshot_path
+        logger.log(f"Recording stopped in {os.path.join(log_dir, file_name)}")
+        with open(os.path.join(log_dir, file_name), "wb") as wfile:
             wfile.write(decoded_string)
 
         return self
@@ -484,22 +485,18 @@ class TestUIDriver:
         """
         now = datetime.now()
         current_time = now.strftime("%Y-%m-%d%H%M%S")
+        log_dir = self.__configuration.screenshot_path
         video_name = f"{self.device_udid}{current_time}.mp4"
-        self.stop_recording_screen(video_name)
-        root_dir = os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        )
-        if self.__configuration.screenshot_path != "":
-            root_dir = self.__configuration.screenshot_path
+        self.stop_recording_screen(os.path.join(log_dir, video_name))
         found = ImageRecognition(
             video_name,
             comparison,
             threshold,
             device_name=self.device_name,
-            path=root_dir,
+            path=log_dir
         ).compare_video(keep_image_as, frame_rate_reduction=fps_reduction)
 
-        os.remove(os.path.join(root_dir, video_name))
+        os.remove(os.path.join(log_dir, video_name))
         if not found and not not_found:
             if assertion:
                 raise Exception(

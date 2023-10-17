@@ -1,7 +1,9 @@
 import atexit
+import datetime
 import os
 import subprocess
 import threading
+import time
 from pathlib import Path
 from time import sleep
 
@@ -554,30 +556,24 @@ def __local_run(url, desired_caps, use_port, udid, log_file):
                 os.getenv("PYTEST_XDIST_WORKER").split("w")[1]
             )
             bport += int(os.getenv("PYTEST_XDIST_WORKER").split("w")[1]) * 2
-        logger.log(f"running: appium -p {str(port)} -bp {str(bport)}")
+        logger.log(f"running: appium -p {str(port)}")
         if udid is None:
             desired_caps = __set_android_device(desired_caps, device)
         logger.log(f'setting device for automation: {desired_caps["udid"]}')
-        root_dir = (
-            os.path.dirname(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            )
-            + "/"
-        )
-        Path(root_dir + "appium_logs").mkdir(parents=True, exist_ok=True)
+        log_dir = os.path.join("./logs", "appium_logs")
+        Path(log_dir).mkdir(parents=True, exist_ok=True)
         file_path: str
         if log_file == "appium-stdout.log":
-            file = f"appium_logs/testui-{udid}-" + log_file
+            file_path = os.path.join(log_dir, f"testui-{udid}-{time.time()}-" + log_file)
         else:
-            file = f"appium_logs/{log_file}"
-        with open(root_dir + file, "wb") as out:
+            file_path = os.path.join(log_dir, log_file)
+        with open(file_path, "wb") as out:
             process = subprocess.Popen(
-                ["appium", "-p", str(port), "-bp", str(bport)],
+                ["appium", "-p", str(port)],
                 stdout=out,
                 stderr=subprocess.STDOUT,
             )
             atexit.register(process.kill)
-        file_path = root_dir + file
         while True:
             sleep(0.5)
             out = open(file_path)
@@ -586,13 +582,15 @@ def __local_run(url, desired_caps, use_port, udid, log_file):
                 out.close()
                 break
             out.close()
-        return (
-            f"http://localhost:{str(port)}/wd/hub",
-            desired_caps,
-            process,
-            file_path,
-        )
-    return url, desired_caps, None
+        # Check Appium Version
+        result = subprocess.run(["appium", "-v"], stdout=subprocess.PIPE).stdout
+        url = f"http://localhost:{str(port)}/wd/hub"
+        if result.decode('utf-8').startswith("2."):
+            # for Appium version > 2.0.0
+            url = f"http://localhost:{str(port)}"
+        return url, desired_caps, process, file_path
+
+    return url, desired_caps, None, None
 
 
 def __local_run_ios(url, desired_caps, use_port, udid, log_file):
@@ -619,26 +617,20 @@ def __local_run_ios(url, desired_caps, use_port, udid, log_file):
                 os.getenv("PYTEST_XDIST_WORKER").split("w")[1]
             )
         logger.log(f"running: appium -p {str(port)}")
-        root_dir = (
-            os.path.dirname(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            )
-            + "/"
-        )
-        Path(root_dir + "appium_logs").mkdir(parents=True, exist_ok=True)
+        log_dir = os.path.join("./logs", "appium_logs")
+        Path(log_dir).mkdir(parents=True, exist_ok=True)
         file_path: str
         if log_file == "appium-stdout.log":
-            file = f"appium_logs/testui-{udid}-" + log_file
+            file_path = os.path.join(log_dir, f"testui-{udid}-{time.time()}-" + log_file)
         else:
-            file = f"appium_logs/{log_file}"
-        with open(root_dir + file, "wb") as out:
+            file_path = os.path.join(log_dir, log_file)
+        with open(file_path, "wb") as out:
             process = subprocess.Popen(
                 ["appium", "-p", str(port)],
                 stdout=out,
                 stderr=subprocess.STDOUT,
             )
             atexit.register(process.kill)
-        file_path = root_dir + file
         if udid is None:
             desired_caps = __set_ios_device(desired_caps, device)
         while True:
@@ -649,11 +641,14 @@ def __local_run_ios(url, desired_caps, use_port, udid, log_file):
                 out.close()
                 break
             out.close()
-        return (
-            f"http://localhost:{str(port)}/wd/hub",
-            desired_caps,
-            file_path,
-        )
+        # Check Appium Version
+        url = f"http://localhost:{str(port)}/wd/hub"
+        result = subprocess.run(["appium", "-v"], stdout=subprocess.PIPE).stdout
+        if result.decode('utf-8').startswith("2."):
+            # for Appium version > 2.0.0
+            url = f"http://localhost:{str(port)}"
+        return url, desired_caps, file_path
+
     return url, desired_caps, process
 
 
