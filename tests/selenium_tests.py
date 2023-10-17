@@ -17,7 +17,7 @@ class TestStringMethods:
             .set_logger()
             .set_browser("chrome")
             .set_soft_assert(True)
-            .set_selenium_driver()
+            .set_selenium_driver(options=options)
         )
         yield driver
         driver.quit()
