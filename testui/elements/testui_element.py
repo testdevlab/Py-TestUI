@@ -182,6 +182,18 @@ class Elements:
         Find multiple elements by locator
         :return: elements
         """
+        if self.locator_type == "id":
+            return self.driver.find_elements(by=By.ID, value=self.locator)
+
+        if self.locator_type == "css":
+            return self.driver.find_elements(
+                by=By.CSS_SELECTOR, value=self.locator
+            )
+
+        if self.locator_type == "className":
+            return self.driver.find_elements(
+                by=By.CLASS_NAME, value=self.locator
+            )
         if self.locator_type == "name":
             return self.driver.find_elements(By.NAME, self.locator)
 
