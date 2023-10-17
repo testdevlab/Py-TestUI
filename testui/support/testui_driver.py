@@ -100,7 +100,7 @@ class TestUIDriver:
         :param params:
         :return: TestUIDriver
         """
-        self.get_driver().execute(driver_command, params)
+        self.get_driver.execute(driver_command, params)
         return self
 
     def remove_log_file(self, when_no_errors=True):
@@ -126,14 +126,14 @@ class TestUIDriver:
         meant for Appium Drivers only.
         :return: TouchAction
         """
-        return TouchAction(self.get_driver())
+        return TouchAction(self.get_driver)
 
     def actions(self) -> ActionChains:
         """
         Will return an ActionChains object for the current driver.
         :return: ActionChains
         """
-        return ActionChains(self.get_driver())
+        return ActionChains(self.get_driver)
 
     def open_notifications(self):
         """
@@ -141,7 +141,7 @@ class TestUIDriver:
         for Appium Drivers only
         :return: TestUIDriver
         """
-        self.get_driver().open_notifications()
+        self.get_driver.open_notifications()
         return self
 
     def back(self):
@@ -149,7 +149,7 @@ class TestUIDriver:
         Will perform a back action on the device in browser history.
         :return: TestUIDriver
         """
-        self.get_driver().back()
+        self.get_driver.back()
         return self
 
     def quit(self, stop_server=True):
@@ -158,7 +158,7 @@ class TestUIDriver:
         :param stop_server:
         :return:
         """
-        self.get_driver().quit()
+        self.get_driver.quit()
         if self.__process is not None and stop_server:
             self.__process.kill()
 
@@ -168,7 +168,7 @@ class TestUIDriver:
         :param url:
         :return: TestUIDriver
         """
-        self.get_driver().get(url)
+        self.get_driver.get(url)
         logger.log(f"{self.device_name}: Navigating to: {url}")
         return self
 
@@ -179,7 +179,7 @@ class TestUIDriver:
         :param args:
         :return: dict of the result of executed script
         """
-        return self.get_driver().execute_script(driver_command, args)
+        return self.get_driver.execute_script(driver_command, args)
 
     @property
     def switch_to(self):
@@ -188,7 +188,7 @@ class TestUIDriver:
         This method is meant for Appium Drivers only.
         :return:
         """
-        return self.get_driver().switch_to
+        return self.get_driver.switch_to
 
     def set_network_connection(self, number):
         """
@@ -197,7 +197,7 @@ class TestUIDriver:
         :param number:
         :return: TestUIDriver
         """
-        self.get_driver().set_network_connection(number)
+        self.get_driver.set_network_connection(number)
         return self
 
     @property
@@ -207,7 +207,7 @@ class TestUIDriver:
         Appium Drivers only.
         :return:
         """
-        return self.get_driver().network_connection
+        return self.get_driver.network_connection
 
     def find_image_match(
         self,
@@ -331,7 +331,7 @@ class TestUIDriver:
 
         final_path = path.join(log_dir, image_name)
 
-        self.get_driver().save_screenshot(final_path)
+        self.get_driver.save_screenshot(final_path)
 
         logger.log_debug(
             self.new_error_message(f'Screenshot saved in "{final_path}"')
@@ -396,7 +396,7 @@ class TestUIDriver:
         Will return the current clipboard text.
         :return: The current clipboard text.
         """
-        return self.get_driver().get_clipboard_text()
+        return self.get_driver.get_clipboard_text()
 
     def set_power_capacity(self, capacity: int):
         """
@@ -405,7 +405,7 @@ class TestUIDriver:
         :return: TestUIDriver
         """
         try:
-            self.get_driver().set_power_capacity(capacity)
+            self.get_driver.set_power_capacity(capacity)
         except WebDriverException as wd_exception:
             exception = self.new_error_message(
                 "powerCapacity method is only available for emulators"
@@ -420,7 +420,7 @@ class TestUIDriver:
         :param seconds: The seconds to background the app.
         :return: TestUIDriver
         """
-        self.get_driver().background_app(seconds)
+        self.get_driver.background_app(seconds)
         return self
 
     def remove_app(self, app_id):
@@ -429,7 +429,7 @@ class TestUIDriver:
         :param app_id: The app id to remove.
         :return: TestUIDriver
         """
-        self.get_driver().remove_app(app_id)
+        self.get_driver.remove_app(app_id)
         return self
 
     def install_app(self, app_id):
@@ -438,7 +438,7 @@ class TestUIDriver:
         :param app_id: The app id to install.
         :return: TestUIDriver
         """
-        self.get_driver().install_app(app_id)
+        self.get_driver.install_app(app_id)
         return self
 
     def start_recording_screen(self):
@@ -446,7 +446,7 @@ class TestUIDriver:
         Start recording the screen on current device.
         :return: TestUIDriver
         """
-        self.get_driver().start_recording_screen()
+        self.get_driver.start_recording_screen()
         return self
 
     def stop_recording_screen(self, file_name="testui-video.mp4"):
@@ -455,7 +455,7 @@ class TestUIDriver:
         :param file_name:
         :return: TestUIDriver
         """
-        file = self.get_driver().stop_recording_screen()
+        file = self.get_driver.stop_recording_screen()
         decoded_string = base64.b64decode(file)
         log_dir = self.configuration.screenshot_path
         logger.log(f"Recording stopped in {os.path.join(log_dir, file_name)}")
@@ -533,5 +533,5 @@ class TestUIDriver:
         This method is meant for Appium Drivers Only.
         :return: TestUIDriver
         """
-        self.get_driver().hide_keyboard()
+        self.get_driver.hide_keyboard()
         return self

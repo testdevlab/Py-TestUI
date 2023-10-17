@@ -72,7 +72,7 @@ class Elements:
         self.__soft_assert = driver.soft_assert
         self.testui_driver = driver
         self.device_name = driver.device_name
-        self.driver = driver.get_driver()
+        self.driver = driver.get_driver
         self.locator = locator
         self.locator_type = locator_type
         self.__is_collection = False

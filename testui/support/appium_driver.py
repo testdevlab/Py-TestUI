@@ -489,8 +489,11 @@ def start_selenium_driver(
                 driver = webdriver.Remote(command_executor=url, options=options)
             else:
                 if browser.lower() == "chrome":
+                    if options is None:
+                        options = ChromeOptions()
                     for key, value in desired_caps.items():
                         options.set_capability(key, value)
+                    logger.log(f"final options: {str(options.to_capabilities())}")
                     driver = webdriver.Chrome(options=options)
                 elif browser.lower() == "firefox":
                     try:
