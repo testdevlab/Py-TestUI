@@ -30,7 +30,11 @@ class TestStringMethods:
         )
         selenium_driver.start_recording_screen()
         time.sleep(1)
-        selenium_driver.stop_recording_and_compare("./resources/comp.png", fps_reduction=30, keep_image_as="./logs/v-image.png")
+        selenium_driver.stop_recording_and_compare(
+            "./resources/comp.png",
+            fps_reduction=30,
+            keep_image_as="./logs/v-image.png",
+        )
         selenium_driver.find_image_match(
             "./resources/comp.png", 0.9, True, image_match="./logs/image.png"
         )

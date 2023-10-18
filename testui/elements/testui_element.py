@@ -16,6 +16,11 @@ from testui.support.testui_images import Dimensions, ImageRecognition
 
 
 def testui_error(driver, exception: str) -> None:
+    """
+    Show error for provided expectation
+    :param driver: driver
+    :param exception: exception
+    """
     config = driver.configuration
     exception += "\n"
 
@@ -49,12 +54,16 @@ class Error(Exception):
 
 # pylint: disable=super-init-not-called
 class ElementException(Error):
+    """Element exception class for TestUI"""
+
     def __init__(self, message, expression=""):
         self.message = message
         self.expression = expression
 
 
 class Elements:
+    """Elements class for TestUI"""
+
     def __init__(self, driver, locator_type: str, locator: str):
         self.logger = driver.logger_name
         # TODO: Investigate if should be used in functionality or should be
@@ -63,7 +72,7 @@ class Elements:
         self.__soft_assert = driver.soft_assert
         self.testui_driver = driver
         self.device_name = driver.device_name
-        self.driver = driver.get_driver()
+        self.driver = driver.get_driver
         self.locator = locator
         self.locator_type = locator_type
         self.__is_collection = False
@@ -75,6 +84,10 @@ class Elements:
         self.__is_not = False
 
     def __put_log(self, message):
+        """
+        Put log for provided expectation
+        :param message: message
+        """
         if self.logger is not None:
             if self.logger == "behave":
                 logger.log(f"{message} \n")
@@ -82,15 +95,30 @@ class Elements:
                 logger.log(message)
 
     def __show_error(self, exception):
+        """
+        Show error for provided expectation
+        :param exception: exception
+        """
         testui_error(self.testui_driver, exception)
 
     def get(self, index):
+        """
+        Get element by index
+        :param index: element index
+        :return: element
+        """
         self.__is_collection = True
         self.index = index
 
         return self
 
     def get_element(self, index=0) -> WebElement:
+        """
+        Get element, by default it will get the first element if no index is
+        provided.
+        :param index: element index
+        :return: element
+        """
         if self.__is_collection:
             return self.__find_by_collection()[self.index]
         if index != 0:
@@ -99,6 +127,10 @@ class Elements:
         return self.__find_by_element()
 
     def __find_by_element(self) -> WebElement:
+        """
+        Find element by locator
+        :return: element
+        """
         if self.locator_type == "id":
             return self.driver.find_element(by=By.ID, value=self.locator)
 
@@ -119,27 +151,37 @@ class Elements:
             return self.driver.find_element(By.XPATH, self.locator)
 
         if self.locator_type == "android_id_match":
-            return self.driver.find_element(AppiumBy.ANDROID_UIAUTOMATOR,
-                                            f"resourceIdMatches(\"{self.locator}\")"
-                                            )
+            return self.driver.find_element(
+                AppiumBy.ANDROID_UIAUTOMATOR,
+                f'resourceIdMatches("{self.locator}")',
+            )
         if self.locator_type == "accessibility":
             return self.driver.find_element(
-                AppiumBy.ACCESSIBILITY_ID, self.locator)
+                AppiumBy.ACCESSIBILITY_ID, self.locator
+            )
 
         if self.locator_type == "uiautomator":
             return self.driver.find_element(
-                AppiumBy.ANDROID_UIAUTOMATOR, self.locator)
+                AppiumBy.ANDROID_UIAUTOMATOR, self.locator
+            )
 
         if self.locator_type == "classChain":
             return self.driver.find_element(
-                AppiumBy.IOS_CLASS_CHAIN, self.locator)
+                AppiumBy.IOS_CLASS_CHAIN, self.locator
+            )
 
         if self.locator_type == "predicate":
-            return self.driver.find_element(AppiumBy.IOS_PREDICATE, self.locator)
+            return self.driver.find_element(
+                AppiumBy.IOS_PREDICATE, self.locator
+            )
 
         raise ElementException(f"locator not supported: {self.locator_type}")
 
     def __find_by_collection(self) -> List[WebElement]:
+        """
+        Find multiple elements by locator
+        :return: elements
+        """
         if self.locator_type == "id":
             return self.driver.find_elements(by=By.ID, value=self.locator)
 
@@ -152,7 +194,6 @@ class Elements:
             return self.driver.find_elements(
                 by=By.CLASS_NAME, value=self.locator
             )
-
         if self.locator_type == "name":
             return self.driver.find_elements(By.NAME, self.locator)
 
@@ -160,27 +201,38 @@ class Elements:
             return self.driver.find_elements(By.XPATH, self.locator)
 
         if self.locator_type == "android_id_match":
-            return self.driver.find_elements(AppiumBy.ANDROID_UIAUTOMATOR,
-                                             f'resourceIdMatches("{self.locator}")'
-                                             )
+            return self.driver.find_elements(
+                AppiumBy.ANDROID_UIAUTOMATOR,
+                f'resourceIdMatches("{self.locator}")',
+            )
 
         if self.locator_type == "accessibility":
-            return self.driver.find_elements(AppiumBy.ACCESSIBILITY_ID, self.locator)
+            return self.driver.find_elements(
+                AppiumBy.ACCESSIBILITY_ID, self.locator
+            )
 
         if self.locator_type == "uiautomator":
             return self.driver.find_elements(
-                AppiumBy.ANDROID_UIAUTOMATOR,
-                self.locator
+                AppiumBy.ANDROID_UIAUTOMATOR, self.locator
             )
         if self.locator_type == "classChain":
-            return self.driver.find_elements(AppiumBy.IOS_CLASS_CHAIN, self.locator)
+            return self.driver.find_elements(
+                AppiumBy.IOS_CLASS_CHAIN, self.locator
+            )
 
         if self.locator_type == "predicate":
-            return self.driver.find_elements(AppiumBy.IOS_PREDICATE, self.locator)
+            return self.driver.find_elements(
+                AppiumBy.IOS_PREDICATE, self.locator
+            )
 
         raise ElementException(f"locator not supported: {self.locator_type}")
 
     def is_visible(self, log=True, **kwargs) -> bool:
+        """
+        Check if element is visible
+        :param log: Boolean
+        :return: Boolean
+        """
         is_not = False
 
         # Allows passing "is_not" as a kwarg to not overwrite self.__is_not.
@@ -215,10 +267,15 @@ class Elements:
 
         if is_not:
             return not is_visible
-        else:
-            return is_visible
 
-    def is_visible_in(self, seconds):
+        return is_visible
+
+    def is_visible_in(self, seconds) -> bool:
+        """
+        Check if element is visible in a certain amount of time
+        :param seconds: seconds
+        :return: Boolean
+        """
         start = time.time()
         is_not = self.__is_not
         while time.time() < start + seconds:
@@ -228,6 +285,10 @@ class Elements:
         return False
 
     def visible_for(self, seconds=1):
+        """
+        Check if element is visible for a certain amount of time
+        :param seconds: seconds
+        """
         start = time.time()
         is_not = self.__is_not
         err_text = "not"
@@ -254,7 +315,12 @@ class Elements:
             )
         return self
 
-    def wait_until_visible(self, seconds=10.0, log=True) -> "Elements":
+    def wait_until_visible(self, seconds=10.0, log=True):
+        """
+        Wait until element is visible
+        :param seconds: seconds
+        :param log: Boolean
+        """
         start = time.time()
 
         is_not = self.__is_not
@@ -287,6 +353,12 @@ class Elements:
         return self
 
     def wait_until_attribute(self, attr, text, seconds=10):
+        """
+        Wait until element has the correct attribute
+        :param attr: attribute
+        :param text: text
+        :param seconds: seconds
+        """
         start = time.time()
         err = None
         value = ""
@@ -318,6 +390,12 @@ class Elements:
         )
 
     def wait_until_contains_attribute(self, attr, text, seconds=10):
+        """
+        Wait until element has the correct attribute
+        :param attr: attribute
+        :param text: text
+        :param seconds: seconds
+        """
         start = time.time()
         err = None
         value = ""
@@ -327,7 +405,7 @@ class Elements:
         while time.time() < start + seconds:
             try:
                 value = self.get_element().get_attribute(attr)
-                if value.__contains__(text) != self.__is_not:
+                if text in value != self.__is_not:
                     self.__put_log(
                         f'element "{self.locator_type}: {self.locator}" has '
                         f'attribute "{attr}" {info_text} "{text}" after '
@@ -351,6 +429,13 @@ class Elements:
     def wait_until_contains_sensitive_attribute(
         self, attr, text, seconds=10.0, log=True
     ):
+        """
+        Wait until element has the correct attribute
+        :param attr: attribute
+        :param text: text
+        :param seconds: seconds
+        :param log: Boolean
+        """
         start = time.time()
         err = None
         value = ""
@@ -360,7 +445,7 @@ class Elements:
         while time.time() < start + seconds:
             try:
                 value = self.get_element().get_attribute(attr)
-                if value.lower().__contains__(text.lower()) != self.__is_not:
+                if text.lower() in value.lower() != self.__is_not:
                     self.__put_log(
                         f'{self.device_name}: element "{self.locator_type}: '
                         f'{self.locator}" has attribute "{attr}" -> "{value}" '
@@ -386,10 +471,15 @@ class Elements:
         raise ElementException(err)
 
     def no(self, is_not=True):
+        """
+        Set element to not
+        :param is_not: Boolean
+        """
         self.__is_not = is_not
         return self
 
     def click(self):
+        """Click on element"""
         timeout = 5  # [seconds]
         start = time.time()
 
@@ -413,6 +503,10 @@ class Elements:
         )
 
     def press_hold_for(self, milliseconds=1000):
+        """
+        Press and hold element for a certain amount of time
+        :param milliseconds: milliseconds
+        """
         timeout = 5  # [seconds]
         start = time.time()
 
@@ -422,7 +516,7 @@ class Elements:
                 self.get_element()
                 try:
                     is_browser: str = self.testui_driver.context
-                    if is_browser.__contains__("NATIVE"):
+                    if "NATIVE" in is_browser:
                         browser = False
                     else:
                         browser = True
@@ -454,6 +548,11 @@ class Elements:
         )
 
     def click_by_coordinates(self, x, y):
+        """
+        Click on element by coordinates
+        :param x: x
+        :param y: y
+        """
         timeout = 5  # [seconds]
         start = time.time()
 
@@ -502,13 +601,16 @@ class Elements:
         try:
             self.get_element().screenshot(image_name)
         except Exception:
-            path_img = self.testui_driver.save_screenshot(f"{self.device_name}-crop_image.png")
+            path_img = self.testui_driver.save_screenshot(
+                f"{self.device_name}-crop_image.png"
+            )
             dimensions = self.dimensions
             top_left = self.location
-            logger.log_debug(f'crop dimensions (x,y,w,h):({top_left.x},{top_left.y},{dimensions.x},{dimensions.y})')
-            ImageRecognition(
-                path_img
-            ).crop_original_image(
+            logger.log_debug(
+                "crop dimensions (x,y,w,h):"
+                f"({top_left.x},{top_left.y},{dimensions.x},{dimensions.y})"
+            )
+            ImageRecognition(path_img).crop_original_image(
                 (top_left.x + dimensions.x // 2),
                 (top_left.y + dimensions.y // 2),
                 dimensions.x,
@@ -665,6 +767,12 @@ class Elements:
         )
 
     def slide_percentage(self, percentage, start_x=None):
+        """
+        Slides the element by a percentage of its width.
+        :param percentage: The percentage of the element's width to slide.
+        :param start_x: The starting x-coordinate of the slide.
+        """
+
         width = self.dimensions.x * percentage / 100
         end_width = width + self.location.x
         if start_x is None:
@@ -720,6 +828,11 @@ class Elements:
         return e(self.testui_driver, "uiautomator", f'textContains("{text}")')
 
     def send_keys(self, value, log=True):
+        """
+        Send keys to element
+        :param value: value
+        :param log: Boolean
+        """
         timeout = 10  # [seconds]
         start = time.time()
         if value is None:
@@ -744,12 +857,23 @@ class Elements:
             f"after {time.time() - start}s {logger.bcolors.ENDC}"
         )
 
-    def clear(self) -> "Elements":
+    def clear(self) -> Elements:
+        """
+        Clear the text of the element identified by the specified locator.
+        """
         self.get_element().clear()
 
         return self
 
     def get_text(self):
+        """
+        Retrieves the text of the element identified by the specified locator.
+        If the element is found within the timeout period (default 10 seconds),
+        its text is returned. If the element cannot be found within the timeout
+        period, an error message is printed and None is returned.
+        :return: The text of the element identified by the specified locator, or
+             None if the element cannot be found within the timeout period.
+        """
         timeout = 10  # [seconds]
         start = time.time()
 
@@ -772,6 +896,11 @@ class Elements:
         )
 
     def get_value(self):
+        """
+        Get the 'value' attribute of an element.
+        :return: The 'value' attribute of the element.
+        :raises: Expection if the element is not found within the timeout.
+        """
         timeout = 10  # [seconds]
         start = time.time()
 
@@ -794,6 +923,11 @@ class Elements:
         )
 
     def get_name(self):
+        """
+        Get the 'name' attribute of an element.
+        :return: The 'name' attribute of the element.
+        :raises: Expection if the element is not found within the timeout.
+        """
         timeout = 10  # [seconds]
         start = time.time()
 
@@ -817,6 +951,12 @@ class Elements:
         )
 
     def get_attribute(self, att):
+        """
+        Get the attribute value of an element.
+
+        :return: The attribute value of the element.
+        :raises: Expection if the element is not found within the timeout.
+        """
         timeout = 10  # [seconds]
         start = time.time()
 
@@ -847,6 +987,14 @@ class Elements:
         fps_reduction=1,
         keep_image_as="",
     ):
+        """
+        Press and compare image
+        :param image: image
+        :param milliseconds: milliseconds
+        :param threshold: threshold
+        :param fps_reduction: fps_reduction
+        :param keep_image_as: keep_image_as
+        """
         self.testui_driver.start_recording_screen()
         self.press_hold_for(milliseconds)
 
@@ -876,6 +1024,10 @@ class Elements:
         return self
 
     def collection_size(self):
+        """
+        Returns the size of the collection
+        :return: The size of the collection
+        """
         self.__is_collection = False
         index = self.index
         self.index = 0
@@ -887,6 +1039,13 @@ class Elements:
     def find_by_attribute(
         self, attribute, value: str, timeout=10, case_sensitive=True
     ):
+        """
+        Find element by attribute
+        :param attribute: attribute
+        :param value: value
+        :param timeout: timeout
+        :param case_sensitive: case_sensitive
+        """
         start = time.time()
         self.wait_until_visible()
         self.__is_collection = True
@@ -946,6 +1105,13 @@ def e(driver, locator_type: str, locator: str) -> Elements:
 
 
 def scroll_by_text(driver, text, element=None, exact_text=False) -> Elements:
+    """
+    Scroll by text
+    :param driver: driver
+    :param text: text
+    :param element: element
+    :param exact_text: exact_text
+    """
     if exact_text:
         method_text = "text"
     else:
@@ -964,6 +1130,11 @@ def scroll_by_text(driver, text, element=None, exact_text=False) -> Elements:
 
 
 def scroll_by_resource_id(driver, res_id) -> Elements:
+    """
+    Scroll by resource id
+    :param driver: driver
+    :param res_id: res_id
+    """
     locator = (
         "new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView"
         f'(new UiSelector().resourceId("{res_id}"));'
@@ -975,6 +1146,11 @@ def scroll_by_resource_id(driver, res_id) -> Elements:
 class AndroidLocator:
     @classmethod
     def scroll(cls, method: str, scrollable_element=None):
+        """
+        Generate locator to scroll element into view
+        :param method: method
+        :param scrollable_element: scrollable_element
+        """
         if scrollable_element is None:
             scrollable_element = "scrollable(true)"
 
@@ -984,25 +1160,51 @@ class AndroidLocator:
         )
 
     @classmethod
-    def text(cls, text: str):
+    def text(cls, text: str) -> str:
+        """
+        Generate locator to find element by text
+        :param text: text
+        """
         return f'text("{text}")'
 
     @classmethod
-    def text_contains(cls, text: str):
+    def text_contains(cls, text: str) -> str:
+        """
+        Generate locator to find element that contains the provided text
+        :param text: text
+        """
         return f'textContains("{text}")'
 
     @classmethod
-    def id_match(cls, text: str):
+    def id_match(cls, text: str) -> str:
+        """
+        Generate locator to find element by id
+        :param text: id
+        """
         return f'resourceIdMatches("{text}")'
 
     @classmethod
-    def class_name(cls, text: str):
+    def class_name(cls, text: str) -> str:
+        """
+        Generate locator to find element by class name
+        :param text: class name
+        """
         return f'className("{text}")'
 
     @classmethod
-    def parent(cls, parent_method, child_method):
+    def parent(cls, parent_method, child_method) -> str:
+        """
+        Generate locator to find element by parent and child
+        :param parent_method: parent_method
+        :param child_method: child_method
+        """
         return f"fromParent({parent_method}).{child_method}"
 
     @classmethod
-    def child(cls, parent_method, child_method):
+    def child(cls, parent_method, child_method) -> str:
+        """
+        Generate locator to find cield element by child and parent methods
+        :param parent_method: parent_method
+        :param child_method: child_method
+        """
         return f"childSelector({child_method}).{parent_method}"

@@ -12,7 +12,8 @@ class TestStringMethods:
             NewDriver()
             .set_bundle_id("com.apple.Preferences")
             .set_platform("ios")
-            .set_udid("CC69C1D7-352E-4856-BFD0-B3E908747170")  # Change UDID for iOS device
+            # Change UDID for iOS device
+            .set_udid("CC69C1D7-352E-4856-BFD0-B3E908747170")
             .set_logger()
             .set_appium_driver()
         )

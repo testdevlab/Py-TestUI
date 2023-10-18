@@ -22,6 +22,7 @@ class TestUIDriver:
     This class is the main class for the TestUI framework. It is used to
     initialize the driver and to perform actions on the device.
     """
+
     __test__ = False
 
     def __init__(self, driver):
@@ -93,19 +94,21 @@ class TestUIDriver:
 
     def execute(self, driver_command, params=None):
         """
-        This method is meant for Appium Drivers Only
+        This method is meant for Appium Drivers only. Will execute a command
+        in the current driver.
         :param driver_command:
         :param params:
-        :return:
+        :return: TestUIDriver
         """
-        self.get_driver().execute(driver_command, params)
+        self.get_driver.execute(driver_command, params)
+        return self
 
     def remove_log_file(self, when_no_errors=True):
         """
         Removes appium log file. If when_no_errors is False, it will always
         remove errors, if True then just when there are errors.
         :param when_no_errors:
-        :return:
+        :return: TestUIDriver
         """
         if self.file_name is not None:
             try:
@@ -115,35 +118,38 @@ class TestUIDriver:
                     os.remove(self.file_name)
             except FileNotFoundError:
                 logger.log_debug("Log file already removed")
+        return self
 
-    def touch_actions(self):
+    def touch_actions(self) -> TouchAction:
         """
         Will return a TouchAction object for the current driver. This is
         meant for Appium Drivers only.
-        :return:
+        :return: TouchAction
         """
-        return TouchAction(self.get_driver())
+        return TouchAction(self.get_driver)
 
-    def actions(self):
+    def actions(self) -> ActionChains:
         """
         Will return an ActionChains object for the current driver.
+        :return: ActionChains
         """
-        return ActionChains(self.get_driver())
+        return ActionChains(self.get_driver)
 
     def open_notifications(self):
         """
-        Will open the notifications panel on the device. This method is meant 
+        Will open the notifications panel on the device. This method is meant
         for Appium Drivers only
-        :return:
+        :return: TestUIDriver
         """
-        self.get_driver().open_notifications()
+        self.get_driver.open_notifications()
+        return self
 
     def back(self):
         """
         Will perform a back action on the device in browser history.
-        :return:
+        :return: TestUIDriver
         """
-        self.get_driver().back()
+        self.get_driver.back()
         return self
 
     def quit(self, stop_server=True):
@@ -152,27 +158,28 @@ class TestUIDriver:
         :param stop_server:
         :return:
         """
-        self.get_driver().quit()
+        self.get_driver.quit()
         if self.__process is not None and stop_server:
             self.__process.kill()
 
     def navigate_to(self, url):
         """
-        Will navigate to a specific url. 
+        Will navigate to a specific url.
         :param url:
-        :return:
+        :return: TestUIDriver
         """
-        self.get_driver().get(url)
+        self.get_driver.get(url)
         logger.log(f"{self.device_name}: Navigating to: {url}")
+        return self
 
-    def execute_script(self, driver_command, args: None):
+    def execute_script(self, driver_command, args: None) -> dict:
         """
         Will execute a JavaScript script in the current window/frame.
         :param driver_command:
         :param args:
-        :return:
+        :return: dict of the result of executed script
         """
-        self.get_driver().execute_script(driver_command, args)
+        return self.get_driver.execute_script(driver_command, args)
 
     @property
     def switch_to(self):
@@ -181,25 +188,26 @@ class TestUIDriver:
         This method is meant for Appium Drivers only.
         :return:
         """
-        return self.get_driver().switch_to
+        return self.get_driver.switch_to
 
     def set_network_connection(self, number):
         """
-        Will set the network connection type based on the network connection 
+        Will set the network connection type based on the network connection
         number. This method is meant for Appium Drivers Only
         :param number:
-        :return:
+        :return: TestUIDriver
         """
-        self.get_driver().set_network_connection(number)
+        self.get_driver.set_network_connection(number)
+        return self
 
     @property
-    def network_connection(self):
+    def network_connection(self) -> int:
         """
-        Get the current network connection type. This method is meant for 
+        Get the current network connection type. This method is meant for
         Appium Drivers only.
         :return:
         """
-        return self.get_driver().network_connection
+        return self.get_driver.network_connection
 
     def find_image_match(
         self,
@@ -208,7 +216,7 @@ class TestUIDriver:
         assertion=False,
         not_found=False,
         image_match="",
-    ):
+    ) -> bool:
         """
         Will find an image match based on the comparison type and threshold
         within the current screen.
@@ -228,7 +236,11 @@ class TestUIDriver:
             comparison
         )
         found, p = ImageRecognition(
-            image_path, comparison, threshold, self.device_name, self.configuration.screenshot_path
+            image_path,
+            comparison,
+            threshold,
+            self.device_name,
+            self.configuration.screenshot_path,
         ).compare(image_match)
         if assertion and not found and not not_found:
             exception = self.new_error_message(
@@ -243,26 +255,29 @@ class TestUIDriver:
 
     def click_by_image(self, image: str, threshold=0.9, webview=False):
         """
-        Will click on an element based on the image provided if it can be found 
+        Will click on an element based on the image provided if it can be found
         within the current screen.
         :param image:
         :param threshold:
         :param webview:
-        :return:
+        :return: TestUIDriver
         """
         now = datetime.now()
         current_time = now.strftime("%Y-%m-%d%H%M%S")
         image_name = f"{self.device_udid}{current_time}.png"
         im_path = self.save_screenshot(image_name)
-        x, y = get_point_match(
-            im_path, image, threshold, self.device_name
-        )
+        x, y = get_point_match(im_path, image, threshold, self.device_name)
         ta = TouchAction(self.__appium_driver)
         if webview:
             y = y + 120
         ta.tap(x=x, y=y).perform()
-        logger.log(f"{self.device_name}: element with image {image} clicked on point ({x},{y})")
+        logger.log(
+            f"{self.device_name}: element with image {image}"
+            "clicked on point ({x},{y})"
+        )
         self.__delete_screenshot(im_path)
+
+        return self
 
     def get_dimensions(self):
         """
@@ -282,22 +297,23 @@ class TestUIDriver:
 
     def click(self, x, y):
         """
-        Will execute a touch action on the current screen based on the x and y 
+        Will execute a touch action on the current screen based on the x and y
         coordinates.
         :param x:
         :param y:
-        :return:
+        :return: TestUIDriver
         """
         ta = TouchAction(self.__appium_driver)
         ta.tap(x=x, y=y).perform()
         logger.log(f'Clicked over "x={x}: y={y}"')
+        return self
 
-    def save_screenshot(self, image_name=""):
+    def save_screenshot(self, image_name="") -> str:
         """
         Will save a screenshot of the current screen. If no image_name is
         provided, it will generate a name based on the current time.
         :param image_name:
-        :return:
+        :return: str of the path where the screenshot was saved.
         """
         config = self.__configuration
 
@@ -315,7 +331,7 @@ class TestUIDriver:
 
         final_path = path.join(log_dir, image_name)
 
-        self.get_driver().save_screenshot(final_path)
+        self.get_driver.save_screenshot(final_path)
 
         logger.log_debug(
             self.new_error_message(f'Screenshot saved in "{final_path}"')
@@ -332,6 +348,7 @@ class TestUIDriver:
         """
         os.remove(image_name)
 
+    @property
     def get_driver(self) -> WebDriver:
         """
         Will return the current driver.
@@ -367,7 +384,7 @@ class TestUIDriver:
             composed_error = "\n"
             i = 1
             for error in self.errors:
-                composed_error += f"Error {i.__str__()}: {error}\n"
+                composed_error += f"Error {str(i)}: {error}\n"
                 i += 1
             self.errors = []
             raise Exception(composed_error)
@@ -379,66 +396,73 @@ class TestUIDriver:
         Will return the current clipboard text.
         :return: The current clipboard text.
         """
-        return self.get_driver().get_clipboard_text()
+        return self.get_driver.get_clipboard_text()
 
     def set_power_capacity(self, capacity: int):
         """
         Will set the power capacity of the current device.
         :param capacity: The power capacity to set.
-        :return:
+        :return: TestUIDriver
         """
         try:
-            self.get_driver().set_power_capacity(capacity)
+            self.get_driver.set_power_capacity(capacity)
         except WebDriverException as wd_exception:
             exception = self.new_error_message(
                 "powerCapacity method is only available for emulators"
             )
             logger.log_error(error_with_traceback(exception))
             raise Exception(exception) from wd_exception
+        return self
 
     def background_app(self, seconds):
         """
         Will background the current app for the provided seconds.
         :param seconds: The seconds to background the app.
-        :return:
+        :return: TestUIDriver
         """
-        self.get_driver().background_app(seconds)
+        self.get_driver.background_app(seconds)
+        return self
 
     def remove_app(self, app_id):
         """
         Will remove the provided app from the current device.
         :param app_id: The app id to remove.
-        :return:
+        :return: TestUIDriver
         """
-        self.get_driver().remove_app(app_id)
+        self.get_driver.remove_app(app_id)
+        return self
 
     def install_app(self, app_id):
         """
         Will install the provided app in the current device.
         :param app_id: The app id to install.
-        :return:
+        :return: TestUIDriver
         """
-        self.get_driver().install_app(app_id)
+        self.get_driver.install_app(app_id)
+        return self
 
     def start_recording_screen(self):
         """
         Start recording the screen on current device.
-        :return:
+        :return: TestUIDriver
         """
-        self.get_driver().start_recording_screen()
+        self.get_driver.start_recording_screen()
+        return self
 
     def stop_recording_screen(self, file_name="testui-video.mp4"):
         """
         Stop recording the screen and save the video in the root directory.
         :param file_name:
-        :return:
+        :return: TestUIDriver
         """
-        file = self.get_driver().stop_recording_screen()
+        file = self.get_driver.stop_recording_screen()
         decoded_string = base64.b64decode(file)
         log_dir = self.configuration.screenshot_path
         logger.log(f"Recording stopped in {os.path.join(log_dir, file_name)}")
         with open(os.path.join(log_dir, file_name), "wb") as wfile:
             wfile.write(decoded_string)
+
+        return self
 
     def stop_recording_and_compare(
         self,
@@ -465,7 +489,9 @@ class TestUIDriver:
         video_name = f"{self.device_udid}{current_time}.mp4"
         self.stop_recording_screen(os.path.join(log_dir, video_name))
         found = ImageRecognition(
-            video_name, comparison, threshold,
+            video_name,
+            comparison,
+            threshold,
             device_name=self.device_name,
             path=log_dir
         ).compare_video(keep_image_as, frame_rate_reduction=fps_reduction)
@@ -497,7 +523,7 @@ class TestUIDriver:
         """
         Create new error message with device name included
         :param message:
-        :return: The error message
+        :return: str containing the error message
         """
         return f"{self.device_name}: {message}"
 
@@ -505,6 +531,7 @@ class TestUIDriver:
         """
         Hide the keyboard if it is showing.
         This method is meant for Appium Drivers Only.
-        :return:
+        :return: TestUIDriver
         """
-        self.get_driver().hide_keyboard()
+        self.get_driver.hide_keyboard()
+        return self

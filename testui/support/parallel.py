@@ -143,10 +143,10 @@ def get_total_number_of_cases(args):
             check=False,
         )
         response = output.stdout
-        string_response = response.__str__()
-        if string_response.__contains__(" / "):
+        string_response = str(response)
+        if " / " in string_response:
             for cases in string_response.split(" / "):
-                if cases.__contains__(" selected"):
+                if " selected" in cases:
                     number = cases.split(" selected")[0]
                     number_of_cases += int(number)
     if args.single_thread_marker is not None:
@@ -161,10 +161,10 @@ def get_total_number_of_cases(args):
             check=False,
         )
         response = output.stdout
-        string_response = response.__str__()
-        if string_response.__contains__(" / "):
+        string_response = str(response)
+        if " / " in string_response:
             for cases in string_response.split(" / "):
-                if cases.__contains__(" selected"):
+                if " selected" in cases:
                     number = cases.split(" selected")[0]
                     number_of_cases += int(number)
     return number_of_cases
@@ -181,6 +181,7 @@ def __seconds_to_minutes(time_seconds):
     ms = f"0{minutes}" if minutes < 10 else f"{minutes}"
     s = f"0{seconds}" if seconds < 10 else f"{seconds}"
     return f"{ms}:{s} ({time_seconds}s)"
+
 
 def __arg_parser():
     """
@@ -363,19 +364,19 @@ def __start_run_id(args, test_run_name):
         time.sleep(0.1)
         out = open("testrail_id_file.txt")
         text = out.read()
-        if text.__contains__("New testrun created") or i > 50:
+        if "New testrun created" in text or i > 50:
             out.close()
             process.terminate()
             process.wait()
             os.remove("testrail_id_file.txt")
-            if text.__contains__("ID="):
+            if "ID=" in text:
                 id_test = text.split("ID=")[1]
-                if text.split("ID=")[1].__contains__("\n"):
+                if "\n" in text.split("ID=")[1]:
                     id_test = text.split("ID=")[1].split("\n")[0]
                 logger.log_info(f"Test run: {id_test}")
                 return id_test
             raise Exception("Failed to create Test Run")
-        if text.__contains__("Failed to create testrun"):
+        if "Failed to create testrun" in text:
             out.close()
             process.send_signal(signal=2)
             process.terminate()
