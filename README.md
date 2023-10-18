@@ -5,13 +5,13 @@
 Py-TestUI can be installed via `pip`
 
 ```bash
-pip3 install git+https://github.com/testdevlab/Py-TestUI@v1.0.6
+pip3 install git+https://github.com/testdevlab/Py-TestUI@v1.2.0
 ```
 
 Or if you prefer `requirements.txt`, you can add the following dependency
 
 ```
-git+https://github.com/testdevlab/Py-TestUI@v1.0.6
+git+https://github.com/testdevlab/Py-TestUI@v1.2.0
 ```
 
 # Appium driver
@@ -19,6 +19,9 @@ git+https://github.com/testdevlab/Py-TestUI@v1.0.6
 You can create `TestUIDriver` for Appium automation like so:
 
 ```py
+from testui.support.appium_driver import NewDriver
+from testui.support.testui_driver import TestUIDriver
+
 driver: TestUIDriver = (
     NewDriver()
     .set_app_path("app.apk")
@@ -52,6 +55,9 @@ Py-TestUI supports the following browser drivers:
 You can create `TestUIDriver` for Selenium Desktop automation like so
 
 ```python
+from testui.support.appium_driver import NewDriver
+from testui.support.testui_driver import TestUIDriver
+
 driver: TestUIDriver = (
     NewDriver()
     .set_logger("pytest")
@@ -77,6 +83,9 @@ Configuration parameters can be set while creating a new `TestUIDriver` object
 like this
 
 ```py
+from testui.support.appium_driver import NewDriver
+from testui.support.testui_driver import TestUIDriver
+
 driver: TestUIDriver = (
     NewDriver()
     .set_screenshot_path("path/to/default/screenshot/location")
@@ -107,6 +116,8 @@ as usability since any changes to elements in the application would only have to
 be edited in one place. This is an example:
 
 ```py
+    from testui.elements.testui_collection import ee
+    from testui.elements.testui_element import e
     class LoggedInScreen:
         #  Page Element Definitions
         def __init__(self, driver: TestUIDriver):
@@ -213,11 +224,14 @@ checking their visibility in parallel to improve performance or to check page
 load time:
 
 ```py
-    collection = ee(e(driver, 'id', 'some_id'), e(driver, 'id', 'some_id_2'))
-    collection.find_visible(seconds) # Returns the first found visible element
-    collection.wait_until_all_visible(seconds)
-    collection.wait_until_attribute([attr_1, attr_2],[value_1, value_2])
-    collection.get(0) # Returns first element
+from testui.elements.testui_collection import ee
+from testui.elements.testui_element import e
+
+collection = ee(e(driver, 'id', 'some_id'), e(driver, 'id', 'some_id_2'))
+collection.find_visible(seconds) # Returns the first found visible element
+collection.wait_until_all_visible(seconds)
+collection.wait_until_attribute([attr_1, attr_2],[value_1, value_2])
+collection.get(0) # Returns first element
 ```
 
 ### Image Recognition:
