@@ -5,13 +5,13 @@
 Py-TestUI can be installed via `pip`
 
 ```bash
-pip3 install git+https://github.com/testdevlab/Py-TestUI@v1.1.2
+pip3 install git+https://github.com/testdevlab/Py-TestUI@v1.2.0
 ```
 
 Or if you prefer `requirements.txt`, you can add the following dependency
 
 ```
-git+https://github.com/testdevlab/Py-TestUI@v1.1.2
+git+https://github.com/testdevlab/Py-TestUI@v1.2.0
 ```
 
 # Appium driver
