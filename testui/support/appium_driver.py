@@ -1,5 +1,4 @@
 import atexit
-import datetime
 import os
 import subprocess
 import threading
@@ -16,6 +15,9 @@ from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium import webdriver
 from webdriver_manager import chrome
+from appium.options.android import UiAutomator2Options
+from appium.options.ios import XCUITestOptions
+
 
 from testui.support import logger
 from testui.support.api_support import get_chrome_version
@@ -419,14 +421,17 @@ def start_driver(desired_caps, url, debug, port, udid, log_file):
     logger.log("starting appium driver...")
 
     process = None
+    options = None
     if "android" in desired_caps["platformName"].lower():
         url, desired_caps, process, file = __local_run(
             url, desired_caps, port, udid, log_file
         )
+        options = UiAutomator2Options().load_capabilities(desired_caps)
     else:
         url, desired_caps, file = __local_run_ios(
             url, desired_caps, port, udid, log_file
         )
+        options = XCUITestOptions().load_capabilities(desired_caps)
     err = None
     for _ in range(2):
         try:
@@ -435,7 +440,7 @@ def start_driver(desired_caps, url, debug, port, udid, log_file):
             with warnings.catch_warnings():
                 # To suppress a warning from an issue on selenium side
                 warnings.filterwarnings("ignore", category=DeprecationWarning)
-                driver = Remote(url, desired_caps)
+                driver = Remote(url, options=options)
             atexit.register(__quit_driver, driver, debug)
             logger.log(f"appium running on {url}. \n")
             lock.release()

@@ -27,11 +27,7 @@ jobs:
       - name: Analysing the code with pylint
         run: |
           pylint $(git ls-files '*.py')
-      - name: Remove Chrome
-        run: sudo apt purge google-chrome-stable
-      - name: Remove default Chromium
-        run: sudo apt purge chromium-browser
-      - name: Install a new Chromium
-        run: sudo apt install -y chromium-browser
+      - uses: browser-actions/setup-chrome@latest
+      - run: chrome --version
       - name: Integration browser test with Pytest
-        run: python -m pytest tests/selenium_tests.py
+        run: python -m pytest tests/selenium_tests.py -s
