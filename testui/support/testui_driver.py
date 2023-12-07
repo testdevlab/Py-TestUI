@@ -122,6 +122,8 @@ class TestUIDriver:
 
     def touch_actions(self) -> TouchAction:
         """
+        Deprecated function, soon to be removed, use actions instead.
+
         Will return a TouchAction object for the current driver. This is
         meant for Appium Drivers only.
         :return: TouchAction
