@@ -1,17 +1,19 @@
-# Py-TestUI Framework
+# Py-TestUI Framework [![PyPI - Version](https://img.shields.io/pypi/v/python-testui)](https://pypi.org/project/python-testui/)
 
 # Installation
 
-Py-TestUI can be installed via `pip`
+Installation is a simple by the helps of `pip`, Py-TestUI can be installed using 
+this `pip` command.
 
 ```bash
-pip3 install git+https://github.com/testdevlab/Py-TestUI@v1.2.0
+pip3 install python-testui==1.2.0
 ```
 
-Or if you prefer `requirements.txt`, you can add the following dependency
+Or if you prefer `requirements.txt`, you can add the following dependency to 
+the file.
 
-```
-git+https://github.com/testdevlab/Py-TestUI@v1.2.0
+```txt
+python-testui==1.2.0
 ```
 
 # Appium driver
