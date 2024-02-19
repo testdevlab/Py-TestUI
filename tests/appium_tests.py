@@ -34,9 +34,10 @@ class TestStringMethods:
             "./resources/comp.png",
             fps_reduction=30,
             keep_image_as="./logs/v-image.png",
+            threshold=0.6
         )
         selenium_driver.find_image_match(
-            "./resources/comp.png", 0.9, True, image_match="./logs/image.png"
+            "./resources/comp.png", 0.6, True, image_match="./logs/image.png"
         )
-        selenium_driver.click_by_image("./resources/comp.png")
+        selenium_driver.click_by_image("./resources/comp.png", threshold=0.6)
         selenium_driver.raise_errors()

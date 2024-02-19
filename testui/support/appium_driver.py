@@ -256,7 +256,7 @@ class NewDriver:
             mobile_version = check_chrome_version(self.udid)
         logger.log(f"Installing chromedriver version: {mobile_version}")
         chrome_driver = chrome.ChromeDriverManager(
-            version=mobile_version
+            driver_version=mobile_version
         ).install()
         logger.log(f"Driver installed in {chrome_driver}", True)
         self.__desired_capabilities["chromedriverExecutable"] = chrome_driver
