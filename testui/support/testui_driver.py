@@ -275,7 +275,7 @@ class TestUIDriver:
         ta.tap(x=x, y=y).perform()
         logger.log(
             f"{self.device_name}: element with image {image}"
-            "clicked on point ({x},{y})"
+            f"clicked on point ({x},{y})"
         )
         self.__delete_screenshot(im_path)
 

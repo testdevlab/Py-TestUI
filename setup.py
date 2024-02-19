@@ -38,7 +38,7 @@ setup(
     python_requires=">=3.6, <4",
     install_requires=[
         "pytest==7.4.3",
-        "Appium-Python-Client==3.1.0",
+        "Appium-Python-Client==3.1.1",
         "selenium==4.16.0",
         "opencv-python==4.8.1.78",
         "geckodriver-autoinstaller==0.1.0",
