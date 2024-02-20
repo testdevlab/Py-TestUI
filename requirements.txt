@@ -6,7 +6,7 @@ build
 # lib
 pytest==7.4.3
 Appium-Python-Client==3.1.1
-selenium==4.16.0
+selenium==4.17.2
 opencv-python==4.8.1.78
 geckodriver-autoinstaller==0.1.0
 pytest-xdist==2.5.0
