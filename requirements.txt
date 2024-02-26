@@ -4,7 +4,7 @@ black==24.2.0
 build
 
 # lib
-pytest<=8.0.1
+pytest<=8.0.2
 Appium-Python-Client~=3.1.1
 opencv-python~=4.8.1
 geckodriver-autoinstaller==0.1.0
