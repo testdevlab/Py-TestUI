@@ -39,7 +39,7 @@ setup(
     install_requires=[
         "pytest<=8.0.1",
         "Appium-Python-Client~=3.1.1",
-        "opencv-python~=4.8.1",
+        "opencv-python>=4.8.1,<4.10.0",
         "geckodriver-autoinstaller==0.1.0",
         "pytest-xdist~=2.5.0",
         "pytest-testrail~=2.9.0",
