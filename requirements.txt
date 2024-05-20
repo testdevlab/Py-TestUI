@@ -1,5 +1,5 @@
 # dev
-pylint==3.0.3
+pylint==3.2.2
 black==24.2.0
 build
 
