@@ -507,8 +507,6 @@ def start_selenium_driver(
                         logger.log_warn(
                             "Could not retrieve geckodriver: " + str(error)
                         )
-                    if "marionette" not in desired_caps:
-                        desired_caps["marionette"] = True
 
                     if options is None:
                         options = FirefoxOptions()
