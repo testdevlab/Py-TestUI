@@ -1,5 +1,6 @@
 import base64
 import os
+import warnings
 
 from datetime import datetime
 from os import path
@@ -9,7 +10,6 @@ from appium.webdriver.common.touch_action import TouchAction
 from appium.webdriver.webdriver import WebDriver
 from selenium.webdriver import ActionChains
 from selenium.common.exceptions import WebDriverException
-from warnings import deprecated
 
 from testui.elements.testui_element import e
 from testui.support import logger
@@ -17,6 +17,18 @@ from testui.support.helpers import error_with_traceback
 from testui.support.testui_images import get_point_match, ImageRecognition
 from testui.support.configuration import Configuration
 
+
+def deprecated(message):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            warnings.warn(
+                f"{func.__name__} is deprecated: {message}",
+                category=DeprecationWarning,
+                stacklevel=2
+            )
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
 
 class TestUIDriver:
     """
@@ -121,7 +133,7 @@ class TestUIDriver:
                 logger.log_debug("Log file already removed")
         return self
 
-    @deprecated("use actions() instead")
+    @deprecated("This method is deprecated and will be removed in a future version. Use actions() instead")
     def touch_actions(self) -> TouchAction:
         """
         Deprecated function, soon to be removed, use actions instead.
