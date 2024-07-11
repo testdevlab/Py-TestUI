@@ -9,6 +9,7 @@ from appium.webdriver.common.touch_action import TouchAction
 from appium.webdriver.webdriver import WebDriver
 from selenium.webdriver import ActionChains
 from selenium.common.exceptions import WebDriverException
+from warnings import deprecated
 
 from testui.elements.testui_element import e
 from testui.support import logger
@@ -120,6 +121,7 @@ class TestUIDriver:
                 logger.log_debug("Log file already removed")
         return self
 
+    @deprecated("use actions() instead")
     def touch_actions(self) -> TouchAction:
         """
         Deprecated function, soon to be removed, use actions instead.
