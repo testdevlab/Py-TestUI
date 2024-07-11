@@ -27,8 +27,11 @@ def deprecated(message):
                 stacklevel=2
             )
             return func(*args, **kwargs)
+
         return wrapper
+
     return decorator
+
 
 class TestUIDriver:
     """
@@ -226,12 +229,12 @@ class TestUIDriver:
         return self.driver.network_connection
 
     def find_image_match(
-        self,
-        comparison,
-        threshold=0.90,
-        assertion=False,
-        not_found=False,
-        image_match="",
+            self,
+            comparison,
+            threshold=0.90,
+            assertion=False,
+            not_found=False,
+            image_match="",
     ) -> bool:
         """
         Will find an image match based on the comparison type and threshold
@@ -490,13 +493,13 @@ class TestUIDriver:
         return self
 
     def stop_recording_and_compare(
-        self,
-        comparison,
-        threshold=0.9,
-        fps_reduction=1,
-        not_found=False,
-        keep_image_as="",
-        assertion=True,
+            self,
+            comparison,
+            threshold=0.9,
+            fps_reduction=1,
+            not_found=False,
+            keep_image_as="",
+            assertion=True,
     ) -> bool:
         """
         Stop recording the screen and compare the video with the given image
