@@ -1,5 +1,6 @@
 import base64
 import os
+import warnings
 
 from datetime import datetime
 from os import path
@@ -15,6 +16,21 @@ from testui.support import logger
 from testui.support.helpers import error_with_traceback
 from testui.support.testui_images import get_point_match, ImageRecognition
 from testui.support.configuration import Configuration
+
+
+def deprecated(message):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            warnings.warn(
+                f"{func.__name__} is deprecated: {message}",
+                category=DeprecationWarning,
+                stacklevel=2
+            )
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
 
 
 class TestUIDriver:
@@ -120,6 +136,7 @@ class TestUIDriver:
                 logger.log_debug("Log file already removed")
         return self
 
+    @deprecated("This method is deprecated and will be removed in a future version. Use actions() instead")
     def touch_actions(self) -> TouchAction:
         """
         Deprecated function, soon to be removed, use actions instead.
@@ -212,12 +229,12 @@ class TestUIDriver:
         return self.driver.network_connection
 
     def find_image_match(
-        self,
-        comparison,
-        threshold=0.90,
-        assertion=False,
-        not_found=False,
-        image_match="",
+            self,
+            comparison,
+            threshold=0.90,
+            assertion=False,
+            not_found=False,
+            image_match="",
     ) -> bool:
         """
         Will find an image match based on the comparison type and threshold
@@ -476,13 +493,13 @@ class TestUIDriver:
         return self
 
     def stop_recording_and_compare(
-        self,
-        comparison,
-        threshold=0.9,
-        fps_reduction=1,
-        not_found=False,
-        keep_image_as="",
-        assertion=True,
+            self,
+            comparison,
+            threshold=0.9,
+            fps_reduction=1,
+            not_found=False,
+            keep_image_as="",
+            assertion=True,
     ) -> bool:
         """
         Stop recording the screen and compare the video with the given image
