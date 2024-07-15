@@ -277,8 +277,7 @@ screenshot/bigger one
 ### Drivers:
 
 The testui_driver.py declares the TestUIDriver class which implements methods
-from the Elements class. It also implements methods such as "touch_actions"
-inherited from Selenium WebDriver TouchActions class.
+from the Elements class.
 
 The appium_driver.py declares the NewDriver class which implements TestUIDriver.
 It also implements the desired capabilities such as the location of the .apk.,

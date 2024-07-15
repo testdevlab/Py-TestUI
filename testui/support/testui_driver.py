@@ -6,7 +6,6 @@ from datetime import datetime
 from os import path
 from pathlib import Path
 
-from appium.webdriver.common.touch_action import TouchAction
 from appium.webdriver.webdriver import WebDriver
 from selenium.webdriver import ActionChains
 from selenium.common.exceptions import WebDriverException
@@ -136,17 +135,6 @@ class TestUIDriver:
                 logger.log_debug("Log file already removed")
         return self
 
-    @deprecated("This method is deprecated and will be removed in a future version. Use actions() instead")
-    def touch_actions(self) -> TouchAction:
-        """
-        Deprecated function, soon to be removed, use actions instead.
-
-        Will return a TouchAction object for the current driver. This is
-        meant for Appium Drivers only.
-        :return: TouchAction
-        """
-        return TouchAction(self.driver)
-
     def actions(self) -> ActionChains:
         """
         Will return an ActionChains object for the current driver.
@@ -272,13 +260,14 @@ class TestUIDriver:
 
         return found
 
-    def click_by_image(self, image: str, threshold=0.9, webview=False):
+    def click_by_image(self, image: str, threshold=0.9, webview=False, ratio=1):
         """
         Will click on an element based on the image provided if it can be found
         within the current screen.
-        :param image:
-        :param threshold:
-        :param webview:
+        :param image: Image to compare with for the click
+        :param threshold: limit for comparison
+        :param webview: Mobile webview requires a shift in Y coordinates
+        :param ratio: click to image dimension ratio
         :return: TestUIDriver
         """
         now = datetime.now()
@@ -286,14 +275,17 @@ class TestUIDriver:
         image_name = f"{self.device_udid}{current_time}.png"
         im_path = self.save_screenshot(image_name)
         x, y = get_point_match(im_path, image, threshold, self.device_name)
-        ta = TouchAction(self.__appium_driver)
+        x = int(x * ratio)
+        y = int(y * ratio)
         if webview:
-            y = y + 120
-        ta.tap(x=x, y=y).perform()
+            y = y - 120
+        self.click(x, y)
         logger.log(
             f"{self.device_name}: element with image {image}"
-            f"clicked on point ({x},{y})"
+            f" clicking on point ({x},{y})"
         )
+        self.click(x, y)
+
         self.__delete_screenshot(im_path)
 
         return self
@@ -316,14 +308,17 @@ class TestUIDriver:
 
     def click(self, x, y):
         """
-        Will execute a touch action on the current screen based on the x and y
+        Will execute a click action on the current screen based on the x and y
         coordinates.
         :param x:
         :param y:
         :return: TestUIDriver
         """
-        ta = TouchAction(self.__appium_driver)
-        ta.tap(x=x, y=y).perform()
+        actions = self.actions()
+        actions.w3c_actions.pointer_action.move_to_location(x=x, y=y)
+        actions.w3c_actions.pointer_action.click()
+        actions.perform()
+
         logger.log(f'Clicked over "x={x}: y={y}"')
         return self
 
