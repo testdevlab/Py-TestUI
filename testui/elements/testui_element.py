@@ -495,7 +495,6 @@ class Elements:
                 return self
             except Exception as error:
                 err = error
-                print(error)
                 time.sleep(0.2)
         return self.__show_error(
             f"{logger.bcolors.FAIL}{err} {self.device_name}: Element "
