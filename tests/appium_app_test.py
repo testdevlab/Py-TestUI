@@ -31,7 +31,7 @@ class TestStringMethods:
         # .move_to(x=500, y=1000).release().perform()
 
         appium_driver.actions().w3c_actions = ActionBuilder(
-            appium_driver.get_driver,
+            appium_driver.get_driver(),
             mouse=PointerInput(interaction.POINTER_TOUCH, "touch"))
 
         actions = appium_driver.actions()

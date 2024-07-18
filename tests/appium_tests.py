@@ -28,6 +28,7 @@ class TestStringMethods:
         selenium_driver.navigate_to(
             "https://github.com/testdevlab/Py-TestUI#image-recognition"
         )
+        selenium_driver.e("css", "[data-content=\"README\"]").wait_until_visible()
         selenium_driver.start_recording_screen()
         time.sleep(1)
         selenium_driver.stop_recording_and_compare(
