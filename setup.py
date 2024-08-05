@@ -10,7 +10,7 @@ long_description = (root_path / "README.md").read_text(encoding="utf-8")
 
 setup(
     name="python-testui",
-    version="1.2.1",
+    version="1.2.2",
     description="Browser and Mobile automation framework",
     long_description=long_description,
     long_description_content_type="text/markdown",
