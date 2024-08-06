@@ -269,7 +269,7 @@ class NewDriver:
 
     def set_save_screenshot_on_fail(self, save_screenshot_on_fail: bool):
         """Set save screenshot on fail"""
-        self.__configuration.save_full_stacktrace = save_screenshot_on_fail
+        self.__configuration.save_screenshot_on_fail = save_screenshot_on_fail
         return self
 
     def set_save_full_stacktrace(self, save_full_stacktrace: bool):
