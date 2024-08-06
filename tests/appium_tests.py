@@ -24,11 +24,12 @@ class TestStringMethods:
     @pytest.mark.signup
     def test_screenshot_methods(self, selenium_driver: TestUIDriver):
         logger.log_test_name("T92701: Create an account")
+        print(selenium_driver.device_udid)
         selenium_driver.get_dimensions()
         selenium_driver.navigate_to(
             "https://github.com/testdevlab/Py-TestUI#image-recognition"
         )
-        selenium_driver.e("css", "[data-content=\"README\"]").wait_until_visible()
+        selenium_driver.click_by_image("./resources/comp.png", threshold=0.6, ratio=0.5, webview=True)
         selenium_driver.start_recording_screen()
         time.sleep(1)
         selenium_driver.stop_recording_and_compare(
@@ -40,5 +41,6 @@ class TestStringMethods:
         selenium_driver.find_image_match(
             "./resources/comp.png", 0.6, True, image_match="./logs/image.png"
         )
-        selenium_driver.click_by_image("./resources/comp.png", threshold=0.6)
+
+        time.sleep(110)
         selenium_driver.raise_errors()

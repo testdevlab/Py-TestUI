@@ -4,7 +4,6 @@ import time
 import os
 
 from typing import List
-from appium.webdriver.common.touch_action import TouchAction
 from appium.webdriver.webelement import WebElement
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
@@ -513,25 +512,11 @@ class Elements:
         err = None
         while time.time() < start + timeout:
             try:
-                self.get_element()
-                try:
-                    is_browser: str = self.testui_driver.context
-                    if "NATIVE" in is_browser:
-                        browser = False
-                    else:
-                        browser = True
-                except Exception:
-                    browser = True
-                if not browser:
-                    ta = TouchAction(self.driver)
-                    ta.press(self.get_element()).wait(
-                        milliseconds
-                    ).release().perform()
-                else:
-                    ta = ActionChains(self.driver)
-                    ta.click_and_hold(self.get_element()).pause(
-                        milliseconds // 1000
-                    ).release().perform()
+                actions = self.driver.actions()
+                actions.w3c_actions.pointer_action.click_and_hold(self.get_element())
+                actions.w3c_actions.pointer_action.pause(milliseconds // 1000)
+                actions.w3c_actions.pointer_action.release()
+                actions.perform()
 
                 self.__put_log(
                     f'{self.device_name}: element "{self.locator_type}: '
@@ -561,8 +546,7 @@ class Elements:
             try:
                 self.get_element()
                 time.sleep(1)
-                ta = TouchAction(self.driver)
-                ta.tap(x=x, y=y).perform()
+                self.testui_driver.click(x, y)
                 self.__put_log(
                     f'{self.device_name}: element "x={x}: y={y}" clicked after '
                     f"{time.time() - start}s"
@@ -740,11 +724,15 @@ class Elements:
                         end_x = location2.x
                     if end_y is None:
                         end_y = location2.y
-                    action = TouchAction(self.driver)
-                    action.press(x=start_x, y=start_y).wait(duration).move_to(
-                        x=end_x, y=end_y
-                    ).release()
-                    action.perform()
+
+                    actions = self.driver.actions()
+                    actions.w3c_actions.pointer_action.move_to_location(x=start_x, y=start_y)
+                    actions.w3c_actions.pointer_action.pointer_down()
+                    if duration:
+                        actions.w3c_actions.pointer_action.pause(duration)
+                    actions.w3c_actions.pointer_action.move_to_location(x=end_x, y=end_y)
+                    actions.w3c_actions.pointer_action.release()
+                    actions.perform()
                 else:
                     if end_x is None:
                         end_x = location.x
