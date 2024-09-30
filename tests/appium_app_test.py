@@ -30,16 +30,16 @@ class TestStringMethods:
         # appium_driver.touch_actions().press(x=500, y=10)\
         # .move_to(x=500, y=1000).release().perform()
 
-        appium_driver.actions().w3c_actions = ActionBuilder(
+        actions = ActionBuilder(
             appium_driver.get_driver(),
-            mouse=PointerInput(interaction.POINTER_TOUCH, "touch"))
+            mouse=PointerInput(interaction.POINTER_TOUCH, "touch")
+        )
 
-        actions = appium_driver.actions()
-        actions.w3c_actions.pointer_action.move_to_location(x=500, y=10)
-        actions.w3c_actions.pointer_action.pointer_down()
-        actions.w3c_actions.pointer_action.pause(1)
-        actions.w3c_actions.pointer_action.move_to_location(x=500, y=1000)
-        actions.w3c_actions.pointer_action.release()
+        actions.pointer_action.move_to_location(x=500, y=10)
+        actions.pointer_action.pointer_down()
+        actions.pointer_action.pause(1)
+        actions.pointer_action.move_to_location(x=500, y=1000)
+        actions.pointer_action.release()
         actions.perform()
 
         appium_driver.raise_errors()
