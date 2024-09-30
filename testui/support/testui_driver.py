@@ -107,16 +107,15 @@ class TestUIDriver:
         """
         return e(self, locator_type, locator)
 
-    def execute(self, driver_command, params=None):
+    def execute(self, driver_command, params: dict = None) -> dict:
         """
         This method is meant for Appium Drivers only. Will execute a command
         in the current driver.
         :param driver_command:
         :param params:
-        :return: TestUIDriver
+        :return: dict of the result of executed script
         """
-        self.driver.execute(driver_command, params)
-        return self
+        return self.driver.execute(driver_command, params)
 
     def remove_log_file(self, when_no_errors=True):
         """
