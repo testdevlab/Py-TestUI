@@ -287,45 +287,45 @@ class NewDriver:
 
     def __set_common_caps(self):
         """Set common capabilities"""
-        self.__desired_capabilities["adbExecTimeout"] = 30000
+        self.__desired_capabilities["appium:adbExecTimeout"] = 30000
         self.__desired_capabilities["platformName"] = self.__platform_name
-        self.__desired_capabilities["automationName"] = self.__automation_name
-        self.__desired_capabilities["deviceName"] = self.device_name
+        self.__desired_capabilities["appium:automationName"] = self.__automation_name
+        self.__desired_capabilities["appium:deviceName"] = self.device_name
         if self.__full_reset:
-            self.__desired_capabilities["enforceAppInstall"] = True
+            self.__desired_capabilities["appium:enforceAppInstall"] = True
         else:
-            self.__desired_capabilities["noReset"] = True
+            self.__desired_capabilities["appium:noReset"] = True
         if self.__version is not None:
-            self.__desired_capabilities["platformVersion"] = self.__version
+            self.__desired_capabilities["appium:platformVersion"] = self.__version
         if self.udid is not None:
-            self.__desired_capabilities["udid"] = self.udid
+            self.__desired_capabilities["appium:udid"] = self.udid
 
     def __set_android_caps(self):
         """Set Android capabilities"""
         if self.__automation_name is None:
             self.__automation_name = "UiAutomator2"
-        self.__desired_capabilities["chromeOptions"] = {"w3c": False}
+        self.__desired_capabilities["appium:chromeOptions"] = {"w3c": False}
         # TODO: It is not being passed to executable. Tried this
         # https://github.com/appium/appium/blob/master/docs/en/writing-running-appium/caps.md
         self.__desired_capabilities[
             "chromedriverArgs"
         ] = self.__chromedriverArgs
 
-        self.__desired_capabilities["chromeDriverPort"] = (
+        self.__desired_capabilities["appium:chromeDriverPort"] = (
             self.appium_port - 4723 + 8100
         )
-        self.__desired_capabilities["systemPort"] = (
+        self.__desired_capabilities["appium:systemPort"] = (
             self.appium_port - 4723 + 8200
         )
         if self.__app_path is None and self.__app_package is None:
             self.__desired_capabilities["browserName"] = "chrome"
             self.browser = True
         if self.__app_package is not None:
-            self.__desired_capabilities["appPackage"] = self.__app_package
-            self.__desired_capabilities["appActivity"] = self.__app_activity
+            self.__desired_capabilities["appium:appPackage"] = self.__app_package
+            self.__desired_capabilities["appium:appActivity"] = self.__app_activity
         if self.__app_path is not None:
-            self.__desired_capabilities["app"] = self.__app_path
-            self.__desired_capabilities["androidInstallPath"] = self.__app_path
+            self.__desired_capabilities["appium:app"] = self.__app_path
+            self.__desired_capabilities["appium:androidInstallPath"] = self.__app_path
 
     def __set_ios_caps(self):
         """Sets the iOS capabilities"""
@@ -339,11 +339,11 @@ class NewDriver:
             self.__desired_capabilities["browserName"] = "safari"
             self.browser = True
         if self.__app_path is not None:
-            self.__desired_capabilities["app"] = self.__app_path
+            self.__desired_capabilities["appium:app"] = self.__app_path
         if self.__bundle_id is not None:
-            self.__desired_capabilities["bundleId"] = self.__bundle_id
+            self.__desired_capabilities["appium:bundleId"] = self.__bundle_id
         if self.__version is None:
-            self.__desired_capabilities["platformVersion"] = "15.5"
+            self.__desired_capabilities["appium:platformVersion"] = "15.5"
 
     def __set_selenium_caps(self):
         """Sets the selenium capabilities"""
