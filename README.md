@@ -6,14 +6,14 @@ Installation is a simple by the helps of `pip`, Py-TestUI can be installed using
 this `pip` command.
 
 ```bash
-pip3 install python-testui==1.2.3
+pip3 install python-testui==1.2.4
 ```
 
 Or if you prefer `requirements.txt`, you can add the following dependency to 
 the file.
 
 ```txt
-python-testui==1.2.3
+python-testui==1.2.4
 ```
 
 # Appium driver
