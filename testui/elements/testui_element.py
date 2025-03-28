@@ -512,7 +512,7 @@ class Elements:
         err = None
         while time.time() < start + timeout:
             try:
-                actions = self.driver.actions()
+                actions = self.testui_driver.actions()
                 actions.w3c_actions.pointer_action.click_and_hold(self.get_element())
                 actions.w3c_actions.pointer_action.pause(milliseconds // 1000)
                 actions.w3c_actions.pointer_action.release()
@@ -724,33 +724,27 @@ class Elements:
                         end_x = location2.x
                     if end_y is None:
                         end_y = location2.y
-
-                    actions = self.driver.actions()
-                    actions.w3c_actions.pointer_action.move_to_location(x=start_x, y=start_y)
-                    actions.w3c_actions.pointer_action.pointer_down()
-                    if duration:
-                        actions.w3c_actions.pointer_action.pause(duration)
-                    actions.w3c_actions.pointer_action.move_to_location(x=end_x, y=end_y)
-                    actions.w3c_actions.pointer_action.release()
-                    actions.perform()
                 else:
                     if end_x is None:
                         end_x = location.x
                     if end_y is None:
                         end_y = location.y
-                    self.driver.swipe(
-                        start_y=start_y,
-                        start_x=start_x,
-                        end_y=end_y,
-                        end_x=end_x,
-                        duration=duration,
-                    )
+
+                actions = self.testui_driver.actions()
+                actions.w3c_actions.pointer_action.move_to_location(x=start_x, y=start_y)
+                actions.w3c_actions.pointer_action.pointer_down()
+                if duration:
+                    actions.w3c_actions.pointer_action.pause(duration)
+                actions.w3c_actions.pointer_action.move_to_location(x=end_x, y=end_y)
+                actions.w3c_actions.pointer_action.release()
+                actions.perform()
                 return self
             except Exception as error:
                 err = error
         return self.__show_error(
-            f"{logger.bcolors.FAIL}{err} {self.device_name}: Element not found "
-            f'with the following locator: "{self.locator_type}:{self.locator}" '
+            f"{logger.bcolors.FAIL}{err} {self.device_name}: Error swiping "
+            f'with the following locator: "{self.locator_type}:{self.locator}", '
+            f'with the following coordinates "{start_x}", "{start_y}", "{end_x}", "{end_y}"'
             f"after {time.time() - start}s {logger.bcolors.ENDC}"
         )
 
