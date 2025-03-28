@@ -2,6 +2,7 @@ import pytest
 import os
 from selenium.webdriver.chrome.options import Options
 
+from testui.elements.testui_element import e
 from testui.support import logger
 from testui.support.appium_driver import NewDriver
 from testui.support.testui_driver import TestUIDriver
@@ -37,6 +38,10 @@ class TestStringMethods:
         selenium_driver.find_image_match(
             image_compare, 0.1, True, image_match=image_result
         )
+        e(selenium_driver, 'xpath', '//h3[contains(text(), "Image Recognition:")]')\
+            .wait_until_visible().press_hold_for()
+        e(selenium_driver, 'xpath', '//h3[contains(text(), "Image Recognition:")]')\
+            .swipe(start_x=50, start_y=50, end_x=100, end_y=100)
         selenium_driver.raise_errors()
 
     @pytest.mark.signup
