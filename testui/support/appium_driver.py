@@ -342,8 +342,6 @@ class NewDriver:
             self.__desired_capabilities["appium:app"] = self.__app_path
         if self.__bundle_id is not None:
             self.__desired_capabilities["appium:bundleId"] = self.__bundle_id
-        if self.__version is None:
-            self.__desired_capabilities["appium:platformVersion"] = "15.5"
 
     def __set_selenium_caps(self):
         """Sets the selenium capabilities"""
@@ -565,7 +563,7 @@ def __local_run(url, desired_caps, use_port, udid, log_file):
         logger.log(f"running: appium -p {str(port)}")
         if udid is None:
             desired_caps = __set_android_device(desired_caps, device)
-        logger.log(f'setting device for automation: {desired_caps["udid"]}')
+        logger.log(f'setting device for automation: {desired_caps["appium:udid"]}')
         log_dir = os.path.join("./logs", "appium_logs")
         Path(log_dir).mkdir(parents=True, exist_ok=True)
         file_path: str
@@ -665,7 +663,7 @@ def __set_android_device(desired_caps, number: int):
     :param number: device index
     :return: desired capabilities
     """
-    desired_caps["udid"] = get_device_udid(number)
+    desired_caps["appium:udid"] = get_device_udid(number)
     return desired_caps
 
 
