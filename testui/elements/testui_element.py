@@ -826,7 +826,7 @@ class Elements:
                 if log:
                     self.__put_log(
                         f'{self.device_name}: element "{self.locator_type}: '
-                        '{self.locator}" received keys "{value}" after '
+                        f'{self.locator}" received keys "{value}" after '
                         f"{time.time() - start}s"
                     )
                 return self

@@ -42,6 +42,9 @@ class TestStringMethods:
             .wait_until_visible().press_hold_for()
         e(selenium_driver, 'xpath', '//h3[contains(text(), "Image Recognition:")]')\
             .swipe(start_x=50, start_y=50, end_x=100, end_y=100)
+        selenium_driver.navigate_to(
+            "https://www.testdevlab.com/"
+        ).e('css', '#email').send_keys('some@email.com')
         selenium_driver.raise_errors()
 
     @pytest.mark.signup
