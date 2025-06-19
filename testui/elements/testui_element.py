@@ -99,6 +99,7 @@ class Elements:
         :param exception: exception
         """
         testui_error(self.testui_driver, exception)
+        return self
 
     def get(self, index):
         """
