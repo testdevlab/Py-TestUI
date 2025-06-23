@@ -41,7 +41,7 @@ setup(
         "Appium-Python-Client~=3.1.1",
         "opencv-python~=4.8.1",
         "geckodriver-autoinstaller==0.1.0",
-        "pytest-xdist~=2.5.0",
+        "pytest-xdist>=2.5,<3.7",
         "pytest-testrail~=2.9.0",
         "pure-python-adb==0.3.0.dev0",
         "webdriver-manager~=4.0.1",
