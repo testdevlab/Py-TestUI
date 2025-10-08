@@ -59,7 +59,6 @@ class NewDriver:
         self.process = None
         self.file_name = None
         self.__appium_log_file = "appium-stdout.log"
-        self.__chromedriverArgs = ["relaxed security"]
         self.__desired_capabilities = {}
         # TODO: Investigate if should be used in functionality or should be
         # removed.
@@ -304,13 +303,6 @@ class NewDriver:
         """Set Android capabilities"""
         if self.__automation_name is None:
             self.__automation_name = "UiAutomator2"
-        self.__desired_capabilities["appium:chromeOptions"] = {"w3c": False}
-        # TODO: It is not being passed to executable. Tried this
-        # https://github.com/appium/appium/blob/master/docs/en/writing-running-appium/caps.md
-        self.__desired_capabilities[
-            "chromedriverArgs"
-        ] = self.__chromedriverArgs
-
         self.__desired_capabilities["appium:chromeDriverPort"] = (
             self.appium_port - 4723 + 8100
         )
@@ -419,7 +411,6 @@ def start_driver(desired_caps, url, debug, port, udid, log_file):
     logger.log("starting appium driver...")
 
     process = None
-    options = None
     if "android" in desired_caps["platformName"].lower():
         url, desired_caps, process, file = __local_run(
             url, desired_caps, port, udid, log_file
