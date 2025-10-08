@@ -580,9 +580,14 @@ def __local_run(url, desired_caps, use_port, udid, log_file):
         # Check Appium Version
         result = subprocess.run(["appium", "-v"], stdout=subprocess.PIPE).stdout
         url = f"http://localhost:{str(port)}/wd/hub"
-        if result.decode('utf-8').startswith("2."):
-            # for Appium version > 2.0.0
-            url = f"http://localhost:{str(port)}"
+        result_text = result.decode('utf-8').strip()
+        try:
+            major = int(result_text.split('.')[0])
+        except (ValueError, IndexError):
+            major = 0
+        if major >= 2:
+            # for Appium version >= 2.0.0
+            url = f"http://localhost:{port}"
         return url, desired_caps, process, file_path
 
     return url, desired_caps, None, None
