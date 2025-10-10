@@ -65,6 +65,39 @@ class Collections:
                 f"been found after {time.time() - start}s: \n {compose_error}"
             )
 
+    def wait_until_all_exist(self, seconds=10.0, log=True):
+        """
+        Wait until all elements in collection are visible
+        :param seconds: timeout
+        :param log: log to console
+        """
+        start = time.time()
+        threads = []
+        for arg in self.args:
+            threads.append(
+                threading.Thread(
+                    target=arg.wait_until_exists, args=(seconds, log)
+                )
+            )
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+        if time.time() < start + seconds:
+            logger.log(
+                f"{self.args[0].device_name}: Collection of elements has been "
+                f"found after {time.time() - start}s"
+            )
+        else:
+            compose_error = ""
+            error: str
+            for error in self.__errors:
+                compose_error = compose_error + f"{error} \n"
+            self.__show_error(
+                f"{self.args[0].device_name}: Collection of elements has not "
+                f"been found after {time.time() - start}s: \n {compose_error}"
+            )
+
     def find_visible(self, seconds=10, return_el_number=False):
         """
         Find first visible element in collection
