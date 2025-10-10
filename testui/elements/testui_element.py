@@ -270,6 +270,49 @@ class Elements:
 
         return is_visible
 
+    def exist(self, log=True, **kwargs) -> bool:
+        """
+        Check if element exists
+        :param log: Boolean
+        :return: Boolean
+        """
+        is_not = False
+
+        # Allows passing "is_not" as a kwarg to not overwrite self.__is_not.
+        # This is not meant to be used by the user.
+        if "is_not" in kwargs:
+            is_not = kwargs["is_not"]
+        else:
+            is_not = self.__is_not
+            self.__is_not = False
+
+        exists = False
+        try:
+            exists = self.get_element()
+
+            if log:
+                if exists:
+                    self.__put_log(
+                        f'{self.device_name}: element "{self.locator_type}: '
+                        f'{self.locator}" exists'
+                    )
+                else:
+                    self.__put_log(
+                        f'{self.device_name}: element "{self.locator_type}: '
+                        f'{self.locator}" does not exist'
+                    )
+        except Exception:
+            if log:
+                self.__put_log(
+                    f'{self.device_name}: element "{self.locator_type}: '
+                    f'{self.locator}" does not exists'
+                )
+
+        if is_not:
+            return not exists
+
+        return exists
+
     def is_visible_in(self, seconds) -> bool:
         """
         Check if element is visible in a certain amount of time
@@ -330,6 +373,43 @@ class Elements:
         while time.time() < start + seconds and not is_visible:
             time.sleep(0.2)
             is_visible = self.is_visible(log=False, is_not=is_not)
+
+        if is_visible:
+            if log:
+                self.__put_log(
+                    f'{self.device_name}: Element "{self.locator_type}: '
+                    f'{self.locator}" was visible in {time.time() - start}s'
+                )
+
+            return self
+
+        err_text = "was not"
+        if is_not:
+            err_text = "was"
+
+        self.__show_error(
+            f"{self.device_name}: Element {err_text} found visible with the following "
+            f'locator: "{self.locator_type}: {self.locator}" '
+            f"after {time.time() - start}s"
+        )
+
+        return self
+
+    def wait_until_exists(self, seconds=10.0, log=True):
+        """
+        Wait until element is visible
+        :param seconds: seconds
+        :param log: Boolean
+        """
+        start = time.time()
+
+        is_not = self.__is_not
+        self.__is_not = False
+
+        is_visible = self.exist(log=False, is_not=is_not)
+        while time.time() < start + seconds and not is_visible:
+            time.sleep(0.2)
+            is_visible = self.exist(log=False, is_not=is_not)
 
         if is_visible:
             if log:

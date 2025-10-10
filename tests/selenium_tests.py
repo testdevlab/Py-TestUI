@@ -44,7 +44,7 @@ class TestStringMethods:
             .swipe(start_x=50, start_y=50, end_x=100, end_y=100)
         selenium_driver.navigate_to(
             "https://www.testdevlab.com/"
-        ).e('css', '#email').send_keys('some@email.com')
+        ).e('css', '#email').wait_until_exists(10).send_keys('some@email.com')
         selenium_driver.raise_errors()
 
     @pytest.mark.signup
