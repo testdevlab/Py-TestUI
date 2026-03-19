@@ -50,6 +50,7 @@ class NewDriver:
         self.__automation_name = None
         self.logger_name = None
         self.__full_reset = False
+        self.__no_reset = True
         self.__debug = False
         self.soft_assert = False
         # TODO: Investigate if functionality can be implemented or should be
@@ -126,6 +127,15 @@ class NewDriver:
         :return: self
         """
         self.__full_reset = full_reset
+        return self
+
+    def set_no_reset(self, no_reset: bool):
+        """
+        Set no reset
+        :param no_reset: True or False
+        :return: self
+        """
+        self.__no_reset = no_reset
         return self
 
     def set_appium_url(self, appium_url: str):
@@ -293,7 +303,7 @@ class NewDriver:
         if self.__full_reset:
             self.__desired_capabilities["appium:enforceAppInstall"] = True
         else:
-            self.__desired_capabilities["appium:noReset"] = True
+            self.__desired_capabilities["appium:noReset"] = self.__no_reset
         if self.__version is not None:
             self.__desired_capabilities["appium:platformVersion"] = self.__version
         if self.udid is not None:
