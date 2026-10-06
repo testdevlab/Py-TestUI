@@ -1,4 +1,5 @@
 import base64
+import functools
 import os
 import warnings
 
@@ -16,9 +17,12 @@ from testui.support.helpers import error_with_traceback
 from testui.support.testui_images import get_point_match, ImageRecognition
 from testui.support.configuration import Configuration
 
+_NO_ARGS = object()
+
 
 def deprecated(message):
     def decorator(func):
+        @functools.wraps(func)
         def wrapper(*args, **kwargs):
             warnings.warn(
                 f"{func.__name__} is deprecated: {message}",
@@ -178,14 +182,15 @@ class TestUIDriver:
         logger.log(f"{self.device_name}: Navigating to: {url}")
         return self
 
-    def execute_script(self, driver_command, args: None) -> dict:
+    def execute_script(self, driver_command, args=_NO_ARGS, *more_args) -> dict:
         """
         Will execute a JavaScript script in the current window/frame.
         :param driver_command:
-        :param args:
+        :param args: optional script arguments
         :return: dict of the result of executed script
         """
-        return self.driver.execute_script(driver_command, args)
+        script_args = () if args is _NO_ARGS else (args, *more_args)
+        return self.driver.execute_script(driver_command, *script_args)
 
     @property
     def switch_to(self):
@@ -509,7 +514,7 @@ class TestUIDriver:
         current_time = now.strftime("%Y-%m-%d%H%M%S")
         log_dir = self.__configuration.screenshot_path
         video_name = f"{self.device_udid}{current_time}.mp4"
-        self.stop_recording_screen(os.path.join(log_dir, video_name))
+        self.stop_recording_screen(video_name)
         found = ImageRecognition(
             video_name,
             comparison,

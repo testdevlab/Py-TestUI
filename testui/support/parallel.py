@@ -52,7 +52,9 @@ def parallel_testui():
     if fail != 0:
         os.remove("fails.txt")
         number_of_fails = __check_number_of_fails()
-        percentage = 100 - 100 * number_of_fails / number_of_cases
+        percentage = 0.0
+        if number_of_cases:
+            percentage = 100 - 100 * number_of_fails / number_of_cases
         logger.log_error(
             f"----------- Total Number of Test Cases: {number_of_cases}. "
             f"Percentage Passed {percentage.__round__(3)}% -----------"
@@ -339,14 +341,10 @@ def __start_run_id(args, test_run_name):
     :param test_run_name: The test run name.
     :return: The test run id.
     """
-    end_marker = ""
-    for i, marker in enumerate(args.markers):
-        if i == len(args.markers):
-            end_marker += f"{marker} {args.general_markers}"
-        else:
-            end_marker += f"{marker} {args.general_markers} or "
+    markers = [f"{marker} {args.general_markers}" for marker in args.markers]
     if args.single_thread_marker is not None:
-        end_marker += f"{args.single_thread_marker} {args.general_markers}"
+        markers.append(f"{args.single_thread_marker} {args.general_markers}")
+    end_marker = " or ".join(markers)
     with open("testrail_id_file.txt", "wb") as out:
         cmd = [
             "pytest",
@@ -378,7 +376,6 @@ def __start_run_id(args, test_run_name):
             raise Exception("Failed to create Test Run")
         if "Failed to create testrun" in text:
             out.close()
-            process.send_signal(signal=2)
             process.terminate()
             process.wait()
             os.remove("testrail_id_file.txt")
@@ -407,21 +404,23 @@ def __process(markers: list, args, thread=0, test_run_id=None):
         if args.s:
             quiet = "-s"
         testrail = ""
+        password = ""
         if test_run_id is not None:
             testrail = (
                 f"--testrail --tr-config=testrail.cfg --tr-run-id={test_run_id}"
             )
             if args.testrail_pwd is not None:
-                testrail += f" --tr-password={args.testrail_pwd}"
+                password = f" --tr-password={args.testrail_pwd}"
         cache = f"-o cache_dir=.my_cache_dir_{thread}"
         start_1 = time.time()
         logger.log(
             f'Starting: pytest {quiet} -m "{marker} {args.general_markers}" '
-            f"{testrail} {args.general} {cache}"
+            f"{testrail}{' --tr-password=****' if password else ''} "
+            f"{args.general} {cache}"
         )
         pr_1 = os.system(
             f'pytest {quiet} -m "{marker} {args.general_markers}" '
-            f"{testrail} {args.general} {cache}"
+            f"{testrail}{password} {args.general} {cache}"
         )
         file = open("fails.txt", "a+")
         file.write(f"{pr_1}")

@@ -8,9 +8,15 @@ import imutils
 
 from testui.support import logger
 
-found_image = False
-matched = 0.0
-matching_list = []
+
+class _MatchState:
+    """Result of one comparison, shared only by that comparison's threads"""
+
+    def __init__(self):
+        self.found = threading.Event()
+        self.matched = 0.0
+        self.scores = []
+        self.lock = threading.Lock()
 
 
 def compare_video_image(
@@ -32,14 +38,6 @@ def compare_video_image(
     :param max_scale: the maximum scale of the image
     :return: True if a match is found, False otherwise
     """
-    global matching_list
-    global matched
-    global found_image
-
-    found_image = False
-    matched = 0.0
-    matching_list = []
-
     root_dir = path
     logger.log_debug(f"root directory: {root_dir}")
     cap = cv2.VideoCapture(os.path.join(root_dir, video))
@@ -52,6 +50,7 @@ def compare_video_image(
         return False, 0.0
     i = 0
     percentage = 0.0
+    state = _MatchState()
     while cap.isOpened():
         # Capture frame-by-frame
         ret, frame = cap.read()
@@ -66,6 +65,7 @@ def compare_video_image(
                 max_scale,
                 0.1,
                 50,
+                state=state,
             )
             if found:
                 cap.release()
@@ -88,6 +88,7 @@ def __compare(
     max_scale: float,
     min_scale=0.1,
     divisions=25,
+    state=None,
 ):
     """
     Compare a template image to a larger image and return the percentage of
@@ -99,16 +100,18 @@ def __compare(
     :param root_dir: the root directory of the project
     :param max_scale: the maximum scale of the image
     :param min_scale: the minimum scale of the image
+    :param state: the _MatchState shared by this comparison's threads
     :return: True if a match is found, False otherwise
     """
+    if state is None:
+        state = _MatchState()
     (tH, tW) = template.shape[:2]
     # loop over the scales of the image
     found = None
-    global found_image
-    global matched
-    global matching_list
     max_val = 0.0
     for scale in np.linspace(min_scale, max_scale, divisions)[::-1]:
+        if state.found.is_set():
+            return True, state.matched
         # resize the image according to the scale, and keep track of the ratio
         # of the resizing.
         resized = imutils.resize(image, width=int(image.shape[1] * scale))
@@ -122,13 +125,10 @@ def __compare(
         # if we have found a new maximum correlation value, then update the
         # bookkeeping variable
         if found is None or max_val > found[0]:
-            lock = threading.Lock()
-            lock.acquire()
-            if found_image:
-                lock.release()
-                return True, matched
-            matching_list.append(max_val)
-            lock.release()
+            with state.lock:
+                if state.found.is_set():
+                    return True, state.matched
+                state.scores.append(max_val)
             found = (max_val, max_loc, r)
             if max_val > threshold:
                 if image_match != "" and found is not None:
@@ -154,13 +154,12 @@ def __compare(
                     )
                     cv2.imwrite(os.path.join(root_dir, image_match), image)
                     logger.log(os.path.join(root_dir, image_match))
-                lock.acquire()
-                found_image = True
-                lock.release()
-                matched = max_val
+                with state.lock:
+                    state.matched = max_val
+                    state.found.set()
                 return True, max_val
-    matched = max(matching_list)
-    return False, matched
+    with state.lock:
+        return False, max(state.scores, default=0.0)
 
 
 def compare_images(
@@ -182,15 +181,7 @@ def compare_images(
     :param min_scale: The minimum scale to compare the images
     :return: A boolean if the images are similar or not
     """
-    # Read the images from the file
-    global found_image
-    global matched
-    global matching_list
-
     start = time.time()
-    matched = 0.0
-    matching_list = []
-    found_image = False
     root_dir = path
     if not os.path.exists(comparison):
         comparison = os.path.join(root_dir, comparison)
@@ -203,92 +194,31 @@ def compare_images(
     template = cv2.imread(comparison)
     image = cv2.imread(original)
     # loop over the scales of the image
+    state = _MatchState()
     threads = []
     parts = max_scale / 5.0
     min_scale = min(min_scale, parts)
-
-    threads.append(
-        threading.Thread(
-            target=__compare,
-            args=(
-                image,
-                template,
-                threshold,
-                image_match,
-                root_dir,
-                parts,
-                min_scale,
-            ),
+    scale_ranges = [(parts, min_scale)] + [
+        (parts * (i + 1), parts * i) for i in range(1, 5)
+    ]
+    for range_max, range_min in scale_ranges:
+        threads.append(
+            threading.Thread(
+                target=__compare,
+                args=(image, template, threshold, image_match, root_dir,
+                      range_max, range_min),
+                kwargs={"state": state},
+            )
         )
-    )
-    threads.append(
-        threading.Thread(
-            target=__compare,
-            args=(
-                image,
-                template,
-                threshold,
-                image_match,
-                root_dir,
-                parts * 2.0,
-                parts,
-            ),
-        )
-    )
-    threads.append(
-        threading.Thread(
-            target=__compare,
-            args=(
-                image,
-                template,
-                threshold,
-                image_match,
-                root_dir,
-                parts * 3.0,
-                parts * 2.0,
-            ),
-        )
-    )
-    threads.append(
-        threading.Thread(
-            target=__compare,
-            args=(
-                image,
-                template,
-                threshold,
-                image_match,
-                root_dir,
-                parts * 4.0,
-                parts * 3.0,
-            ),
-        )
-    )
-    threads.append(
-        threading.Thread(
-            target=__compare,
-            args=(
-                image,
-                template,
-                threshold,
-                image_match,
-                root_dir,
-                parts * 5.0,
-                parts * 4.0,
-            ),
-        )
-    )
     for thread in threads:
         thread.start()
-    while not found_image:
-        alive = False
-        for thread in threads:
-            if thread.is_alive():
-                alive = True
-        if not alive:
+    while not state.found.wait(0.05):
+        if not any(thread.is_alive() for thread in threads):
             break
 
     logger.log(f"Image recognition took {time.time() - start}s")
-    return found_image, max(matching_list)
+    with state.lock:
+        return state.found.is_set(), max(state.scores, default=0.0)
 
 
 def get_point_match(

@@ -1,7 +1,7 @@
 import atexit
+import functools
 import os
 import subprocess
-import threading
 import time
 from pathlib import Path
 from time import sleep
@@ -23,6 +23,14 @@ from testui.support import logger
 from testui.support.api_support import get_chrome_version
 from testui.support.testui_driver import TestUIDriver
 from testui.support.configuration import Configuration
+
+APPIUM_START_TIMEOUT = 120
+
+BROWSER_DRIVERS = {
+    "safari": (webdriver.Safari, webdriver.SafariOptions),
+    "edge": (webdriver.Edge, webdriver.EdgeOptions),
+    "ie": (webdriver.Ie, webdriver.IeOptions),
+}
 
 
 class NewDriver:
@@ -313,9 +321,6 @@ class NewDriver:
         """Set Android capabilities"""
         if self.__automation_name is None:
             self.__automation_name = "UiAutomator2"
-        self.__desired_capabilities["appium:chromeDriverPort"] = (
-            self.appium_port - 4723 + 8100
-        )
         self.__desired_capabilities["appium:systemPort"] = (
             self.appium_port - 4723 + 8200
         )
@@ -327,7 +332,6 @@ class NewDriver:
             self.__desired_capabilities["appium:appActivity"] = self.__app_activity
         if self.__app_path is not None:
             self.__desired_capabilities["appium:app"] = self.__app_path
-            self.__desired_capabilities["appium:androidInstallPath"] = self.__app_path
 
     def __set_ios_caps(self):
         """Sets the iOS capabilities"""
@@ -414,9 +418,6 @@ def start_driver(desired_caps, url, debug, port, udid, log_file):
     :param log_file: Appium log file
     :return: Appium driver
     """
-    lock = threading.Lock()
-    lock.acquire()
-
     logger.log("setting capabilities: " + str(desired_caps))
     logger.log("starting appium driver...")
 
@@ -442,11 +443,9 @@ def start_driver(desired_caps, url, debug, port, udid, log_file):
                 driver = Remote(url, options=options)
             atexit.register(__quit_driver, driver, debug)
             logger.log(f"appium running on {url}. \n")
-            lock.release()
             return driver, process, file
         except Exception as error:
             err = error
-    lock.release()
     raise err
 
 
@@ -516,14 +515,17 @@ def start_selenium_driver(
                     )
 
                     driver = webdriver.Firefox(options=options)
-                elif browser.lower() == "safari":
-                    driver = webdriver.Safari(desired_capabilities=desired_caps)
-                elif browser.lower() == "edge":
-                    driver = webdriver.Edge(capabilities=desired_caps)
-                elif browser.lower() == "ie":
-                    driver = webdriver.Ie(capabilities=desired_caps)
+                elif browser.lower() in BROWSER_DRIVERS:
+                    driver_class, options_class = BROWSER_DRIVERS[
+                        browser.lower()
+                    ]
+                    browser_options = options_class()
+                    for key, value in desired_caps.items():
+                        if key != "browserName":
+                            browser_options.set_capability(key, value)
+                    driver = driver_class(options=browser_options)
                 elif browser.lower() == "opera":
-                    driver = webdriver.Opera(desired_capabilities=desired_caps)
+                    raise Exception("Opera is not supported by Selenium 4.10+")
                 else:
                     raise Exception(
                         f"Invalid browser '{browser}'. Please choose one "
@@ -535,6 +537,36 @@ def start_selenium_driver(
             err = error
 
     raise err
+
+
+def __wait_for_appium_start(process, file_path):
+    deadline = time.time() + APPIUM_START_TIMEOUT
+    while time.time() < deadline:
+        sleep(0.5)
+        with open(file_path, encoding="utf-8", errors="replace") as log:
+            text = log.read()
+        if "already be in use" in text or "listener started" in text:
+            return
+        if process.poll() is not None:
+            raise Exception(f"Appium exited before starting, see {file_path}")
+    raise Exception(
+        f"Appium did not start within {APPIUM_START_TIMEOUT}s, see {file_path}"
+    )
+
+
+@functools.lru_cache(maxsize=None)
+def __appium_major_version():
+    version = subprocess.run(["appium", "-v"], stdout=subprocess.PIPE).stdout
+    try:
+        return int(version.decode("utf-8").strip().split(".")[0])
+    except (ValueError, IndexError):
+        return 0
+
+
+def __appium_url(port):
+    if __appium_major_version() >= 2:
+        return f"http://localhost:{port}"
+    return f"http://localhost:{port}/wd/hub"
 
 
 def __local_run(url, desired_caps, use_port, udid, log_file):
@@ -552,11 +584,8 @@ def __local_run(url, desired_caps, use_port, udid, log_file):
         bport = use_port + 1
         device = 0
         if os.getenv("PYTEST_XDIST_WORKER") is not None:
-            device += os.getenv("PYTEST_XDIST_WORKER").split("w")[1]
+            device += int(os.getenv("PYTEST_XDIST_WORKER").split("w")[1])
             port += int(os.getenv("PYTEST_XDIST_WORKER").split("w")[1]) * 2
-            desired_caps["chromeDriverPort"] = 8200 + int(
-                os.getenv("PYTEST_XDIST_WORKER").split("w")[1]
-            )
             desired_caps["systemPort"] = 8300 + int(
                 os.getenv("PYTEST_XDIST_WORKER").split("w")[1]
             )
@@ -579,26 +608,8 @@ def __local_run(url, desired_caps, use_port, udid, log_file):
                 stderr=subprocess.STDOUT,
             )
             atexit.register(process.kill)
-        while True:
-            sleep(0.5)
-            out = open(file_path)
-            text = out.read()
-            if "already be in use" in text or "listener started" in text:
-                out.close()
-                break
-            out.close()
-        # Check Appium Version
-        result = subprocess.run(["appium", "-v"], stdout=subprocess.PIPE).stdout
-        url = f"http://localhost:{str(port)}/wd/hub"
-        result_text = result.decode('utf-8').strip()
-        try:
-            major = int(result_text.split('.')[0])
-        except (ValueError, IndexError):
-            major = 0
-        if major >= 2:
-            # for Appium version >= 2.0.0
-            url = f"http://localhost:{port}"
-        return url, desired_caps, process, file_path
+        __wait_for_appium_start(process, file_path)
+        return __appium_url(port), desired_caps, process, file_path
 
     return url, desired_caps, None, None
 
@@ -618,11 +629,8 @@ def __local_run_ios(url, desired_caps, use_port, udid, log_file):
         port = use_port + 100
         device = 0
         if os.getenv("PYTEST_XDIST_WORKER") is not None:
-            device += os.getenv("PYTEST_XDIST_WORKER").split("w")[1]
+            device += int(os.getenv("PYTEST_XDIST_WORKER").split("w")[1])
             port += int(os.getenv("PYTEST_XDIST_WORKER").split("w")[1]) * 2
-            desired_caps["chromeDriverPort"] = 8200 + int(
-                os.getenv("PYTEST_XDIST_WORKER").split("w")[1]
-            )
             desired_caps["systemPort"] = 8300 + int(
                 os.getenv("PYTEST_XDIST_WORKER").split("w")[1]
             )
@@ -643,21 +651,8 @@ def __local_run_ios(url, desired_caps, use_port, udid, log_file):
             atexit.register(process.kill)
         if udid is None:
             desired_caps = __set_ios_device(desired_caps, device)
-        while True:
-            sleep(0.5)
-            out = open(file_path)
-            text = out.read()
-            if "already be in use" in text or "listener started" in text:
-                out.close()
-                break
-            out.close()
-        # Check Appium Version
-        url = f"http://localhost:{str(port)}/wd/hub"
-        result = subprocess.run(["appium", "-v"], stdout=subprocess.PIPE).stdout
-        if result.decode('utf-8').startswith("2."):
-            # for Appium version > 2.0.0
-            url = f"http://localhost:{str(port)}"
-        return url, desired_caps, file_path
+        __wait_for_appium_start(process, file_path)
+        return __appium_url(port), desired_caps, file_path
 
     return url, desired_caps, process
 

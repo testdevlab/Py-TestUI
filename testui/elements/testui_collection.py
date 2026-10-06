@@ -39,18 +39,10 @@ class Collections:
         :param log: log to console
         """
         start = time.time()
-        threads = []
-        for arg in self.args:
-            threads.append(
-                threading.Thread(
-                    target=arg.wait_until_visible, args=(seconds, log)
-                )
-            )
-        for thread in threads:
-            thread.start()
-        for thread in threads:
-            thread.join()
-        if time.time() < start + seconds:
+        all_found = self.__run_waits(
+            [(arg.wait_until_visible, seconds, log) for arg in self.args]
+        )
+        if all_found:
             logger.log(
                 f"{self.args[0].device_name}: Collection of elements has been "
                 f"found after {time.time() - start}s"
@@ -72,18 +64,10 @@ class Collections:
         :param log: log to console
         """
         start = time.time()
-        threads = []
-        for arg in self.args:
-            threads.append(
-                threading.Thread(
-                    target=arg.wait_until_exists, args=(seconds, log)
-                )
-            )
-        for thread in threads:
-            thread.start()
-        for thread in threads:
-            thread.join()
-        if time.time() < start + seconds:
+        all_found = self.__run_waits(
+            [(arg.wait_until_exists, seconds, log) for arg in self.args]
+        )
+        if all_found:
             logger.log(
                 f"{self.args[0].device_name}: Collection of elements has been "
                 f"found after {time.time() - start}s"
@@ -121,6 +105,7 @@ class Collections:
 
                     return arg
             i += 1
+            time.sleep(0.2)
         self.__show_error(
             f"{self.args[0].device_name}: No element within the collection was "
             f"found visible after {time.time() - start}s:"
@@ -139,22 +124,13 @@ class Collections:
                 "The number of attributes checked must be the same as number "
                 "of elements in collection"
             )
-        threads = []
-        i = 0
-        element: Elements
-        for element in self.args:
-            threads.append(
-                threading.Thread(
-                    target=self.__wait_until_attribute,
-                    args=(element, attr_type[i], attr[i], seconds),
-                )
-            )
-            i += 1
-        for thread in threads:
-            thread.start()
-        for thread in threads:
-            thread.join()
-        if time.time() < start + seconds:
+        all_found = self.__run_waits(
+            [
+                (element.wait_until_attribute, attr_type[i], attr[i], seconds)
+                for i, element in enumerate(self.args)
+            ]
+        )
+        if all_found:
             logger.log(
                 f"{self.args[0].device_name}: Collection of elements has been "
                 "found with the correct attributes "
@@ -180,18 +156,27 @@ class Collections:
         element: Elements = self.args[index]
         return element
 
-    def __wait_until_attribute(
-        self, element: Elements, attr_type, attr, seconds
-    ):
+    def __run_waits(self, waits) -> bool:
         """
-        Wait until element has the correct attribute
-        :param element: element
-        :param attr_type: attribute type
-        :param attr: attribute
-        :param seconds: timeout
+        Runs each (wait, *args) in its own thread.
+        :return: True if no wait raised or recorded a soft-assert error
         """
+        self.__errors = []
+        driver_errors = self.args[0].testui_driver.errors
+        errors_before = len(driver_errors)
+        threads = [
+            threading.Thread(target=self.__run_wait, args=wait)
+            for wait in waits
+        ]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+        return not self.__errors and len(driver_errors) == errors_before
+
+    def __run_wait(self, wait, *args):
         try:
-            element.wait_until_attribute(attr_type, attr, seconds)
+            wait(*args)
         except Exception as err:
             self.__errors.append(err)
 

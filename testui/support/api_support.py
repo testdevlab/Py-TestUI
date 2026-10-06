@@ -19,15 +19,16 @@ def get_chrome_version(version: str):
     chrome_version = ""
     mytree = ET.ElementTree(ET.fromstring(rq.text))
     root = mytree.getroot()
+    platform_name = chrome_name()
     for child in root:
         for child2 in child:
             if not f"{version}." in child2.text:
                 continue
-            if chrome_name() == "arm64" and \
-                    "m1" in child2.text or \
-                    "mac_arm64" in child2.text:
+            if platform_name == "arm64" and (
+                "m1" in child2.text or "mac_arm64" in child2.text
+            ):
                 chrome_version = child2.text.split("/")[0]
-            elif chrome_name() in child2.text:
+            elif platform_name in child2.text:
                 chrome_version = child2.text.split("/")[0]
 
     return chrome_version
@@ -42,7 +43,7 @@ def chrome_name():
     if "linux" in pl:
         return "/chromedriver_linux64.zip"
     if pl == "darwin":
-        if os_architecture() == 64:
+        if platform.machine() == "arm64":
             return "arm64"
         return "/chromedriver_mac64.zip"
     if pl == "win32":

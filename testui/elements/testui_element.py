@@ -325,6 +325,7 @@ class Elements:
             self.__is_not = is_not
             if self.is_visible(log=False):
                 return True
+            time.sleep(0.2)
         return False
 
     def visible_for(self, seconds=1):
@@ -339,7 +340,7 @@ class Elements:
             err_text = "is"
         while time.time() < start + seconds:
             self.__is_not = is_not
-            if not self.is_visible():
+            if not self.is_visible(log=False):
                 return self.__show_error(
                     f"{logger.bcolors.FAIL} {self.device_name} Element "
                     f"{err_text} found with the following locator: "
@@ -458,7 +459,7 @@ class Elements:
                     return self
             except Exception as error:
                 err = error
-                time.sleep(0.2)
+            time.sleep(0.2)
         if err is None:
             err = ""
         return self.__show_error(
@@ -495,7 +496,7 @@ class Elements:
                     return self
             except Exception as error:
                 err = error
-                time.sleep(0.2)
+            time.sleep(0.2)
         if err is None:
             err = ""
         return self.__show_error(
@@ -536,7 +537,7 @@ class Elements:
                     return self
             except Exception as error:
                 err = error
-                time.sleep(0.2)
+            time.sleep(0.2)
         if err is None:
             err = ""
         if log:
@@ -644,17 +645,13 @@ class Elements:
 
     @property
     def location(self):
-        return Dimensions(
-            self.get_element().location.get("x"),
-            self.get_element().location.get("y"),
-        )
+        location = self.get_element().location
+        return Dimensions(location.get("x"), location.get("y"))
 
     @property
     def dimensions(self):
-        return Dimensions(
-            self.get_element().size.get("width"),
-            self.get_element().size.get("height"),
-        )
+        size = self.get_element().size
+        return Dimensions(size.get("width"), size.get("height"))
 
     def screenshot(self, image_name="cropped_image.png"):
         """
@@ -675,7 +672,7 @@ class Elements:
                 "crop dimensions (x,y,w,h):"
                 f"({top_left.x},{top_left.y},{dimensions.x},{dimensions.y})"
             )
-            ImageRecognition(path_img).crop_original_image(
+            ImageRecognition(path_img, path="").crop_original_image(
                 (top_left.x + dimensions.x // 2),
                 (top_left.y + dimensions.y // 2),
                 dimensions.x,
@@ -867,7 +864,7 @@ class Elements:
         :return: Elements
         """
 
-        if el is None and (start_x is None or end_y is None):
+        if el is None and (end_x is None or end_y is None):
             raise Exception(
                 "if element not specified, end_x and end_y are required "
                 "to be able to swipe"
@@ -875,20 +872,21 @@ class Elements:
         if text is None:
             raise Exception("text cannot be None for swipe_until_text method")
         start = time.time()
+        text_element = e(
+            self.testui_driver, "uiautomator", f'textContains("{text}")'
+        )
+        found = text_element.is_visible(log=False)
         for _ in range(max_swipes):
-            try:
-                e(
-                    self.testui_driver, "uiautomator", f'textContains("{text}")'
-                ).wait_until_visible(0.1, False)
+            if found:
                 break
-            except Exception:
-                self.swipe(start_x, start_y, end_x, end_y, el, None)
+            self.swipe(start_x, start_y, end_x, end_y, el, None)
+            found = text_element.is_visible(log=False)
         self.__put_log(
             f'{self.device_name}: element "{self.locator_type}: '
             f'{self.locator}" with text {text} '
-            f"found after {time.time() - start}s"
+            f"{'found' if found else 'not found'} after {time.time() - start}s"
         )
-        return e(self.testui_driver, "uiautomator", f'textContains("{text}")')
+        return text_element
 
     def send_keys(self, value, log=True):
         """
@@ -1125,7 +1123,7 @@ class Elements:
                     return self
                 if (
                     not case_sensitive
-                    and element.get_attribute(attribute).lower()
+                    and (element.get_attribute(attribute) or "").lower()
                     == value.lower()
                 ):
                     self.__put_log(
@@ -1136,6 +1134,7 @@ class Elements:
                     )
                     self.index = i
                     return self
+            time.sleep(0.2)
         self.__show_error(
             f"{self.device_name}: no element in collection "
             f'"{self.locator_type}: {self.locator}" had attribute '
