@@ -68,24 +68,20 @@ class TestUIDriver:
         if last:
             context = len(self.__appium_driver.contexts) - 1
         try:
-            if len(self.__appium_driver.contexts) == 1:
+            contexts = self.__appium_driver.contexts
+            if len(contexts) == 1:
                 logger.log(
                     f"{self.device_name}: There is only one context: "
-                    f"{self.__appium_driver.contexts[context]}"
+                    f"{contexts[context]}"
                 )
-            elif context >= len(self.__appium_driver.contexts):
+            elif context >= len(contexts):
                 logger.log_warn(
                     f"{self.device_name}: Cannot switch to context {context}: "
-                    f"there are just {len(self.__appium_driver.contexts)} "
-                    "contexts"
+                    f"there are just {len(contexts)} contexts"
                 )
-            self.__appium_driver.execute(
-                "switchToContext",
-                {"name": self.__appium_driver.contexts[context]},
-            )
+            self.__appium_driver.switch_to.context(contexts[context])
             logger.log(
-                f"{self.device_name}: Switched to context: "
-                f"{self.__appium_driver.contexts[context]}"
+                f"{self.device_name}: Switched to context: {contexts[context]}"
             )
         except Exception as err:
             if self.__soft_assert:
@@ -101,6 +97,14 @@ class TestUIDriver:
         :return: current context
         """
         return self.__appium_driver.contexts
+
+    @property
+    def current_context(self):
+        """
+        Returns the name of the active context
+        :return: str
+        """
+        return self.__appium_driver.current_context
 
     def e(self, locator_type, locator):
         """
@@ -264,7 +268,9 @@ class TestUIDriver:
 
         return found
 
-    def click_by_image(self, image: str, threshold=0.9, webview=False, ratio=1):
+    def click_by_image(
+        self, image: str, threshold=0.9, webview=False, ratio=1, strict=False
+    ):
         """
         Will click on an element based on the image provided if it can be found
         within the current screen.
@@ -272,25 +278,29 @@ class TestUIDriver:
         :param threshold: limit for comparison
         :param webview: Mobile webview requires a shift in Y coordinates
         :param ratio: click to image dimension ratio
+        :param strict: raise instead of clicking when no match reaches the
+        threshold
         :return: TestUIDriver
         """
         now = datetime.now()
         current_time = now.strftime("%Y-%m-%d%H%M%S")
         image_name = f"{self.device_udid}{current_time}.png"
         im_path = self.save_screenshot(image_name)
-        x, y = get_point_match(im_path, image, threshold, self.device_name)
-        x = int(x * ratio)
-        y = int(y * ratio)
-        if webview:
-            y = y - 120
-        self.click(x, y)
-        logger.log(
-            f"{self.device_name}: element with image {image}"
-            f" clicking on point ({x},{y})"
-        )
-        self.click(x, y)
-
-        self.__delete_screenshot(im_path)
+        try:
+            x, y = get_point_match(
+                im_path, image, threshold, self.device_name, strict
+            )
+            x = int(x * ratio)
+            y = int(y * ratio)
+            if webview:
+                y = y - 120
+            logger.log(
+                f"{self.device_name}: element with image {image}"
+                f" clicking on point ({x},{y})"
+            )
+            self.click(x, y)
+        finally:
+            self.__delete_screenshot(im_path)
 
         return self
 
