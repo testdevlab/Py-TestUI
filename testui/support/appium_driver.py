@@ -1,8 +1,12 @@
 import atexit
+import copy
+import functools
+import json
 import os
 import subprocess
-import threading
+import tempfile
 import time
+import urllib.request
 from pathlib import Path
 from time import sleep
 
@@ -23,6 +27,14 @@ from testui.support import logger
 from testui.support.api_support import get_chrome_version
 from testui.support.testui_driver import TestUIDriver
 from testui.support.configuration import Configuration
+
+APPIUM_START_TIMEOUT = 120
+
+BROWSER_DRIVERS = {
+    "safari": (webdriver.Safari, webdriver.SafariOptions),
+    "edge": (webdriver.Edge, webdriver.EdgeOptions),
+    "ie": (webdriver.Ie, webdriver.IeOptions),
+}
 
 
 class NewDriver:
@@ -60,6 +72,7 @@ class NewDriver:
         self.process = None
         self.file_name = None
         self.__appium_log_file = "appium-stdout.log"
+        self.__appium_args = []
         self.__desired_capabilities = {}
         # TODO: Investigate if should be used in functionality or should be
         # removed.
@@ -82,6 +95,16 @@ class NewDriver:
         :return: self
         """
         self.__appium_log_file = file
+        return self
+
+    def set_appium_args(self, args: list):
+        """
+        Extra arguments for the locally started Appium server,
+        e.g. ["--allow-insecure", "uiautomator2:adb_shell"]
+        :param args: list of arguments
+        :return: self
+        """
+        self.__appium_args = list(args)
         return self
 
     def set_browser(self, browser: str) -> "NewDriver":
@@ -286,6 +309,14 @@ class NewDriver:
         self.__configuration.save_full_stacktrace = save_full_stacktrace
         return self
 
+    def set_isolated_configuration(self):
+        """
+        Gives this driver its own copy of the configuration, so later changes
+        don't affect other drivers. By default all drivers share one.
+        """
+        self.__configuration = copy.copy(self.__configuration)
+        return self
+
     def set_platform(self, platform):
         """
         Set platform
@@ -313,9 +344,6 @@ class NewDriver:
         """Set Android capabilities"""
         if self.__automation_name is None:
             self.__automation_name = "UiAutomator2"
-        self.__desired_capabilities["appium:chromeDriverPort"] = (
-            self.appium_port - 4723 + 8100
-        )
         self.__desired_capabilities["appium:systemPort"] = (
             self.appium_port - 4723 + 8200
         )
@@ -327,7 +355,6 @@ class NewDriver:
             self.__desired_capabilities["appium:appActivity"] = self.__app_activity
         if self.__app_path is not None:
             self.__desired_capabilities["appium:app"] = self.__app_path
-            self.__desired_capabilities["appium:androidInstallPath"] = self.__app_path
 
     def __set_ios_caps(self):
         """Sets the iOS capabilities"""
@@ -366,6 +393,7 @@ class NewDriver:
             self.appium_port,
             self.udid,
             self.__appium_log_file,
+            self.__appium_args,
         )
         return self.get_testui_driver()
 
@@ -403,7 +431,9 @@ class NewDriver:
         return self.get_testui_driver()
 
 
-def start_driver(desired_caps, url, debug, port, udid, log_file):
+def start_driver(
+    desired_caps, url, debug, port, udid, log_file, appium_args=()
+):
     """
     Starts the appium driver
     :param desired_caps: Desired capabilities
@@ -412,23 +442,21 @@ def start_driver(desired_caps, url, debug, port, udid, log_file):
     :param port: Appium port
     :param udid: Device udid
     :param log_file: Appium log file
+    :param appium_args: extra arguments for a locally started Appium server
     :return: Appium driver
     """
-    lock = threading.Lock()
-    lock.acquire()
-
     logger.log("setting capabilities: " + str(desired_caps))
     logger.log("starting appium driver...")
 
     process = None
     if "android" in desired_caps["platformName"].lower():
         url, desired_caps, process, file = __local_run(
-            url, desired_caps, port, udid, log_file
+            url, desired_caps, port, udid, log_file, appium_args
         )
         options = UiAutomator2Options().load_capabilities(desired_caps)
     else:
         url, desired_caps, file = __local_run_ios(
-            url, desired_caps, port, udid, log_file
+            url, desired_caps, port, udid, log_file, appium_args
         )
         options = XCUITestOptions().load_capabilities(desired_caps)
     err = None
@@ -442,11 +470,9 @@ def start_driver(desired_caps, url, debug, port, udid, log_file):
                 driver = Remote(url, options=options)
             atexit.register(__quit_driver, driver, debug)
             logger.log(f"appium running on {url}. \n")
-            lock.release()
             return driver, process, file
         except Exception as error:
             err = error
-    lock.release()
     raise err
 
 
@@ -516,14 +542,17 @@ def start_selenium_driver(
                     )
 
                     driver = webdriver.Firefox(options=options)
-                elif browser.lower() == "safari":
-                    driver = webdriver.Safari(desired_capabilities=desired_caps)
-                elif browser.lower() == "edge":
-                    driver = webdriver.Edge(capabilities=desired_caps)
-                elif browser.lower() == "ie":
-                    driver = webdriver.Ie(capabilities=desired_caps)
+                elif browser.lower() in BROWSER_DRIVERS:
+                    driver_class, options_class = BROWSER_DRIVERS[
+                        browser.lower()
+                    ]
+                    browser_options = options_class()
+                    for key, value in desired_caps.items():
+                        if key != "browserName":
+                            browser_options.set_capability(key, value)
+                    driver = driver_class(options=browser_options)
                 elif browser.lower() == "opera":
-                    driver = webdriver.Opera(desired_capabilities=desired_caps)
+                    raise Exception("Opera is not supported by Selenium 4.10+")
                 else:
                     raise Exception(
                         f"Invalid browser '{browser}'. Please choose one "
@@ -537,7 +566,66 @@ def start_selenium_driver(
     raise err
 
 
-def __local_run(url, desired_caps, use_port, udid, log_file):
+# Bypasses HTTP(S)_PROXY, which would otherwise receive localhost requests
+_LOCAL_OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+
+
+def __appium_ready(url):
+    try:
+        with _LOCAL_OPENER.open(f"{url}/status", timeout=1) as response:
+            return response.status == 200
+    except OSError:
+        return False
+
+
+def __wait_for_appium_start(process, file_path, url):
+    deadline = time.time() + APPIUM_START_TIMEOUT
+    while time.time() < deadline:
+        sleep(0.5)
+        with open(file_path, encoding="utf-8", errors="replace") as log:
+            text = log.read()
+        if (
+            "already be in use" in text
+            or "listener started" in text
+            or __appium_ready(url)
+        ):
+            return
+        if process.poll() is not None:
+            raise Exception(f"Appium exited before starting, see {file_path}")
+    raise Exception(
+        f"Appium did not start within {APPIUM_START_TIMEOUT}s, see {file_path}"
+    )
+
+
+@functools.lru_cache(maxsize=None)
+def __appium_major_version():
+    version = subprocess.run(["appium", "-v"], stdout=subprocess.PIPE).stdout
+    try:
+        return int(version.decode("utf-8").strip().split(".")[0])
+    except (ValueError, IndexError):
+        return 0
+
+
+def __appium_base_path(appium_args):
+    """
+    The server's base path: from --base-path in the extra arguments, otherwise
+    the default of the installed Appium version
+    """
+    for i, arg in enumerate(appium_args):
+        value = None
+        if arg.startswith("--base-path="):
+            value = arg.split("=", 1)[1]
+        elif arg in ("--base-path", "-pa") and i + 1 < len(appium_args):
+            value = appium_args[i + 1]
+        if value is not None:
+            value = value.strip("/")
+            return f"/{value}" if value else ""
+    if __appium_major_version() >= 2:
+        return ""
+    return "/wd/hub"
+
+
+def __local_run(url, desired_caps, use_port, udid, log_file, appium_args=()):
     """
     Starts appium server locally
     :param url: url to connect to
@@ -552,16 +640,14 @@ def __local_run(url, desired_caps, use_port, udid, log_file):
         bport = use_port + 1
         device = 0
         if os.getenv("PYTEST_XDIST_WORKER") is not None:
-            device += os.getenv("PYTEST_XDIST_WORKER").split("w")[1]
+            device += int(os.getenv("PYTEST_XDIST_WORKER").split("w")[1])
             port += int(os.getenv("PYTEST_XDIST_WORKER").split("w")[1]) * 2
-            desired_caps["chromeDriverPort"] = 8200 + int(
-                os.getenv("PYTEST_XDIST_WORKER").split("w")[1]
-            )
             desired_caps["systemPort"] = 8300 + int(
                 os.getenv("PYTEST_XDIST_WORKER").split("w")[1]
             )
             bport += int(os.getenv("PYTEST_XDIST_WORKER").split("w")[1]) * 2
-        logger.log(f"running: appium -p {str(port)}")
+        command = ["appium", "-p", str(port), *appium_args]
+        logger.log(f"running: {' '.join(command)}")
         if udid is None:
             desired_caps = __set_android_device(desired_caps, device)
         logger.log(f'setting device for automation: {desired_caps["appium:udid"]}')
@@ -574,36 +660,21 @@ def __local_run(url, desired_caps, use_port, udid, log_file):
             file_path = os.path.join(log_dir, log_file)
         with open(file_path, "wb") as out:
             process = subprocess.Popen(
-                ["appium", "-p", str(port)],
+                command,
                 stdout=out,
                 stderr=subprocess.STDOUT,
             )
             atexit.register(process.kill)
-        while True:
-            sleep(0.5)
-            out = open(file_path)
-            text = out.read()
-            if "already be in use" in text or "listener started" in text:
-                out.close()
-                break
-            out.close()
-        # Check Appium Version
-        result = subprocess.run(["appium", "-v"], stdout=subprocess.PIPE).stdout
-        url = f"http://localhost:{str(port)}/wd/hub"
-        result_text = result.decode('utf-8').strip()
-        try:
-            major = int(result_text.split('.')[0])
-        except (ValueError, IndexError):
-            major = 0
-        if major >= 2:
-            # for Appium version >= 2.0.0
-            url = f"http://localhost:{port}"
+        url = f"http://localhost:{port}{__appium_base_path(appium_args)}"
+        __wait_for_appium_start(process, file_path, url)
         return url, desired_caps, process, file_path
 
     return url, desired_caps, None, None
 
 
-def __local_run_ios(url, desired_caps, use_port, udid, log_file):
+def __local_run_ios(
+    url, desired_caps, use_port, udid, log_file, appium_args=()
+):
     """
     Starts appium server for iOS
     :param url: url to connect to
@@ -618,15 +689,20 @@ def __local_run_ios(url, desired_caps, use_port, udid, log_file):
         port = use_port + 100
         device = 0
         if os.getenv("PYTEST_XDIST_WORKER") is not None:
-            device += os.getenv("PYTEST_XDIST_WORKER").split("w")[1]
+            device += int(os.getenv("PYTEST_XDIST_WORKER").split("w")[1])
             port += int(os.getenv("PYTEST_XDIST_WORKER").split("w")[1]) * 2
-            desired_caps["chromeDriverPort"] = 8200 + int(
-                os.getenv("PYTEST_XDIST_WORKER").split("w")[1]
-            )
             desired_caps["systemPort"] = 8300 + int(
                 os.getenv("PYTEST_XDIST_WORKER").split("w")[1]
             )
-        logger.log(f"running: appium -p {str(port)}")
+            # WebDriverAgent and its video stream need their own ports per
+            # parallel session; caps set through set_extra_caps take priority
+            for cap, default_port in (
+                ("wdaLocalPort", 8100), ("mjpegServerPort", 9100)
+            ):
+                if not {cap, f"appium:{cap}"} & desired_caps.keys():
+                    desired_caps[f"appium:{cap}"] = default_port + device
+        command = ["appium", "-p", str(port), *appium_args]
+        logger.log(f"running: {' '.join(command)}")
         log_dir = os.path.join("./logs", "appium_logs")
         Path(log_dir).mkdir(parents=True, exist_ok=True)
         file_path: str
@@ -636,27 +712,15 @@ def __local_run_ios(url, desired_caps, use_port, udid, log_file):
             file_path = os.path.join(log_dir, log_file)
         with open(file_path, "wb") as out:
             process = subprocess.Popen(
-                ["appium", "-p", str(port)],
+                command,
                 stdout=out,
                 stderr=subprocess.STDOUT,
             )
             atexit.register(process.kill)
         if udid is None:
             desired_caps = __set_ios_device(desired_caps, device)
-        while True:
-            sleep(0.5)
-            out = open(file_path)
-            text = out.read()
-            if "already be in use" in text or "listener started" in text:
-                out.close()
-                break
-            out.close()
-        # Check Appium Version
-        url = f"http://localhost:{str(port)}/wd/hub"
-        result = subprocess.run(["appium", "-v"], stdout=subprocess.PIPE).stdout
-        if result.decode('utf-8').startswith("2."):
-            # for Appium version > 2.0.0
-            url = f"http://localhost:{str(port)}"
+        url = f"http://localhost:{port}{__appium_base_path(appium_args)}"
+        __wait_for_appium_start(process, file_path, url)
         return url, desired_caps, file_path
 
     return url, desired_caps, process
@@ -674,10 +738,93 @@ def __set_android_device(desired_caps, number: int):
 
 
 def __set_ios_device(desired_caps, number: int):
-    # TODO implement function
-    _ = number
-
+    """
+    Under pytest-xdist, gives each worker its own iOS device: connected real
+    devices first, then booted simulators. Otherwise Appium chooses the device.
+    :param desired_caps: desired capabilities
+    :param number: device index
+    :return: desired capabilities
+    """
+    if os.getenv("PYTEST_XDIST_WORKER") is None:
+        return desired_caps
+    devices = __ios_real_devices() + __ios_booted_simulators()
+    if not devices:
+        logger.log_warn("No iOS devices found, Appium will choose the device")
+        return desired_caps
+    desired_caps["appium:udid"] = __pick_device(devices, number)
     return desired_caps
+
+
+def __ios_real_devices():
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        json_path = os.path.join(tmp_dir, "devices.json")
+        try:
+            subprocess.run(
+                ["xcrun", "devicectl", "list", "devices", "--json-output",
+                 json_path],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                check=True,
+            )
+            with open(json_path, encoding="utf-8") as file:
+                devices = json.load(file)["result"]["devices"]
+        except (OSError, subprocess.CalledProcessError, ValueError, KeyError):
+            return []
+    udids = []
+    for device in devices:
+        hardware = device.get("hardwareProperties", {})
+        # Paired devices that are out of reach have no transport type
+        connected = device.get("connectionProperties", {}).get("transportType")
+        if (
+            connected
+            and hardware.get("platform") == "iOS"
+            and hardware.get("reality") == "physical"
+            and hardware.get("udid")
+        ):
+            udids.append(hardware["udid"])
+    return udids
+
+
+def __ios_booted_simulators():
+    try:
+        output = subprocess.run(
+            ["xcrun", "simctl", "list", "devices", "booted", "--json"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            check=True,
+        ).stdout
+        runtimes = json.loads(output)["devices"]
+    except (OSError, subprocess.CalledProcessError, ValueError, KeyError):
+        return []
+    return [
+        simulator["udid"]
+        for runtime, simulators in sorted(runtimes.items())
+        if ".iOS-" in runtime
+        for simulator in simulators
+        if simulator.get("state") == "Booted"
+    ]
+
+
+def __pick_device(devices: list, number: int):
+    """
+    Picks the device at the index, wrapping around when there are fewer
+    devices than the index
+    :param devices: device udids
+    :param number: device index
+    :return: device udid
+    """
+    if len(devices) > number:
+        logger.log(f"Setting device: {devices[number]}")
+        return devices[number]
+
+    new_number = number % len(devices)
+    logger.log_warn(
+        f"You choose device number {number + 1} but there are only "
+        f"{len(devices)} connected. "
+        f"Will use device number {new_number + 1} instead",
+        jump_line=True,
+    )
+    return devices[new_number]
 
 
 def get_device_udid(number: int):
@@ -687,21 +834,10 @@ def get_device_udid(number: int):
     :return: device udid
     """
     client = AdbClient(host="127.0.0.1", port=5037)
-    devices = client.devices()
+    devices = [device.get_serial_no() for device in client.devices()]
     if len(devices) == 0:
         raise Exception("There are 0 devices connected to the computer!")
-    if len(devices) > number:
-        logger.log(f"Setting device: {devices[number].get_serial_no()}")
-        return devices[number].get_serial_no()
-
-    new_number = number - (number // len(devices)) * len(devices)
-    logger.log_warn(
-        f"You choose device number {number + 1} but there are only "
-        f"{len(devices)} connected. "
-        f"Will use device number {new_number + 1} instead",
-        jump_line=True,
-    )
-    return devices[new_number].get_serial_no()
+    return __pick_device(devices, number)
 
 
 def check_device_exist(udid):

@@ -1,4 +1,5 @@
 import base64
+import functools
 import os
 import warnings
 
@@ -16,9 +17,12 @@ from testui.support.helpers import error_with_traceback
 from testui.support.testui_images import get_point_match, ImageRecognition
 from testui.support.configuration import Configuration
 
+_NO_ARGS = object()
+
 
 def deprecated(message):
     def decorator(func):
+        @functools.wraps(func)
         def wrapper(*args, **kwargs):
             warnings.warn(
                 f"{func.__name__} is deprecated: {message}",
@@ -64,24 +68,20 @@ class TestUIDriver:
         if last:
             context = len(self.__appium_driver.contexts) - 1
         try:
-            if len(self.__appium_driver.contexts) == 1:
+            contexts = self.__appium_driver.contexts
+            if len(contexts) == 1:
                 logger.log(
                     f"{self.device_name}: There is only one context: "
-                    f"{self.__appium_driver.contexts[context]}"
+                    f"{contexts[context]}"
                 )
-            elif context >= len(self.__appium_driver.contexts):
+            elif context >= len(contexts):
                 logger.log_warn(
                     f"{self.device_name}: Cannot switch to context {context}: "
-                    f"there are just {len(self.__appium_driver.contexts)} "
-                    "contexts"
+                    f"there are just {len(contexts)} contexts"
                 )
-            self.__appium_driver.execute(
-                "switchToContext",
-                {"name": self.__appium_driver.contexts[context]},
-            )
+            self.__appium_driver.switch_to.context(contexts[context])
             logger.log(
-                f"{self.device_name}: Switched to context: "
-                f"{self.__appium_driver.contexts[context]}"
+                f"{self.device_name}: Switched to context: {contexts[context]}"
             )
         except Exception as err:
             if self.__soft_assert:
@@ -97,6 +97,14 @@ class TestUIDriver:
         :return: current context
         """
         return self.__appium_driver.contexts
+
+    @property
+    def current_context(self):
+        """
+        Returns the name of the active context
+        :return: str
+        """
+        return self.__appium_driver.current_context
 
     def e(self, locator_type, locator):
         """
@@ -178,14 +186,15 @@ class TestUIDriver:
         logger.log(f"{self.device_name}: Navigating to: {url}")
         return self
 
-    def execute_script(self, driver_command, args: None) -> dict:
+    def execute_script(self, driver_command, args=_NO_ARGS, *more_args) -> dict:
         """
         Will execute a JavaScript script in the current window/frame.
         :param driver_command:
-        :param args:
+        :param args: optional script arguments
         :return: dict of the result of executed script
         """
-        return self.driver.execute_script(driver_command, args)
+        script_args = () if args is _NO_ARGS else (args, *more_args)
+        return self.driver.execute_script(driver_command, *script_args)
 
     @property
     def switch_to(self):
@@ -259,7 +268,9 @@ class TestUIDriver:
 
         return found
 
-    def click_by_image(self, image: str, threshold=0.9, webview=False, ratio=1):
+    def click_by_image(
+        self, image: str, threshold=0.9, webview=False, ratio=1, strict=False
+    ):
         """
         Will click on an element based on the image provided if it can be found
         within the current screen.
@@ -267,25 +278,29 @@ class TestUIDriver:
         :param threshold: limit for comparison
         :param webview: Mobile webview requires a shift in Y coordinates
         :param ratio: click to image dimension ratio
+        :param strict: raise instead of clicking when no match reaches the
+        threshold
         :return: TestUIDriver
         """
         now = datetime.now()
         current_time = now.strftime("%Y-%m-%d%H%M%S")
         image_name = f"{self.device_udid}{current_time}.png"
         im_path = self.save_screenshot(image_name)
-        x, y = get_point_match(im_path, image, threshold, self.device_name)
-        x = int(x * ratio)
-        y = int(y * ratio)
-        if webview:
-            y = y - 120
-        self.click(x, y)
-        logger.log(
-            f"{self.device_name}: element with image {image}"
-            f" clicking on point ({x},{y})"
-        )
-        self.click(x, y)
-
-        self.__delete_screenshot(im_path)
+        try:
+            x, y = get_point_match(
+                im_path, image, threshold, self.device_name, strict
+            )
+            x = int(x * ratio)
+            y = int(y * ratio)
+            if webview:
+                y = y - 120
+            logger.log(
+                f"{self.device_name}: element with image {image}"
+                f" clicking on point ({x},{y})"
+            )
+            self.click(x, y)
+        finally:
+            self.__delete_screenshot(im_path)
 
         return self
 
@@ -509,7 +524,7 @@ class TestUIDriver:
         current_time = now.strftime("%Y-%m-%d%H%M%S")
         log_dir = self.__configuration.screenshot_path
         video_name = f"{self.device_udid}{current_time}.mp4"
-        self.stop_recording_screen(os.path.join(log_dir, video_name))
+        self.stop_recording_screen(video_name)
         found = ImageRecognition(
             video_name,
             comparison,

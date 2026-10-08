@@ -16,6 +16,8 @@ class TestStringMethods:
         options = Options()
         options.add_argument("disable-user-media-security")
         options.add_argument("headless")
+        # 1 = light; README images have transparent backgrounds
+        options.add_argument("blink-settings=preferredColorScheme=1")
         driver = (
             NewDriver()
             .set_logger()
@@ -33,18 +35,28 @@ class TestStringMethods:
         selenium_driver.navigate_to(
             "https://github.com/testdevlab/Py-TestUI#image-recognition"
         )
+        heading = e(
+            selenium_driver,
+            'xpath',
+            '//h3[contains(text(), "Image Recognition:")]',
+        ).wait_until_visible()
+        # GitHub's own anchor scroll is animated and still running when the
+        # screenshot would be taken
+        selenium_driver.execute_script(
+            "arguments[0].scrollIntoView({behavior: 'instant'})",
+            heading.get_element(),
+        )
         image_result = os.path.join(test_dir, "..", "logs", "image.png")
         image_compare = os.path.join(test_dir, "..", "resources", "comp.png")
         selenium_driver.find_image_match(
             image_compare, 0.1, True, image_match=image_result
         )
-        e(selenium_driver, 'xpath', '//h3[contains(text(), "Image Recognition:")]')\
-            .wait_until_visible().press_hold_for()
-        e(selenium_driver, 'xpath', '//h3[contains(text(), "Image Recognition:")]')\
-            .swipe(start_x=50, start_y=50, end_x=100, end_y=100)
+        heading.press_hold_for()
+        heading.swipe(start_x=50, start_y=50, end_x=100, end_y=100)
         selenium_driver.navigate_to(
             "https://www.testdevlab.com/"
-        ).e('css', '#email').wait_until_exists(10).send_keys('some@email.com')
+        ).e('css', '#emailaddress').wait_until_exists(10)\
+            .send_keys('some@email.com')
         selenium_driver.raise_errors()
 
     @pytest.mark.signup
