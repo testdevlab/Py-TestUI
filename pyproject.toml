@@ -1,7 +1,47 @@
 [build-system]
-requires = ["setuptools>=43.0.0", "wheel"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "python-testui"
+version = "2.0.0"
+description = "Browser and Mobile automation framework"
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "Alvaro Santos Laserna Lopez" }]
+requires-python = ">=3.11, <4"
+keywords = ["Py-TestUI", "mobile automation", "browser automation"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Quality Assurance",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+dependencies = [
+    "pytest>=8.0,<10",
+    "Appium-Python-Client>=5.0.0,<7",
+    "selenium>=4.26,<5",
+    "requests>=2.28",
+    "opencv-python>=4.10.0.84,<6",
+    "numpy>=1.26,<3",
+    "pytest-xdist>=3.0,<4",
+    "pytest-testrail>=3.1,<4",
+    "webdriver-manager>=4.0.2,<5",
+]
+
+[project.urls]
+Homepage = "https://github.com/testdevlab/Py-TestUI"
+Source = "https://github.com/testdevlab/Py-TestUI"
+Tracker = "https://github.com/testdevlab/Py-TestUI/issues"
+TestDevLab = "https://www.testdevlab.com/"
+
+[tool.setuptools.packages.find]
+include = ["testui*"]
 
 [tool.black]
 line-length = 80

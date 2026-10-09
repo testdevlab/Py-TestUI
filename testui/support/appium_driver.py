@@ -3,6 +3,8 @@ import copy
 import functools
 import json
 import os
+import re
+import shutil
 import subprocess
 import tempfile
 import time
@@ -10,9 +12,6 @@ import urllib.request
 from pathlib import Path
 from time import sleep
 
-import geckodriver_autoinstaller
-
-from ppadb.client import Client as AdbClient
 from appium.webdriver import Remote
 from appium.webdriver.webdriver import WebDriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
@@ -355,6 +354,7 @@ class NewDriver:
             self.__desired_capabilities["appium:appActivity"] = self.__app_activity
         if self.__app_path is not None:
             self.__desired_capabilities["appium:app"] = self.__app_path
+        self.__set_force_app_launch()
 
     def __set_ios_caps(self):
         """Sets the iOS capabilities"""
@@ -371,6 +371,17 @@ class NewDriver:
             self.__desired_capabilities["appium:app"] = self.__app_path
         if self.__bundle_id is not None:
             self.__desired_capabilities["appium:bundleId"] = self.__bundle_id
+        self.__set_force_app_launch()
+
+    def __set_force_app_launch(self):
+        """
+        With noReset, Appium leaves an app that is already running in the
+        background as it is, instead of restarting it
+        """
+        own_setting = {"forceAppLaunch", "appium:forceAppLaunch"}
+        caps = self.__desired_capabilities
+        if not self.browser and not own_setting & caps.keys():
+            caps["appium:forceAppLaunch"] = True
 
     def __set_selenium_caps(self):
         """Sets the selenium capabilities"""
@@ -455,19 +466,14 @@ def start_driver(
         )
         options = UiAutomator2Options().load_capabilities(desired_caps)
     else:
-        url, desired_caps, file = __local_run_ios(
+        url, desired_caps, process, file = __local_run_ios(
             url, desired_caps, port, udid, log_file, appium_args
         )
         options = XCUITestOptions().load_capabilities(desired_caps)
     err = None
     for _ in range(2):
         try:
-            import warnings
-
-            with warnings.catch_warnings():
-                # To suppress a warning from an issue on selenium side
-                warnings.filterwarnings("ignore", category=DeprecationWarning)
-                driver = Remote(url, options=options)
+            driver = Remote(url, options=options)
             atexit.register(__quit_driver, driver, debug)
             logger.log(f"appium running on {url}. \n")
             return driver, process, file
@@ -526,13 +532,6 @@ def start_selenium_driver(
                     logger.log(f"final options: {str(options.to_capabilities())}")
                     driver = webdriver.Chrome(options=options)
                 elif browser.lower() == "firefox":
-                    try:
-                        geckodriver_autoinstaller.install()
-                    except Exception as error:
-                        logger.log_warn(
-                            "Could not retrieve geckodriver: " + str(error)
-                        )
-
                     if options is None:
                         options = FirefoxOptions()
                     for key, value in desired_caps.items():
@@ -682,9 +681,8 @@ def __local_run_ios(
     :param use_port: port to use
     :param udid: device udid
     :param log_file: log file name
-    :return: url, desired capabilities, process
+    :return: url, desired capabilities, appium process, log file
     """
-    process = None
     if url is None:
         port = use_port + 100
         device = 0
@@ -721,9 +719,9 @@ def __local_run_ios(
             desired_caps = __set_ios_device(desired_caps, device)
         url = f"http://localhost:{port}{__appium_base_path(appium_args)}"
         __wait_for_appium_start(process, file_path, url)
-        return url, desired_caps, file_path
+        return url, desired_caps, process, file_path
 
-    return url, desired_caps, process
+    return url, desired_caps, None, None
 
 
 def __set_android_device(desired_caps, number: int):
@@ -827,14 +825,30 @@ def __pick_device(devices: list, number: int):
     return devices[new_number]
 
 
+def __adb():
+    # IDE runs may lack the shell PATH; Appium also finds adb via ANDROID_HOME
+    sdk = os.getenv("ANDROID_HOME") or os.getenv("ANDROID_SDK_ROOT")
+    if shutil.which("adb") is None and sdk:
+        return os.path.join(sdk, "platform-tools", "adb")
+    return "adb"
+
+
+def __adb_devices():
+    output = subprocess.run(
+        [__adb(), "devices"], stdout=subprocess.PIPE, check=False
+    ).stdout.decode("utf-8", "replace")
+    return [
+        line.split("\t")[0] for line in output.splitlines() if "\t" in line
+    ]
+
+
 def get_device_udid(number: int):
     """
     Get device udid by index
     :param number: device index
     :return: device udid
     """
-    client = AdbClient(host="127.0.0.1", port=5037)
-    devices = [device.get_serial_no() for device in client.devices()]
+    devices = __adb_devices()
     if len(devices) == 0:
         raise Exception("There are 0 devices connected to the computer!")
     return __pick_device(devices, number)
@@ -846,11 +860,8 @@ def check_device_exist(udid):
     :param udid: device udid
     :return: device udid if exist, None otherwise
     """
-    client = AdbClient(host="127.0.0.1", port=5037)
-    devices = client.devices()
-    for device in devices:
-        if device.get_serial_no() == udid:
-            return udid
+    if udid in __adb_devices():
+        return udid
     return None
 
 
@@ -858,11 +869,11 @@ def check_chrome_version(udid):
     """
     Check chrome version on device
     :param udid: device udid
-    :return: chrome version if exist, None otherwise
+    :return: matching chromedriver version, None if Chrome isn't installed
     """
     output = subprocess.Popen(
         [
-            "adb",
+            __adb(),
             "-s",
             udid,
             "shell",
@@ -875,11 +886,12 @@ def check_chrome_version(udid):
         ],
         stdout=subprocess.PIPE,
     )
-    response = output.communicate()
-    if "versionName=" in str(response):
-        return get_chrome_version(
-            str(response).split("versionName=")[1].split(".")[0]
-        )
+    stdout, _ = output.communicate()
+    version_name = re.search(
+        r"versionName=([\d.]+)", stdout.decode("utf-8", "replace")
+    )
+    if version_name:
+        return get_chrome_version(version_name.group(1))
 
     return None
 

@@ -486,7 +486,7 @@ class Elements:
         while time.time() < start + seconds:
             try:
                 value = self.get_element().get_attribute(attr)
-                if text in value != self.__is_not:
+                if (text in value) != self.__is_not:
                     self.__put_log(
                         f'element "{self.locator_type}: {self.locator}" has '
                         f'attribute "{attr}" {info_text} "{text}" after '
@@ -526,7 +526,7 @@ class Elements:
         while time.time() < start + seconds:
             try:
                 value = self.get_element().get_attribute(attr)
-                if text.lower() in value.lower() != self.__is_not:
+                if (text.lower() in value.lower()) != self.__is_not:
                     self.__put_log(
                         f'{self.device_name}: element "{self.locator_type}: '
                         f'{self.locator}" has attribute "{attr}" -> "{value}" '
@@ -596,7 +596,7 @@ class Elements:
             try:
                 actions = self.testui_driver.actions()
                 actions.w3c_actions.pointer_action.click_and_hold(self.get_element())
-                actions.w3c_actions.pointer_action.pause(milliseconds // 1000)
+                actions.w3c_actions.pointer_action.pause(milliseconds / 1000)
                 actions.w3c_actions.pointer_action.release()
                 actions.perform()
 
