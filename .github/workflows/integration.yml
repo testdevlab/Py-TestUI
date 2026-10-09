@@ -10,13 +10,21 @@ on:
 
   workflow_dispatch:
 
+  # New releases inside the pyproject.toml ranges reach users without a Dependabot PR
+  schedule:
+    - cron: "0 6 * * 1"
+
 jobs:
   integration_test:
     runs-on: ubuntu-latest
-    continue-on-error: true
     strategy:
+      fail-fast: false
       matrix:
-        python-version: [ "3.9", "3.10", "3.11", "3.12" ]
+        python-version: [ "3.11", "3.12", "3.13", "3.14" ]
+        deps: [ "latest" ]
+        include:
+          - python-version: "3.11"
+            deps: "oldest"
 
     steps:
       - uses: actions/checkout@v4
@@ -25,11 +33,21 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
+      - name: install oldest supported dependencies
+        if: matrix.deps == 'oldest'
+        run: >-
+          python -m pip install "pytest==8.0.0" "Appium-Python-Client==5.0.0"
+          "selenium==4.26.0" "requests==2.28.0" "numpy==1.26.4"
+          "opencv-python==4.10.0.84" "pytest-xdist==3.0.2"
+          "pytest-testrail==3.1.0" "webdriver-manager==4.0.2"
       - name: install requirements
         run: python -m pip install -r requirements.txt
       - name: Analysing the code with pylint
+        if: matrix.python-version == '3.14' && matrix.deps == 'latest'
         run: |
           pylint $(git ls-files '*.py')
+      - name: Unit tests
+        run: python -m pytest tests/unit
       - uses: browser-actions/setup-chrome@latest
       - run: chrome --version
       - name: Integration browser test with Pytest

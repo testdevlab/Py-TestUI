@@ -11,7 +11,7 @@ from testui.support.testui_driver import TestUIDriver
 test_dir = os.path.dirname(__file__)
 
 class TestStringMethods:
-    @pytest.yield_fixture(autouse=True)
+    @pytest.fixture(autouse=True)
     def selenium_driver(self):
         options = Options()
         options.add_argument("disable-user-media-security")

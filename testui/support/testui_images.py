@@ -4,7 +4,6 @@ import time
 
 import cv2
 import numpy as np
-import imutils
 
 from testui.support import logger
 
@@ -79,6 +78,13 @@ def compare_video_image(
     return False, percentage
 
 
+def __resize_to_width(image, width):
+    # Same rounding as imutils.resize, so match scores don't change
+    ratio = width / float(image.shape[1])
+    height = int(image.shape[0] * ratio)
+    return cv2.resize(image, (width, height), interpolation=cv2.INTER_AREA)
+
+
 def __compare(
     image,
     template,
@@ -114,7 +120,7 @@ def __compare(
             return True, state.matched
         # resize the image according to the scale, and keep track of the ratio
         # of the resizing.
-        resized = imutils.resize(image, width=int(image.shape[1] * scale))
+        resized = __resize_to_width(image, int(image.shape[1] * scale))
         r = image.shape[1] / float(resized.shape[1])
         # if the resized image is smaller than the template, then break from
         # the loop
@@ -261,7 +267,7 @@ def get_point_match(
     for scale in np.linspace(0.2, 2.0, 30)[::-1]:
         # resize the image according to the scale, and keep track of the ratio
         # of the resizing
-        resized = imutils.resize(image, width=int(image.shape[1] * scale))
+        resized = __resize_to_width(image, int(image.shape[1] * scale))
         r = image.shape[1] / float(resized.shape[1])
         # if the resized image is smaller than the template, then break from
         # the loop
@@ -490,12 +496,8 @@ class ImageRecognition:
         """
         # Read the images from the file
         img = cv2.imread(_image_path(self.__original, self.__path))
-        y = center_y - height // 2
-        if y < 0:
-            y *= -1
-        x = center_x - width // 2
-        if x < 0:
-            x *= -1
+        y = max(0, center_y - height // 2)
+        x = max(0, center_x - width // 2)
         img_2 = img[y : y + height, x : x + width]
         cv2.imwrite(image_name, img_2)
         return self

@@ -14,14 +14,12 @@ def parallel_testui():
     """
     remove_logs()
     args = __arg_parser()
-    try:
-        os.remove("report_fails.txt")
-    except FileNotFoundError:
-        pass
-    try:
-        os.remove("report_cases.txt")
-    except FileNotFoundError:
-        pass
+    # A crashed run can leave these behind, and they are only appended to
+    for leftover in ("report_fails.txt", "report_cases.txt", "fails.txt"):
+        try:
+            os.remove(leftover)
+        except FileNotFoundError:
+            pass
     test_run_id = None
     if args.testrail_id is not None:
         test_run_id = args.testrail_id
@@ -39,16 +37,10 @@ def parallel_testui():
     start = time.time()
     __start_processes(args.markers, args, test_run_id)
     end_time = time.time() - start
-    f = open("fails.txt")
-    fails = f.read()
-
-    passed = 0
-    fail = 0
-    for letter in fails:
-        if letter == "0":
-            passed += 1
-        if letter == "2":
-            fail += 1
+    with open("fails.txt", encoding="utf-8") as fails_file:
+        exit_codes = [int(code) for code in fails_file.read().split()]
+    passed = exit_codes.count(0)
+    fail = len(exit_codes) - passed
     if fail != 0:
         os.remove("fails.txt")
         number_of_fails = __check_number_of_fails()
@@ -107,7 +99,7 @@ def remove_logs():
     i = 0
     try:
         for filename in os.listdir(os.path.join(log_dir, "appium_logs")):
-            file_path = os.path.join(log_dir, filename)
+            file_path = os.path.join(log_dir, "appium_logs", filename)
             os.remove(file_path)
             if i == 0:
                 logger.log("Cleaning appium_logs folder...")
@@ -118,6 +110,8 @@ def remove_logs():
     try:
         for filename in os.listdir(log_dir):
             file_path = os.path.join(log_dir, filename)
+            if os.path.isdir(file_path):
+                continue
             os.remove(file_path)
             if i == 0:
                 logger.log("Cleaning logs folder...")
@@ -353,6 +347,8 @@ def __start_run_id(args, test_run_name):
             "--testrail",
             "--tr-config=testrail.cfg",
             f"--tr-testrun-name={test_run_name}",
+            # pytest-testrail 3.x reports the new run ID through logging
+            "--log-cli-level=INFO",
         ]
         if args.testrail_pwd is not None:
             cmd.append(f"--tr-password={args.testrail_pwd}")
@@ -367,10 +363,9 @@ def __start_run_id(args, test_run_name):
             process.terminate()
             process.wait()
             os.remove("testrail_id_file.txt")
-            if "ID=" in text:
-                id_test = text.split("ID=")[1]
-                if "\n" in text.split("ID=")[1]:
-                    id_test = text.split("ID=")[1].split("\n")[0]
+            created = text.partition("New testrun created")[2]
+            if "ID=" in created:
+                id_test = created.split("ID=")[1].split("\n")[0].strip()
                 logger.log_info(f"Test run: {id_test}")
                 return id_test
             raise Exception("Failed to create Test Run")
@@ -418,13 +413,15 @@ def __process(markers: list, args, thread=0, test_run_id=None):
             f"{testrail}{' --tr-password=****' if password else ''} "
             f"{args.general} {cache}"
         )
-        pr_1 = os.system(
+        # shell=True keeps os.system's parsing of the --general flags
+        pr_1 = subprocess.run(
             f'pytest {quiet} -m "{marker} {args.general_markers}" '
-            f"{testrail}{password} {args.general} {cache}"
-        )
-        file = open("fails.txt", "a+")
-        file.write(f"{pr_1}")
-        file.close()
+            f"{testrail}{password} {args.general} {cache}",
+            shell=True,
+            check=False,
+        ).returncode
+        with open("fails.txt", "a+", encoding="utf-8") as file:
+            file.write(f"{pr_1}\n")
         if f"{pr_1}" == "0":
             logger.log_pass(
                 f'FINISHED RUN WITH MARKERS: "{marker} {args.general_markers}" '
