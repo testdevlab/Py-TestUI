@@ -28,7 +28,7 @@ The Py-TestUI API is unchanged. Review the following before upgrading:
    `geckodriver-autoinstaller` are no longer installed. If your code imports
    them, add them to your own requirements.
 3. **Android:** `adb` must be on `PATH`, or `ANDROID_HOME` must be set.
-4. **Bug fixes that change results:** see [Behavior fixes](#behavior-fixes).
+4. **Bug fixes that change results:** see [Behavior Fixes](#behavior-fixes).
 5. **Updated libraries:** if your code uses them directly, check the notes
    below.
 
@@ -59,7 +59,7 @@ The Py-TestUI API is unchanged. Review the following before upgrading:
   and `collection_path`, `file_path` or `module_path` instead of `path`.
 - **pytest-xdist 3:** `--boxed` is removed; use pytest-forked.
 
-## Behavior fixes
+## Behavior Fixes
 
 | Change | What to check |
 | --- | --- |
@@ -72,7 +72,7 @@ The Py-TestUI API is unchanged. Review the following before upgrading:
 
 To stay on 1.x, pin `python-testui<2`.
 
-# Appium driver
+# Appium Driver
 
 Create a `TestUIDriver` for Appium automation:
 
@@ -92,7 +92,7 @@ driver: TestUIDriver = (
 On Android, the first connected device is used by default. To select a device,
 and always on iOS, call `.set_udid("udid")` before `.set_appium_driver()`.
 
-# Selenium desktop driver
+# Selenium Desktop Driver
 
 Py-TestUI supports the following browsers:
 
@@ -130,7 +130,7 @@ Py-TestUI provides the following global settings:
 - `save_full_stacktrace: bool`: whether the full stack trace is saved for
   errors (default: `True`).
 
-## Configuration through `NewDriver()`
+## Configuration Through `NewDriver()`
 
 Settings can be applied when the driver is created:
 
@@ -147,7 +147,7 @@ driver: TestUIDriver = (
 )
 ```
 
-## Configuration through `driver.configuration`
+## Configuration Through `driver.configuration`
 
 Settings can also be changed at any point during execution through the
 `configuration` attribute of a `TestUIDriver`:
@@ -158,7 +158,7 @@ driver.configuration.save_screenshot_on_fail = False
 driver.configuration.save_full_stacktrace = False
 ```
 
-# Writing tests
+# Writing Tests
 
 Py-TestUI follows the Page Object Model (POM) pattern: the elements and actions
 of a screen are defined in one class, so a change in the application only needs
@@ -255,7 +255,7 @@ collection.wait_until_attribute([attr_1, attr_2], [value_1, value_2])
 collection.get(0)  # Returns the first element
 ```
 
-## Image recognition
+## Image Recognition
 
 Py-TestUI includes OpenCV to check whether an image is shown on the screen. The
 OpenCV API can be used directly, or through the built-in methods:
